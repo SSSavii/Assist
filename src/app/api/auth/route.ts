@@ -3,9 +3,9 @@ import db from '@/lib/init-database'; // Импортируем из общег�
 import { URLSearchParams } from 'url';
 import { createHmac } from 'crypto';
 
-const REFERRAL_BONUS = 500; 
+const REFERRAL_BONUS = 500;
 
-// Добавляем отсутствующий интерфейс
+// Интерфейс пользователя из базы данных
 interface UserFromDB {
   id: number;
   tg_id: number;
@@ -19,6 +19,17 @@ interface UserFromDB {
   cases_to_open: number;
   created_at: string;
   last_login_at: string;
+  subscribed: number; // 0 или 1
+  voted: number;     // 0 или 1
+}
+
+// Ответ, который будет отправлен на клиент
+interface AuthResponse extends Omit<UserFromDB, 'subscribed' | 'voted'> {
+  tasks_completed: {
+    subscribe: boolean;
+    vote: boolean;
+    invite: boolean; // можно уточнить позже при реализации проверки приглашений
+  };
 }
 
 function validateTelegramHash(initData: string, botToken: string): boolean {
@@ -29,13 +40,13 @@ function validateTelegramHash(initData: string, botToken: string): boolean {
     params.delete('hash');
     const dataCheckArr: string[] = [];
     const sortedKeys = Array.from(params.keys()).sort();
-    sortedKeys.forEach(key => dataCheckArr.push(`${key}=${params.get(key)}`));
+    sortedKeys.forEach((key) => dataCheckArr.push(`${key}=${params.get(key)}`));
     const dataCheckString = dataCheckArr.join('\n');
     const secretKey = createHmac('sha256', 'WebAppData').update(botToken).digest();
     const ownHash = createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
     return ownHash === hash;
   } catch (error) {
-    console.error("Error during hash validation:", error);
+    console.error('Error during hash validation:', error);
     return false;
   }
 }
@@ -71,13 +82,31 @@ export async function POST(req: NextRequest) {
     const startParam = params.get('start_param');
 
     if (!userData.id) {
-        console.error('[FAIL] User data or user ID is missing in initData.');
-        return NextResponse.json({ error: 'Invalid user data in initData' }, { status: 400 });
+      console.error('[FAIL] User data or user ID is missing in initData.');
+      return NextResponse.json({ error: 'Invalid user data in initData' }, { status: 400 });
     }
     console.log(`[INFO] Processing user with tg_id: ${userData.id}`);
 
     let finalUser: UserFromDB | undefined;
-    const findUserStmt = db.prepare('SELECT * FROM users WHERE tg_id = ?');
+    const findUserStmt = db.prepare(`
+      SELECT 
+        id,
+        tg_id,
+        username,
+        first_name,
+        last_name,
+        referred_by_id,
+        balance_crystals,
+        last_tap_date,
+        daily_taps_count,
+        cases_to_open,
+        created_at,
+        last_login_at,
+        COALESCE(subscribed, 0) AS subscribed,
+        COALESCE(voted, 0) AS voted
+      FROM users 
+      WHERE tg_id = ?
+    `);
     const existingUser = findUserStmt.get(userData.id) as UserFromDB | undefined;
 
     if (existingUser) {
@@ -94,59 +123,88 @@ export async function POST(req: NextRequest) {
     } else {
       console.log(`[DB LOGIC] User ${userData.id} NOT FOUND. Creating...`);
       let referredById: number | null = null;
-      
+
       if (startParam && startParam.startsWith('ref_')) {
         const refIdStr = startParam.split('_')[1];
         const refId = parseInt(refIdStr, 10);
-        
+
         if (!isNaN(refId)) {
           const findReferrerStmt = db.prepare('SELECT id FROM users WHERE id = ?');
           const referrer = findReferrerStmt.get(refId) as { id: number } | undefined;
-          
+
           if (referrer) {
             referredById = referrer.id;
-        
+
             const rewardTransaction = db.transaction(() => {
-                db.prepare('UPDATE users SET balance_crystals = balance_crystals + ? WHERE id = ?').run(REFERRAL_BONUS, referredById);
-                  
-                db.prepare('UPDATE users SET cases_to_open = cases_to_open + 1 WHERE id = ?').run(referredById);
+              db.prepare('UPDATE users SET balance_crystals = balance_crystals + ? WHERE id = ?').run(
+                REFERRAL_BONUS,
+                referredById
+              );
+              db.prepare('UPDATE users SET cases_to_open = cases_to_open + 1 WHERE id = ?').run(referredById);
             });
 
             try {
-                rewardTransaction();
-                console.log(`[REFERRAL] Rewarded user ${referredById} with ${REFERRAL_BONUS} crystals and 1 case.`);
+              rewardTransaction();
+              console.log(`[REFERRAL] Rewarded user ${referredById} with ${REFERRAL_BONUS} crystals and 1 case.`);
             } catch (e) {
-                console.error(`[ERROR] Failed to reward user ${referredById}. Error:`, e);
+              console.error(`[ERROR] Failed to reward user ${referredById}. Error:`, e);
             }
           } else {
-             console.log(`[REFERRAL] Invalid referrer ID '${refIdStr}' in start_param. No referrer found.`);
+            console.log(`[REFERRAL] Invalid referrer ID '${refIdStr}' in start_param. No referrer found.`);
           }
         }
       }
 
       const insertUserStmt = db.prepare(`
-        INSERT INTO users (tg_id, username, first_name, last_name, referred_by_id)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO users (
+          tg_id, username, first_name, last_name, referred_by_id,
+          subscribed, voted
+        ) VALUES (?, ?, ?, ?, ?, 0, 0)
       `);
-      const result = insertUserStmt.run(userData.id, userData.username, userData.first_name, userData.last_name, referredById);
+      const result = insertUserStmt.run(
+        userData.id,
+        userData.username,
+        userData.first_name,
+        userData.last_name,
+        referredById
+      );
       console.log(`[DB LOGIC] New user CREATED with rowid: ${result.lastInsertRowid}`);
-      
-      const findNewUserStmt = db.prepare('SELECT * FROM users WHERE id = ?');
+
+      const findNewUserStmt = db.prepare(`
+        SELECT * FROM users WHERE id = ?
+      `);
       finalUser = findNewUserStmt.get(result.lastInsertRowid) as UserFromDB;
     }
-    
-    console.log('[SUCCESS] Sending final user data to client:', finalUser);
-    return NextResponse.json(finalUser);
 
+    if (!finalUser) {
+      console.error('[FATAL] Final user object is undefined after creation/update.');
+      return NextResponse.json({ error: 'Failed to load user data' }, { status: 500 });
+    }
+
+    // Формируем ответ с задачами
+    const response: AuthResponse = {
+      ...finalUser,
+      tasks_completed: {
+        subscribe: !!finalUser.subscribed,
+        vote: !!finalUser.voted,
+        invite: false, // можно улучшить: считать, сколько рефералов у пользователя > 0
+      },
+    };
+
+    console.log('[SUCCESS] Sending final user data to client:', response);
+    return NextResponse.json(response);
   } catch (error) {
     console.error('--- [FATAL ERROR] API /api/auth crashed inside try...catch block: ---');
     if (error instanceof Error) {
-        console.error('Error Name:', error.name);
-        console.error('Error Message:', error.message);
-        console.error('Error Stack:', error.stack);
+      console.error('Error Name:', error.name);
+      console.error('Error Message:', error.message);
+      console.error('Error Stack:', error.stack);
     } else {
-        console.error('An unknown error occurred:', error);
+      console.error('An unknown error occurred:', error);
     }
-    return NextResponse.json({ error: 'Internal Server Error', details: (error as Error).message }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal Server Error', details: (error as Error).message },
+      { status: 500 }
+    );
   }
 }

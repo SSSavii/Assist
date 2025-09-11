@@ -13,6 +13,7 @@ const {
   TELEGRAM_ADMIN_IDS,
   ADMIN_API_SECRET_KEY,
   NEXT_PUBLIC_API_URL = 'http://localhost:3000',
+  //NEXT_PUBLIC_API_URL = 'http://192.168.1.2:3001',
 } = process.env;
 
 if (!BOT_TOKEN || !TELEGRAM_ADMIN_IDS || !ADMIN_API_SECRET_KEY) {

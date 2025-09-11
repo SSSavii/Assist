@@ -1,15 +1,8 @@
 {
   "/(main)/auction/page": "app/(main)/auction/page.js",
-  "/(main)/cases/page": "app/(main)/cases/page.js",
   "/(main)/friends/page": "app/(main)/friends/page.js",
-  "/(main)/lots/page": "app/(main)/lots/page.js",
   "/(main)/page": "app/(main)/page.js",
-  "/(main)/profile/edit-awards/page": "app/(main)/profile/edit-awards/page.js",
-  "/(main)/profile/page": "app/(main)/profile/page.js",
-  "/api/admin/lots/[id]/route": "app/api/admin/lots/[id]/route.js",
-  "/api/admin/lots/route": "app/api/admin/lots/route.js",
   "/api/auth/route": "app/api/auth/route.js",
-  "/api/lots/route": "app/api/lots/route.js",
-  "/api/referrals/route": "app/api/referrals/route.js",
-  "/api/tap/route": "app/api/tap/route.js"
+  "/api/check-subscription/route": "app/api/check-subscription/route.js",
+  "/api/referrals/route": "app/api/referrals/route.js"
 }

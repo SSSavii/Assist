@@ -9,42 +9,67 @@ type UserProfile = {
   cases_to_open: number;
   daily_taps_count: number;
   last_tap_date: string | null;
+  subscribed_to_channel?: boolean;
+  voted_for_channel?: boolean;
 };
 
 interface TaskCardProps {
   title: string;
   reward: number;
   buttonText: string;
+  checkButtonText: string;
   action: () => void;
+  checkAction: () => void;
   disabled?: boolean;
-  isCase?: boolean;
+  isCompleted?: boolean;
 }
 
-function TaskCard({ title, reward, buttonText, action, disabled = false, isCase = false }: TaskCardProps) {
+function TaskCard({ 
+  title, 
+  reward, 
+  buttonText, 
+  checkButtonText, 
+  action, 
+  checkAction, 
+  disabled = false, 
+  isCompleted = false 
+}: TaskCardProps) {
   return (
-    <div className="bg-red-500 text-white p-3 rounded-2xl flex flex-col w-full"> 
+    <div className={`${isCompleted ? 'bg-green-500' : 'bg-red-500'} text-white p-3 rounded-2xl flex flex-col w-full`}>
       <div>
         <p className="font-extrabold text-sm">{title}</p> 
       </div>
       <div className="flex justify-between items-center mt-1.5"> 
         <div className="flex items-center mt-2">
-            <span className="font-bold text-lg">{isCase ? reward : `+${reward}`}</span>
-            <div 
-                className={`ml-1 h-5 w-5 ${isCase ? 'bg-yellow-400' : 'bg-white'}`}
-                style={{
-                  maskImage: `url(${isCase ? '/images/case.png' : '/images/crystal.png'})`,
-                  WebkitMaskImage: `url(${isCase ? '/images/case.png' : '/images/crystal.png'})`,
-                  maskSize: 'contain',
-                  maskRepeat: 'no-repeat',
-                }}
-            />
+          <span className="font-bold text-lg">+{reward}</span>
+          <div 
+            className="ml-1 h-5 w-5 bg-white"
+            style={{
+              maskImage: `url('/images/crystal.png')`,
+              WebkitMaskImage: `url('/images/crystal.png')`,
+              maskSize: 'contain',
+              maskRepeat: 'no-repeat',
+            }}
+          />
         </div>
-        <button 
+
+        <div className="flex gap-1">
+          <button 
             onClick={action}
-            disabled={disabled || (isCase && reward === 0)}
-            className="bg-white text-black font-bold py-1 mt-2 px-3 rounded-full text-sm transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+            disabled={disabled || isCompleted}
+            className="bg-white text-black font-medium py-1 px-2 rounded-full text-xs min-w-[60px] h-8 flex items-center justify-center active:scale-95 disabled:opacity-50"
+          >
             {buttonText}
-        </button>
+          </button>
+
+          <button 
+            onClick={checkAction}
+            disabled={isCompleted}
+            className="bg-blue-500 text-white font-medium py-1 px-2 rounded-full text-xs min-w-[60px] h-8 flex items-center justify-center active:scale-95 disabled:opacity-50"
+          >
+            {isCompleted ? 'Готово' : checkButtonText}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -183,26 +208,78 @@ export default function HomePage() {
     tg.openTelegramLink(shareUrl);
   };
 
+const checkTask = (taskId: 'subscribe' | 'vote' | 'invite') => {
+  const tg = window.Telegram?.WebApp;
+  if (!tg?.initData) return;
+
+  fetch('/api/check-subscription', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initData: tg.initData, taskId }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
+        setUser((prev) =>
+          prev
+            ? {
+                ...prev,
+                balance_crystals: data.newBalance,
+                subscribed_to_channel: taskId === 'subscribe' ? true : prev.subscribed_to_channel,
+                voted_for_channel: taskId === 'vote' ? true : prev.voted_for_channel,
+              }
+            : null
+        );
+        tg.showAlert(data.message || `Награда получена: +${data.reward} плюсов!`);
+      } else {
+        tg.showAlert(data.message || 'Условия не выполнены.');
+      }
+    })
+    .catch((err) => {
+      console.error(`Check ${taskId} error:`, err);
+      tg.showAlert('Ошибка соединения с сервером.');
+    });
+};
+
+  const handleSubscribeToChannel = () => {
+    const tg = window.Telegram?.WebApp;
+    tg?.openTelegramLink('https://t.me/assistplus_business');
+  };
+
+  const handleVoteForChannel = () => {
+    const tg = window.Telegram?.WebApp;
+    tg?.openTelegramLink('https://t.me/assistplus_business');
+  };
+
   const tasks = [
-    { 
-      title: 'Подпишись на Ассист+', 
-      reward: 100, 
-      buttonText: 'Подписаться',
-      action: () => window.Telegram?.WebApp.openTelegramLink('https://t.me/assistplus_channel')
-    },
-    { 
-      title: 'Отдай голос на улучшение канала', 
-      reward: 500, 
-      buttonText: 'Проголосовать',
-      action: () => window.Telegram?.WebApp.openTelegramLink('https://t.me/assistplus_channel')
-    },
-    { 
-      title: 'Пригласи друга, который хочет стать бизнес-ассистентом', 
-      reward: 500, 
-      buttonText: 'Пригласить',
-      action: handleInviteFriend
-    },
-  ];
+  { 
+    title: 'Подпишись на Ассист+', 
+    reward: 100, 
+    buttonText: 'Подписаться',
+    checkButtonText: 'Проверить',
+    action: handleSubscribeToChannel,
+    checkAction: () => checkTask('subscribe'),
+    isCompleted: user?.subscribed_to_channel
+  },
+  { 
+    title: 'Отдай голос на улучшение канала', 
+    reward: 500, 
+    buttonText: 'Проголосовать',
+    checkButtonText: 'Проверить',
+    action: handleVoteForChannel,
+    checkAction: () => checkTask('vote'),
+    isCompleted: user?.voted_for_channel
+  },
+  { 
+    title: 'Пригласи друга', 
+    reward: 500, 
+    buttonText: 'Пригласить',
+    checkButtonText: 'Проверить',
+    action: handleInviteFriend,
+    checkAction: () => checkTask('invite'), // пока не реализовано — можно оставить заглушку
+    isCompleted: false // или добавь логику позже
+  },
+];
 
   if (loading) {
     return <div className="flex justify-center items-center h-screen bg-white text-gray-500">Загрузка...</div>;
@@ -219,6 +296,17 @@ export default function HomePage() {
       <h1 className="text-6xl font-black mb-2">
         Ассист<span className="text-red-500">+</span>
       </h1>
+      
+      {/* Кнопка подписаться на канал */}
+      <div className="w-full max-w-sm px-4 mb-4">
+        <button 
+          onClick={handleSubscribeToChannel}
+          className="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded-2xl text-lg transition-all active:scale-95"
+        >
+          Подписаться на канал
+        </button>
+      </div>
+
       <div className="w-full max-w-sm pb-2">
         <BalanceCard
           balance={user.balance_crystals}

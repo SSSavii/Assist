@@ -153,12 +153,10 @@ function FriendsPage() {
             tg?.showAlert('Не удалось создать ссылку. Попробуйте перезагрузить страницу.');
             return;
         }
-        const botUsername = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
-        const botName = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_TELEGRAM_BOT_NAME;
-        if (!botUsername || !botName) {
-            console.error("Bot username or app name is not set in .env.local");
-            tg?.showAlert('Ошибка конфигурации приложения.');
-            return;
+        const botUsername = ("TURBOPACK compile-time value", "my_auction_admin_bot");
+        const botName = ("TURBOPACK compile-time value", "test admin");
+        if ("TURBOPACK compile-time falsy", 0) {
+            "TURBOPACK unreachable";
         }
         const referralLink = `https://t.me/${botUsername}/${botName}?startapp=ref_${user.id}`;
         const shareText = `Привет! Присоединяйся к "Ассист+" и получай бонусы. Поможем друг другу найти крутые знакомства и возможности!`;

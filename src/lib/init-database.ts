@@ -4,7 +4,7 @@ import path from 'path';
 const dbPath = path.join(process.cwd(), 'main.db');
 const db = new Database(dbPath, { verbose: console.log });
 
-// Создание всех таблиц
+// Создание таблиц (если ещё не созданы)
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,9 +21,25 @@ db.exec(`
     cases_to_open INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    subscribed INTEGER DEFAULT 0,
+    voted INTEGER DEFAULT 0,
     FOREIGN KEY (referred_by_id) REFERENCES users(id)
   )
 `);
+// Явно добавляем колонки, если их нет
+try {
+  db.exec("ALTER TABLE users ADD COLUMN subscribed INTEGER DEFAULT 0;");
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+} catch (e) {
+  // Колонка уже существует — это нормально
+}
+
+try {
+  db.exec("ALTER TABLE users ADD COLUMN voted INTEGER DEFAULT 0;");
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+} catch (e) {
+  // Колонка уже существует — это нормально
+}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS Lots (
@@ -57,7 +73,6 @@ db.exec(`
   )
 `);
 
-// Остальные таблицы из /api/auth
 db.exec(`
   CREATE TABLE IF NOT EXISTS case_winnings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -77,7 +92,7 @@ db.exec(`
   )
 `);
 
-// Добавление начальных данных в tasks
+// Вставка задач (если ещё не вставлены)
 const insertTask = db.prepare(`
   INSERT OR IGNORE INTO tasks (id, task_key, title, reward_crystals)
   VALUES (@id, @task_key, @title, @reward_crystals)

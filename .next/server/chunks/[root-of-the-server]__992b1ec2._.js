@@ -85,7 +85,7 @@ const dbPath = __TURBOPACK__imported__module__$5b$externals$5d2f$path__$5b$exter
 const db = new __TURBOPACK__imported__module__$5b$externals$5d2f$better$2d$sqlite3__$5b$external$5d$__$28$better$2d$sqlite3$2c$__cjs$29$__["default"](dbPath, {
     verbose: console.log
 });
-// Создание всех таблиц
+// Создание таблиц (если ещё не созданы)
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -102,9 +102,24 @@ db.exec(`
     cases_to_open INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    subscribed INTEGER DEFAULT 0,
+    voted INTEGER DEFAULT 0,
     FOREIGN KEY (referred_by_id) REFERENCES users(id)
   )
 `);
+// Явно добавляем колонки, если их нет
+try {
+    db.exec("ALTER TABLE users ADD COLUMN subscribed INTEGER DEFAULT 0;");
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+} catch (e) {
+// Колонка уже существует — это нормально
+}
+try {
+    db.exec("ALTER TABLE users ADD COLUMN voted INTEGER DEFAULT 0;");
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+} catch (e) {
+// Колонка уже существует — это нормально
+}
 db.exec(`
   CREATE TABLE IF NOT EXISTS Lots (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -135,7 +150,6 @@ db.exec(`
     FOREIGN KEY (user_id) REFERENCES users(id)
   )
 `);
-// Остальные таблицы из /api/auth
 db.exec(`
   CREATE TABLE IF NOT EXISTS case_winnings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -153,7 +167,7 @@ db.exec(`
     reward_crystals INTEGER DEFAULT 0
   )
 `);
-// Добавление начальных данных в tasks
+// Вставка задач (если ещё не вставлены)
 const insertTask = db.prepare(`
   INSERT OR IGNORE INTO tasks (id, task_key, title, reward_crystals)
   VALUES (@id, @task_key, @title, @reward_crystals)
@@ -239,7 +253,7 @@ function validateTelegramHash(initData, botToken) {
         const ownHash = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$crypto__$5b$external$5d$__$28$crypto$2c$__cjs$29$__["createHmac"])('sha256', secretKey).update(dataCheckString).digest('hex');
         return ownHash === hash;
     } catch (error) {
-        console.error("Error during hash validation:", error);
+        console.error('Error during hash validation:', error);
         return false;
     }
 }
@@ -290,7 +304,25 @@ async function POST(req) {
         }
         console.log(`[INFO] Processing user with tg_id: ${userData.id}`);
         let finalUser;
-        const findUserStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT * FROM users WHERE tg_id = ?');
+        const findUserStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
+      SELECT 
+        id,
+        tg_id,
+        username,
+        first_name,
+        last_name,
+        referred_by_id,
+        balance_crystals,
+        last_tap_date,
+        daily_taps_count,
+        cases_to_open,
+        created_at,
+        last_login_at,
+        COALESCE(subscribed, 0) AS subscribed,
+        COALESCE(voted, 0) AS voted
+      FROM users 
+      WHERE tg_id = ?
+    `);
         const existingUser = findUserStmt.get(userData.id);
         if (existingUser) {
             console.log(`[DB LOGIC] User ${userData.id} FOUND. Updating...`);
@@ -329,16 +361,37 @@ async function POST(req) {
                 }
             }
             const insertUserStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
-        INSERT INTO users (tg_id, username, first_name, last_name, referred_by_id)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO users (
+          tg_id, username, first_name, last_name, referred_by_id,
+          subscribed, voted
+        ) VALUES (?, ?, ?, ?, ?, 0, 0)
       `);
             const result = insertUserStmt.run(userData.id, userData.username, userData.first_name, userData.last_name, referredById);
             console.log(`[DB LOGIC] New user CREATED with rowid: ${result.lastInsertRowid}`);
-            const findNewUserStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT * FROM users WHERE id = ?');
+            const findNewUserStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
+        SELECT * FROM users WHERE id = ?
+      `);
             finalUser = findNewUserStmt.get(result.lastInsertRowid);
         }
-        console.log('[SUCCESS] Sending final user data to client:', finalUser);
-        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json(finalUser);
+        if (!finalUser) {
+            console.error('[FATAL] Final user object is undefined after creation/update.');
+            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                error: 'Failed to load user data'
+            }, {
+                status: 500
+            });
+        }
+        // Формируем ответ с задачами
+        const response = {
+            ...finalUser,
+            tasks_completed: {
+                subscribe: !!finalUser.subscribed,
+                vote: !!finalUser.voted,
+                invite: false
+            }
+        };
+        console.log('[SUCCESS] Sending final user data to client:', response);
+        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json(response);
     } catch (error) {
         console.error('--- [FATAL ERROR] API /api/auth crashed inside try...catch block: ---');
         if (error instanceof Error) {

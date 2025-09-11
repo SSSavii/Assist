@@ -73,7 +73,6 @@
   :root, :host {
     --color-red-500: oklch(63.7% .237 25.331);
     --color-orange-500: oklch(70.5% .213 47.604);
-    --color-yellow-400: oklch(85.2% .199 91.936);
     --color-green-500: oklch(72.3% .219 149.579);
     --color-blue-500: oklch(62.3% .214 259.815);
     --color-purple-500: oklch(62.7% .265 303.9);
@@ -553,6 +552,10 @@
     height: calc(var(--spacing) * 6);
   }
 
+  .h-8 {
+    height: calc(var(--spacing) * 8);
+  }
+
   .h-16 {
     height: calc(var(--spacing) * 16);
   }
@@ -649,6 +652,10 @@
     max-width: var(--container-sm);
   }
 
+  .min-w-\[60px\] {
+    min-width: 60px;
+  }
+
   .flex-shrink-0 {
     flex-shrink: 0;
   }
@@ -739,6 +746,10 @@
 
   .justify-center {
     justify-content: center;
+  }
+
+  .gap-1 {
+    gap: calc(var(--spacing) * 1);
   }
 
   .gap-2 {
@@ -908,10 +919,6 @@
     }
   }
 
-  .bg-yellow-400 {
-    background-color: var(--color-yellow-400);
-  }
-
   .bg-gradient-to-b {
     --tw-gradient-position: to bottom in oklab;
     background-image: linear-gradient(var(--tw-gradient-stops));
@@ -956,6 +963,10 @@
 
   .p-6 {
     padding: calc(var(--spacing) * 6);
+  }
+
+  .px-2 {
+    padding-inline: calc(var(--spacing) * 2);
   }
 
   .px-3 {

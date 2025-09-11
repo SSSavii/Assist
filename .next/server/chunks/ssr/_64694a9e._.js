@@ -159,9 +159,9 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$
 ;
 ;
 ;
-function TaskCard({ title, reward, buttonText, action, disabled = false, isCase = false }) {
+function TaskCard({ title, reward, buttonText, checkButtonText, action, checkAction, disabled = false, isCompleted = false }) {
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-        className: "bg-red-500 text-white p-3 rounded-2xl flex flex-col w-full",
+        className: `${isCompleted ? 'bg-green-500' : 'bg-red-500'} text-white p-3 rounded-2xl flex flex-col w-full`,
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -169,12 +169,12 @@ function TaskCard({ title, reward, buttonText, action, disabled = false, isCase 
                     children: title
                 }, void 0, false, {
                     fileName: "[project]/src/app/(main)/page.tsx",
-                    lineNumber: 27,
+                    lineNumber: 40,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 26,
+                lineNumber: 39,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -185,51 +185,73 @@ function TaskCard({ title, reward, buttonText, action, disabled = false, isCase 
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                 className: "font-bold text-lg",
-                                children: isCase ? reward : `+${reward}`
-                            }, void 0, false, {
+                                children: [
+                                    "+",
+                                    reward
+                                ]
+                            }, void 0, true, {
                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 31,
-                                columnNumber: 13
+                                lineNumber: 44,
+                                columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: `ml-1 h-5 w-5 ${isCase ? 'bg-yellow-400' : 'bg-white'}`,
+                                className: "ml-1 h-5 w-5 bg-white",
                                 style: {
-                                    maskImage: `url(${isCase ? '/images/case.png' : '/images/crystal.png'})`,
-                                    WebkitMaskImage: `url(${isCase ? '/images/case.png' : '/images/crystal.png'})`,
+                                    maskImage: `url('/images/crystal.png')`,
+                                    WebkitMaskImage: `url('/images/crystal.png')`,
                                     maskSize: 'contain',
                                     maskRepeat: 'no-repeat'
                                 }
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 32,
-                                columnNumber: 13
+                                lineNumber: 45,
+                                columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 30,
+                        lineNumber: 43,
                         columnNumber: 9
                     }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                        onClick: action,
-                        disabled: disabled || isCase && reward === 0,
-                        className: "bg-white text-black font-bold py-1 mt-2 px-3 rounded-full text-sm transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
-                        children: buttonText
-                    }, void 0, false, {
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "flex gap-1",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                onClick: action,
+                                disabled: disabled || isCompleted,
+                                className: "bg-white text-black font-medium py-1 px-2 rounded-full text-xs min-w-[60px] h-8 flex items-center justify-center active:scale-95 disabled:opacity-50",
+                                children: buttonText
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/(main)/page.tsx",
+                                lineNumber: 57,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                onClick: checkAction,
+                                disabled: isCompleted,
+                                className: "bg-blue-500 text-white font-medium py-1 px-2 rounded-full text-xs min-w-[60px] h-8 flex items-center justify-center active:scale-95 disabled:opacity-50",
+                                children: isCompleted ? 'Готово' : checkButtonText
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/(main)/page.tsx",
+                                lineNumber: 65,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
                         fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 42,
+                        lineNumber: 56,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 29,
+                lineNumber: 42,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(main)/page.tsx",
-        lineNumber: 25,
+        lineNumber: 38,
         columnNumber: 5
     }, this);
 }
@@ -359,24 +381,70 @@ function HomePage() {
         const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
         tg.openTelegramLink(shareUrl);
     };
+    const checkTask = (taskId)=>{
+        const tg = window.Telegram?.WebApp;
+        if (!tg?.initData) return;
+        fetch('/api/check-subscription', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                initData: tg.initData,
+                taskId
+            })
+        }).then((res)=>res.json()).then((data)=>{
+            if (data.success) {
+                setUser((prev)=>prev ? {
+                        ...prev,
+                        balance_crystals: data.newBalance,
+                        subscribed_to_channel: taskId === 'subscribe' ? true : prev.subscribed_to_channel,
+                        voted_for_channel: taskId === 'vote' ? true : prev.voted_for_channel
+                    } : null);
+                tg.showAlert(data.message || `Награда получена: +${data.reward} плюсов!`);
+            } else {
+                tg.showAlert(data.message || 'Условия не выполнены.');
+            }
+        }).catch((err)=>{
+            console.error(`Check ${taskId} error:`, err);
+            tg.showAlert('Ошибка соединения с сервером.');
+        });
+    };
+    const handleSubscribeToChannel = ()=>{
+        const tg = window.Telegram?.WebApp;
+        tg?.openTelegramLink('https://t.me/assistplus_business');
+    };
+    const handleVoteForChannel = ()=>{
+        const tg = window.Telegram?.WebApp;
+        tg?.openTelegramLink('https://t.me/assistplus_business');
+    };
     const tasks = [
         {
             title: 'Подпишись на Ассист+',
             reward: 100,
             buttonText: 'Подписаться',
-            action: ()=>window.Telegram?.WebApp.openTelegramLink('https://t.me/assistplus_channel')
+            checkButtonText: 'Проверить',
+            action: handleSubscribeToChannel,
+            checkAction: ()=>checkTask('subscribe'),
+            isCompleted: user?.subscribed_to_channel
         },
         {
             title: 'Отдай голос на улучшение канала',
             reward: 500,
             buttonText: 'Проголосовать',
-            action: ()=>window.Telegram?.WebApp.openTelegramLink('https://t.me/assistplus_channel')
+            checkButtonText: 'Проверить',
+            action: handleVoteForChannel,
+            checkAction: ()=>checkTask('vote'),
+            isCompleted: user?.voted_for_channel
         },
         {
-            title: 'Пригласи друга, который хочет стать бизнес-ассистентом',
+            title: 'Пригласи друга',
             reward: 500,
             buttonText: 'Пригласить',
-            action: handleInviteFriend
+            checkButtonText: 'Проверить',
+            action: handleInviteFriend,
+            checkAction: ()=>checkTask('invite'),
+            isCompleted: false // или добавь логику позже
         }
     ];
     if (loading) {
@@ -385,7 +453,7 @@ function HomePage() {
             children: "Загрузка..."
         }, void 0, false, {
             fileName: "[project]/src/app/(main)/page.tsx",
-            lineNumber: 208,
+            lineNumber: 285,
             columnNumber: 12
         }, this);
     }
@@ -398,7 +466,7 @@ function HomePage() {
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/(main)/page.tsx",
-            lineNumber: 211,
+            lineNumber: 288,
             columnNumber: 12
         }, this);
     }
@@ -408,7 +476,7 @@ function HomePage() {
             children: "Не удалось загрузить данные пользователя."
         }, void 0, false, {
             fileName: "[project]/src/app/(main)/page.tsx",
-            lineNumber: 214,
+            lineNumber: 291,
             columnNumber: 12
         }, this);
     }
@@ -424,13 +492,29 @@ function HomePage() {
                         children: "+"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 220,
+                        lineNumber: 297,
                         columnNumber: 15
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 219,
+                lineNumber: 296,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "w-full max-w-sm px-4 mb-4",
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                    onClick: handleSubscribeToChannel,
+                    className: "w-full bg-blue-500 text-white font-bold py-3 px-4 rounded-2xl text-lg transition-all active:scale-95",
+                    children: "Подписаться на канал"
+                }, void 0, false, {
+                    fileName: "[project]/src/app/(main)/page.tsx",
+                    lineNumber: 302,
+                    columnNumber: 9
+                }, this)
+            }, void 0, false, {
+                fileName: "[project]/src/app/(main)/page.tsx",
+                lineNumber: 301,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -442,12 +526,12 @@ function HomePage() {
                     tapLimit: DAILY_TAP_LIMIT
                 }, void 0, false, {
                     fileName: "[project]/src/app/(main)/page.tsx",
-                    lineNumber: 223,
+                    lineNumber: 311,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 222,
+                lineNumber: 310,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -455,7 +539,7 @@ function HomePage() {
                 children: "Зарабатывай плюсы и меняй их в аукционе знакомств"
             }, void 0, false, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 230,
+                lineNumber: 318,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -466,7 +550,7 @@ function HomePage() {
                         children: "ЗАДАНИЯ"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 235,
+                        lineNumber: 323,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -475,24 +559,24 @@ function HomePage() {
                                 ...task
                             }, index, false, {
                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 238,
+                                lineNumber: 326,
                                 columnNumber: 13
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 236,
+                        lineNumber: 324,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 234,
+                lineNumber: 322,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(main)/page.tsx",
-        lineNumber: 218,
+        lineNumber: 295,
         columnNumber: 5
     }, this);
 }
