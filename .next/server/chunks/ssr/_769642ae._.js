@@ -72,14 +72,12 @@ function FriendsPage() {
     const [user, setUser] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [referrals, setReferrals] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
     const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
-    const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true); // Будем показывать "Загрузка..." до готовности WebApp
-    const [isClient, setIsClient] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false); // ← Ключевая фиксация гидратации
+    const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
+    const [isClient, setIsClient] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [showRules, setShowRules] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
-    // 1. Убедимся, что мы только на клиенте
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
-        setIsClient(true); // Это гарантирует, что рендер после монтирования
+        setIsClient(true);
     }, []);
-    // 2. Только на клиенте — инициализируем Telegram
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         if (!isClient) return;
         const tg = window.Telegram?.WebApp;
@@ -133,12 +131,11 @@ function FriendsPage() {
         isClient
     ]);
     if (!isClient) {
-        // Пока клиент не готов — ничего не рендерим (или заглушка)
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
             className: "h-screen bg-white"
         }, void 0, false, {
             fileName: "[project]/src/app/(main)/friends/page.tsx",
-            lineNumber: 89,
+            lineNumber: 86,
             columnNumber: 12
         }, this);
     }
@@ -148,7 +145,7 @@ function FriendsPage() {
             children: "Загрузка..."
         }, void 0, false, {
             fileName: "[project]/src/app/(main)/friends/page.tsx",
-            lineNumber: 94,
+            lineNumber: 91,
             columnNumber: 7
         }, this);
     }
@@ -162,7 +159,7 @@ function FriendsPage() {
                             children: "Ошибка:"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(main)/friends/page.tsx",
-                            lineNumber: 103,
+                            lineNumber: 100,
                             columnNumber: 12
                         }, this),
                         " ",
@@ -170,7 +167,7 @@ function FriendsPage() {
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(main)/friends/page.tsx",
-                    lineNumber: 103,
+                    lineNumber: 100,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -179,37 +176,21 @@ function FriendsPage() {
                     children: "Перезагрузить"
                 }, void 0, false, {
                     fileName: "[project]/src/app/(main)/friends/page.tsx",
-                    lineNumber: 104,
+                    lineNumber: 101,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/(main)/friends/page.tsx",
-            lineNumber: 102,
+            lineNumber: 99,
             columnNumber: 7
         }, this);
     }
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "flex flex-col min-h-screen font-['Unbounded'] bg-white",
         children: [
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "px-6 pt-4 pb-2",
-                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                    onClick: ()=>setShowRules(true),
-                    className: "w-full text-left text-sm text-blue-500 underline font-medium",
-                    children: "Условия розыгрышей и бонусов"
-                }, void 0, false, {
-                    fileName: "[project]/src/app/(main)/friends/page.tsx",
-                    lineNumber: 118,
-                    columnNumber: 9
-                }, this)
-            }, void 0, false, {
-                fileName: "[project]/src/app/(main)/friends/page.tsx",
-                lineNumber: 117,
-                columnNumber: 7
-            }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
-                className: "flex-grow flex flex-col items-center px-6 pt-0 pb-4",
+                className: "flex-grow flex flex-col items-center px-6 pt-6 pb-4",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                         src: MY_ICON_PATH,
@@ -218,29 +199,38 @@ function FriendsPage() {
                         height: 180
                     }, void 0, false, {
                         fileName: "[project]/src/app/(main)/friends/page.tsx",
-                        lineNumber: 127,
+                        lineNumber: 114,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
-                        className: "text-2xl text-black font-extrabold leading-tight mb-6",
+                        className: "text-2xl text-black font-extrabold leading-tight mb-6 text-center",
                         children: [
                             "Приглашай",
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
                                 fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                lineNumber: 130,
+                                lineNumber: 117,
                                 columnNumber: 20
                             }, this),
                             "друзей и получай",
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
                                 fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                lineNumber: 130,
+                                lineNumber: 117,
                                 columnNumber: 42
                             }, this),
                             "плюсы"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(main)/friends/page.tsx",
-                        lineNumber: 129,
+                        lineNumber: 116,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                        onClick: ()=>setShowRules(true),
+                        className: "w-full max-w-sm h-16 mb-6 flex items-center justify-center bg-red-500 text-white text-lg font-medium rounded-2xl  transition-all shadow-[0_4px_0_0_rgba(0,0,0,0.3)]  active:translate-y-1 active:shadow-[0_2px_0_0_rgba(0,0,0,0.3)]",
+                        children: "Условия розыгрышей и бонусов"
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/(main)/friends/page.tsx",
+                        lineNumber: 121,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -255,13 +245,13 @@ function FriendsPage() {
                                         children: referrals.length
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                        lineNumber: 135,
+                                        lineNumber: 132,
                                         columnNumber: 28
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                lineNumber: 134,
+                                lineNumber: 131,
                                 columnNumber: 11
                             }, this),
                             referrals.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -271,31 +261,31 @@ function FriendsPage() {
                                         lastName: ref.last_name
                                     }, ref.id, false, {
                                         fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                        lineNumber: 141,
+                                        lineNumber: 138,
                                         columnNumber: 17
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                lineNumber: 139,
+                                lineNumber: 136,
                                 columnNumber: 13
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                 className: "text-gray-500 text-sm text-left",
                                 children: "Пока никто не присоединился"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                lineNumber: 149,
+                                lineNumber: 146,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(main)/friends/page.tsx",
-                        lineNumber: 133,
+                        lineNumber: 130,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(main)/friends/page.tsx",
-                lineNumber: 126,
+                lineNumber: 113,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("footer", {
@@ -304,7 +294,6 @@ function FriendsPage() {
                     onClick: ()=>{
                         const tg = window.Telegram?.WebApp;
                         if (!tg) {
-                            // Невозможно показать tg.showAlert, потому что tg нет
                             console.error('Telegram WebApp недоступен');
                             alert('Ошибка: приложение должно запускаться в Telegram');
                             return;
@@ -323,14 +312,14 @@ function FriendsPage() {
                         const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
                         tg.openTelegramLink(shareUrl);
                     },
-                    className: "w-full h-16 flex items-center justify-center bg-red-500 text-white text-lg gap-2 font-medium rounded-2xl active:translate-y-1",
+                    className: "w-full h-16 flex items-center justify-center bg-red-500 text-white text-lg gap-2 font-medium rounded-2xl  transition-all shadow-[0_4px_0_0_rgba(0,0,0,0.3)]  active:translate-y-1 active:shadow-[0_2px_0_0_rgba(0,0,0,0.3)]",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                             children: "Пригласить друга"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(main)/friends/page.tsx",
-                            lineNumber: 187,
-                            columnNumber: 3
+                            lineNumber: 185,
+                            columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                             className: "w-5 h-5 bg-white",
@@ -343,25 +332,25 @@ function FriendsPage() {
                             }
                         }, void 0, false, {
                             fileName: "[project]/src/app/(main)/friends/page.tsx",
-                            lineNumber: 188,
-                            columnNumber: 3
+                            lineNumber: 186,
+                            columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                             children: "500"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(main)/friends/page.tsx",
-                            lineNumber: 198,
-                            columnNumber: 3
+                            lineNumber: 196,
+                            columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(main)/friends/page.tsx",
-                    lineNumber: 155,
+                    lineNumber: 152,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(main)/friends/page.tsx",
-                lineNumber: 154,
+                lineNumber: 151,
                 columnNumber: 7
             }, this),
             showRules && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -376,63 +365,63 @@ function FriendsPage() {
                             children: "Условия участия"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(main)/friends/page.tsx",
-                            lineNumber: 212,
+                            lineNumber: 210,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
                             className: "text-sm text-gray-700 space-y-2",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                    children: "• 10 приглашений — онлайн-разбор с Иваном Абрамовым"
+                                    children: "• 10 приглашений — возможность попасть на онлайн мини-разбор с Иваном Абрамовым. Разбор проводится еженедельно."
+                                }, void 0, false, {
+                                    fileName: "[project]/src/app/(main)/friends/page.tsx",
+                                    lineNumber: 212,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                    children: "• 20 приглашений — приоритетное место на мини-разборе, что гарантирует 100% участие в ближайшей сессии."
+                                }, void 0, false, {
+                                    fileName: "[project]/src/app/(main)/friends/page.tsx",
+                                    lineNumber: 213,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                    children: "• 30 приглашений — участие в ежемесячном розыгрыше завтрака с Иваном Абрамовым в Сколково."
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(main)/friends/page.tsx",
                                     lineNumber: 214,
-                                    columnNumber: 15
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                    children: "• 20 приглашений — приоритетное участие"
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                    lineNumber: 215,
-                                    columnNumber: 15
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                    children: "• 30 приглашений — завтрак в Сколково"
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                    lineNumber: 216,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(main)/friends/page.tsx",
-                            lineNumber: 213,
+                            lineNumber: 211,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                             onClick: ()=>setShowRules(false),
-                            className: "mt-4 w-full py-2 bg-gray-200 text-black rounded-xl",
+                            className: "mt-4 w-full py-2 bg-red-500 text-white rounded-xl font-medium",
                             children: "Понятно"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(main)/friends/page.tsx",
-                            lineNumber: 218,
+                            lineNumber: 216,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(main)/friends/page.tsx",
-                    lineNumber: 208,
+                    lineNumber: 206,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(main)/friends/page.tsx",
-                lineNumber: 204,
+                lineNumber: 202,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(main)/friends/page.tsx",
-        lineNumber: 115,
+        lineNumber: 112,
         columnNumber: 5
     }, this);
 }

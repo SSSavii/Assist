@@ -6,7 +6,7 @@ import { Home, Users, UserCircle, Store } from 'lucide-react';
 
 const navItems = [
   { href: '/', label: 'Главная', icon: Home },
-  { href: '/auction', label: 'Аукцион', icon: Store },
+  { href: '/auction', label: 'Магазин', icon: Store },
   { href: '/friends', label: 'Друзья', icon: Users },
   { href: '/profile', label: 'Профиль', icon: UserCircle },
 ];

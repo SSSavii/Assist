@@ -21,16 +21,14 @@ export default function FriendsPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true); // Будем показывать "Загрузка..." до готовности WebApp
-  const [isClient, setIsClient] = useState(false); // ← Ключевая фиксация гидратации
+  const [loading, setLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
   const [showRules, setShowRules] = useState(false);
 
-  // 1. Убедимся, что мы только на клиенте
   useEffect(() => {
-    setIsClient(true); // Это гарантирует, что рендер после монтирования
+    setIsClient(true);
   }, []);
 
-  // 2. Только на клиенте — инициализируем Telegram
   useEffect(() => {
     if (!isClient) return;
 
@@ -85,7 +83,6 @@ export default function FriendsPage() {
   }, [isClient]);
 
   if (!isClient) {
-    // Пока клиент не готов — ничего не рендерим (или заглушка)
     return <div className="h-screen bg-white"></div>;
   }
 
@@ -113,22 +110,22 @@ export default function FriendsPage() {
 
   return (
     <div className="flex flex-col min-h-screen font-['Unbounded'] bg-white">
-      {/* Кнопка с правилами */}
-      <div className="px-6 pt-4 pb-2">
+      <main className="flex-grow flex flex-col items-center px-6 pt-6 pb-4">
+        <Image src={MY_ICON_PATH} alt="Кристалл" width={180} height={180} />
+
+        <h1 className="text-2xl text-black font-extrabold leading-tight mb-6 text-center">
+          Приглашай<br />друзей и получай<br />плюсы
+        </h1>
+
+        {/* Красная кнопка с правилами - добавлена здесь */}
         <button
           onClick={() => setShowRules(true)}
-          className="w-full text-left text-sm text-blue-500 underline font-medium"
+          className="w-full max-w-sm h-16 mb-6 flex items-center justify-center bg-red-500 text-white text-lg font-medium rounded-2xl 
+                    transition-all shadow-[0_4px_0_0_rgba(0,0,0,0.3)] 
+                    active:translate-y-1 active:shadow-[0_2px_0_0_rgba(0,0,0,0.3)]"
         >
           Условия розыгрышей и бонусов
         </button>
-      </div>
-
-      <main className="flex-grow flex flex-col items-center px-6 pt-0 pb-4">
-        <Image src={MY_ICON_PATH} alt="Кристалл" width={180} height={180} />
-
-        <h1 className="text-2xl text-black font-extrabold leading-tight mb-6">
-          Приглашай<br />друзей и получай<br />плюсы
-        </h1>
 
         <div className="w-full max-w-sm mb-6 bg-gray-50 rounded-2xl p-4 border border-gray-100">
           <h2 className="text-lg font-bold text-black mb-3 text-left">
@@ -153,53 +150,54 @@ export default function FriendsPage() {
 
       <footer className="w-full px-6 pb-6">
         <button
-  onClick={() => {
-    const tg = window.Telegram?.WebApp;
-    
-    if (!tg) {
-      // Невозможно показать tg.showAlert, потому что tg нет
-      console.error('Telegram WebApp недоступен');
-      alert('Ошибка: приложение должно запускаться в Telegram');
-      return;
-    }
+          onClick={() => {
+            const tg = window.Telegram?.WebApp;
+            
+            if (!tg) {
+              console.error('Telegram WebApp недоступен');
+              alert('Ошибка: приложение должно запускаться в Telegram');
+              return;
+            }
 
-    const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
-    const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME;
+            const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
+            const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME;
 
-    if (!botUsername || !botName) {
-      tg.showAlert('Ошибка: конфигурация приложения');
-      return;
-    }
+            if (!botUsername || !botName) {
+              tg.showAlert('Ошибка: конфигурация приложения');
+              return;
+            }
 
-    if (!user?.id) {
-      tg.showAlert('Ошибка: пользователь не загружен');
-      return;
-    }
+            if (!user?.id) {
+              tg.showAlert('Ошибка: пользователь не загружен');
+              return;
+            }
 
-    const referralLink = `https://t.me/${botUsername}/${botName}?startapp=ref_${user.id}`;
-    const shareText = `Привет! Присоединяйся к "Ассист+" и получай бонусы.`;
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
+            const referralLink = `https://t.me/${botUsername}/${botName}?startapp=ref_${user.id}`;
+            const shareText = `Привет! Присоединяйся к "Ассист+" и получай бонусы.`;
+            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
 
-    tg.openTelegramLink(shareUrl);
-  }}
-  className="w-full h-16 flex items-center justify-center bg-red-500 text-white text-lg gap-2 font-medium rounded-2xl active:translate-y-1"
->
-  <span>Пригласить друга</span>
-  <div
-    className="w-5 h-5 bg-white"
-    style={{
-      maskImage: `url(${MY_ICON_PATH})`,
-      WebkitMaskImage: `url(${MY_ICON_PATH})`,
-      maskSize: 'contain',
-      maskRepeat: 'no-repeat',
-      maskPosition: 'center',
-    }}
-  />
-  <span>500</span>
-</button>
+            tg.openTelegramLink(shareUrl);
+          }}
+          className="w-full h-16 flex items-center justify-center bg-red-500 text-white text-lg gap-2 font-medium rounded-2xl 
+                    transition-all shadow-[0_4px_0_0_rgba(0,0,0,0.3)] 
+                    active:translate-y-1 active:shadow-[0_2px_0_0_rgba(0,0,0,0.3)]"
+        >
+          <span>Пригласить друга</span>
+          <div
+            className="w-5 h-5 bg-white"
+            style={{
+              maskImage: `url(${MY_ICON_PATH})`,
+              WebkitMaskImage: `url(${MY_ICON_PATH})`,
+              maskSize: 'contain',
+              maskRepeat: 'no-repeat',
+              maskPosition: 'center',
+            }}
+          />
+          <span>500</span>
+        </button>
       </footer>
 
-      {/* Модальное окно */}
+      {/* Модальное окно с правилами */}
       {showRules && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
@@ -211,13 +209,13 @@ export default function FriendsPage() {
           >
             <h3 className="text-lg font-bold text-black mb-3">Условия участия</h3>
             <ul className="text-sm text-gray-700 space-y-2">
-              <li>• 10 приглашений — онлайн-разбор с Иваном Абрамовым</li>
-              <li>• 20 приглашений — приоритетное участие</li>
-              <li>• 30 приглашений — завтрак в Сколково</li>
+              <li>• 10 приглашений — возможность попасть на онлайн мини-разбор с Иваном Абрамовым. Разбор проводится еженедельно.</li>
+              <li>• 20 приглашений — приоритетное место на мини-разборе, что гарантирует 100% участие в ближайшей сессии.</li>
+              <li>• 30 приглашений — участие в ежемесячном розыгрыше завтрака с Иваном Абрамовым в Сколково.</li>
             </ul>
             <button
               onClick={() => setShowRules(false)}
-              className="mt-4 w-full py-2 bg-gray-200 text-black rounded-xl"
+              className="mt-4 w-full py-2 bg-red-500 text-white rounded-xl font-medium"
             >
               Понятно
             </button>
