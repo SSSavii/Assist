@@ -289,6 +289,29 @@ function ShopPage() {
         const availablePrizes = random < 0.2 ? ALL_PRIZES.filter((p)=>p.type === 'rare' && p.canWin) : ALL_PRIZES.filter((p)=>p.type === 'common' && p.canWin);
         return availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
     };
+    // Функция для сохранения выигрыша в базу данных
+    const saveWinningToDatabase = async (prize)=>{
+        try {
+            const tg = window.Telegram?.WebApp;
+            if (!tg) return;
+            const response = await fetch('/api/user/save-winning', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    initData: tg.initData,
+                    prizeName: prize.name,
+                    prizeType: prize.type
+                })
+            });
+            if (!response.ok) {
+                console.error('Failed to save winning to database');
+            }
+        } catch (error) {
+            console.error('Error saving winning:', error);
+        }
+    };
     const handleSpin = async ()=>{
         if (isSpinning || hasSpunRef.current) return;
         setIsSpinning(true);
@@ -316,6 +339,8 @@ function ShopPage() {
             setShowPrizeAlert(true);
             window.Telegram?.WebApp?.HapticFeedback.notificationOccurred('success');
             window.Telegram?.WebApp.showAlert(`Поздравляем! Вы выиграли: ${winningPrize.name}`);
+            // СОХРАНЯЕМ ВЫИГРЫШ В БАЗУ ДАННЫХ
+            saveWinningToDatabase(winningPrize);
         // В реальном приложении здесь нужно обновить баланс пользователя
         // setUser(prev => prev ? { ...prev, cases_to_open: prev.cases_to_open - 1 } : null);
         }
@@ -329,12 +354,12 @@ function ShopPage() {
                 children: "Загрузка..."
             }, void 0, false, {
                 fileName: "[project]/src/app/(main)/auction/page.tsx",
-                lineNumber: 118,
+                lineNumber: 145,
                 columnNumber: 85
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/app/(main)/auction/page.tsx",
-            lineNumber: 118,
+            lineNumber: 145,
             columnNumber: 12
         }, this);
     }
@@ -349,7 +374,7 @@ function ShopPage() {
                         children: "Магазин"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(main)/auction/page.tsx",
-                        lineNumber: 126,
+                        lineNumber: 153,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -357,13 +382,13 @@ function ShopPage() {
                         children: "Обменивай свои плюсы на интересные товары!"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(main)/auction/page.tsx",
-                        lineNumber: 129,
+                        lineNumber: 156,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(main)/auction/page.tsx",
-                lineNumber: 125,
+                lineNumber: 152,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -381,13 +406,13 @@ function ShopPage() {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(main)/auction/page.tsx",
-                                lineNumber: 137,
+                                lineNumber: 164,
                                 columnNumber: 26
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(main)/auction/page.tsx",
-                        lineNumber: 136,
+                        lineNumber: 163,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -402,19 +427,19 @@ function ShopPage() {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(main)/auction/page.tsx",
-                                lineNumber: 140,
+                                lineNumber: 167,
                                 columnNumber: 19
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(main)/auction/page.tsx",
-                        lineNumber: 139,
+                        lineNumber: 166,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(main)/auction/page.tsx",
-                lineNumber: 135,
+                lineNumber: 162,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -434,12 +459,12 @@ function ShopPage() {
                             onSpinEnd: handleSpinEnd
                         }, spinKey, false, {
                             fileName: "[project]/src/app/(main)/auction/page.tsx",
-                            lineNumber: 147,
+                            lineNumber: 174,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/(main)/auction/page.tsx",
-                        lineNumber: 146,
+                        lineNumber: 173,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -449,7 +474,7 @@ function ShopPage() {
                         children: isSpinning ? 'Крутится...' : `Крутить (${user?.cases_to_open || 0} шт.)`
                     }, void 0, false, {
                         fileName: "[project]/src/app/(main)/auction/page.tsx",
-                        lineNumber: 155,
+                        lineNumber: 182,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -457,13 +482,13 @@ function ShopPage() {
                         children: "Крутить стоит 1 кейс"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(main)/auction/page.tsx",
-                        lineNumber: 167,
+                        lineNumber: 194,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(main)/auction/page.tsx",
-                lineNumber: 145,
+                lineNumber: 172,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -474,7 +499,7 @@ function ShopPage() {
                         children: "Премиум товар"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(main)/auction/page.tsx",
-                        lineNumber: 174,
+                        lineNumber: 201,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -488,7 +513,7 @@ function ShopPage() {
                                         children: "Созвон с кумиром"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(main)/auction/page.tsx",
-                                        lineNumber: 178,
+                                        lineNumber: 205,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -496,13 +521,13 @@ function ShopPage() {
                                         children: "30 минут личного общения"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(main)/auction/page.tsx",
-                                        lineNumber: 179,
+                                        lineNumber: 206,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(main)/auction/page.tsx",
-                                lineNumber: 177,
+                                lineNumber: 204,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -513,7 +538,7 @@ function ShopPage() {
                                         children: "10,000 плюсов"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(main)/auction/page.tsx",
-                                        lineNumber: 182,
+                                        lineNumber: 209,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -522,31 +547,31 @@ function ShopPage() {
                                         children: "Купить"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(main)/auction/page.tsx",
-                                        lineNumber: 183,
+                                        lineNumber: 210,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(main)/auction/page.tsx",
-                                lineNumber: 181,
+                                lineNumber: 208,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(main)/auction/page.tsx",
-                        lineNumber: 176,
+                        lineNumber: 203,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(main)/auction/page.tsx",
-                lineNumber: 173,
+                lineNumber: 200,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(main)/auction/page.tsx",
-        lineNumber: 122,
+        lineNumber: 149,
         columnNumber: 5
     }, this);
 }

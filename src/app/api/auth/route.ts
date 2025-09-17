@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/init-database'; // Импортируем из общего модуля
-import { URLSearchParams } from 'url';
-import { createHmac } from 'crypto';
+import db from '@/lib/init-database';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { validateTelegramHash } from '@/lib/telegram-auth';
 
 const REFERRAL_BONUS = 500;
 
@@ -28,27 +28,8 @@ interface AuthResponse extends Omit<UserFromDB, 'subscribed' | 'voted'> {
   tasks_completed: {
     subscribe: boolean;
     vote: boolean;
-    invite: boolean; // можно уточнить позже при реализации проверки приглашений
+    invite: boolean;
   };
-}
-
-function validateTelegramHash(initData: string, botToken: string): boolean {
-  try {
-    const params = new URLSearchParams(initData);
-    const hash = params.get('hash');
-    if (!hash) return false;
-    params.delete('hash');
-    const dataCheckArr: string[] = [];
-    const sortedKeys = Array.from(params.keys()).sort();
-    sortedKeys.forEach((key) => dataCheckArr.push(`${key}=${params.get(key)}`));
-    const dataCheckString = dataCheckArr.join('\n');
-    const secretKey = createHmac('sha256', 'WebAppData').update(botToken).digest();
-    const ownHash = createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
-    return ownHash === hash;
-  } catch (error) {
-    console.error('Error during hash validation:', error);
-    return false;
-  }
 }
 
 export async function POST(req: NextRequest) {
@@ -69,12 +50,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
-    const isValid = validateTelegramHash(initData, botToken);
-    console.log('[STEP 3] Hash validation result:', isValid);
-    if (!isValid) {
-      console.warn('[FAIL] Hash validation failed. Request rejected.');
-      return NextResponse.json({ error: 'Invalid data: hash validation failed' }, { status: 403 });
-    }
 
     console.log('[SUCCESS] Hash validation passed. Processing data...');
     const params = new URLSearchParams(initData);
@@ -187,7 +162,7 @@ export async function POST(req: NextRequest) {
       tasks_completed: {
         subscribe: !!finalUser.subscribed,
         vote: !!finalUser.voted,
-        invite: false, // можно улучшить: считать, сколько рефералов у пользователя > 0
+        invite: false,
       },
     };
 

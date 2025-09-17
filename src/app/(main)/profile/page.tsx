@@ -10,6 +10,8 @@ import {
   UserCircle,
   Pencil,
   Wallet,
+  Gift,
+  Calendar,
 } from 'lucide-react';
 
 type UserProfile = {
@@ -20,6 +22,13 @@ type UserProfile = {
   photo_url?: string;
   balance_crystals: number;
 };
+
+interface Winning {
+  id: number;
+  prize_name: string;
+  won_at: string;
+  prize_type: string;
+}
 
 interface ProfileLinkProps {
   icon: React.ElementType;
@@ -64,10 +73,11 @@ function BalanceDisplay({ icon: Icon, iconBgColor, text, balance }: BalanceDispl
     );
 }
 
-
 export default function ProfilePage() {
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [winnings, setWinnings] = useState<Winning[]>([]);
   const [loading, setLoading] = useState(true);
+  const [winningsLoading, setWinningsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -92,12 +102,30 @@ export default function ProfilePage() {
             photo_url: tg.initDataUnsafe?.user?.photo_url,
         };
         setUser(fullUserData);
+        
+        // Загружаем историю выигрышей после загрузки профиля
+        setWinningsLoading(true);
+        return fetch('/api/user/winnings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData: tg.initData }),
+        });
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Не удалось загрузить историю выигрышей');
+        return response.json();
+      })
+      .then(winningsData => {
+        setWinnings(winningsData);
       })
       .catch(err => {
         console.error("Profile fetch error:", err);
         setError(err.message);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setWinningsLoading(false);
+      });
     } else {
         setLoading(false);
         setError("Приложение необходимо открыть в Telegram");
@@ -121,7 +149,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex flex-col items-center bg-white text-black p-4 pt-8">
+    <div className="flex flex-col items-center bg-white text-black p-4 pt-8 pb-20">
       <div className="flex flex-col items-center">
         {user.photo_url ? (
           <Image
@@ -167,6 +195,55 @@ export default function ProfilePage() {
           text="Сообщество Assist+"
           href=""
         />
+      </div>
+
+      {/* Раздел истории выигрышей */}
+      <div className="w-full max-w-md mt-8">
+        <div className="flex items-center mb-4">
+          <Gift className="h-6 w-6 text-red-500 mr-2" />
+          <h3 className="text-xl font-bold">История выигрышей</h3>
+        </div>
+
+        {winningsLoading ? (
+          <div className="text-center py-4">
+            <p className="text-gray-500">Загрузка истории...</p>
+          </div>
+        ) : winnings.length > 0 ? (
+          <div className="space-y-3">
+            {winnings.map((winning) => (
+              <div key={winning.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-semibold text-gray-800">{winning.prize_name}</h4>
+                    <div className="flex items-center mt-1 text-sm text-gray-500">
+                      <Calendar className="h-4 w-4 mr-1" />
+                      <span>
+                        {new Date(winning.won_at).toLocaleDateString('ru-RU', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    winning.prize_type === 'rare' 
+                      ? 'bg-purple-100 text-purple-800' 
+                      : 'bg-blue-100 text-blue-800'
+                  }`}>
+                    {winning.prize_type === 'rare' ? 'Редкий приз' : 'Обычный приз'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-200">
+            <Gift className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+            <p className="text-gray-500">У вас пока нет выигрышей</p>
+            <p className="text-sm text-gray-400 mt-1">Испытайте удачу в магазине!</p>
+          </div>
+        )}
       </div>
     </div>
   );

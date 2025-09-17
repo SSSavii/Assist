@@ -73,6 +73,30 @@ export default function ShopPage() {
     return availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
   };
 
+  // Функция для сохранения выигрыша в базу данных
+  const saveWinningToDatabase = async (prize: Prize) => {
+    try {
+      const tg = window.Telegram?.WebApp;
+      if (!tg) return;
+
+      const response = await fetch('/api/user/save-winning', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          initData: tg.initData,
+          prizeName: prize.name,
+          prizeType: prize.type
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to save winning to database');
+      }
+    } catch (error) {
+      console.error('Error saving winning:', error);
+    }
+  };
+
   const handleSpin = async () => {
     if (isSpinning || hasSpunRef.current) return;
 
@@ -106,6 +130,9 @@ export default function ShopPage() {
       setShowPrizeAlert(true);
       window.Telegram?.WebApp?.HapticFeedback.notificationOccurred('success');
       window.Telegram?.WebApp.showAlert(`Поздравляем! Вы выиграли: ${winningPrize.name}`);
+      
+      // СОХРАНЯЕМ ВЫИГРЫШ В БАЗУ ДАННЫХ
+      saveWinningToDatabase(winningPrize);
       
       // В реальном приложении здесь нужно обновить баланс пользователя
       // setUser(prev => prev ? { ...prev, cases_to_open: prev.cases_to_open - 1 } : null);
