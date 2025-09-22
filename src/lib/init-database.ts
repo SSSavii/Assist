@@ -22,24 +22,9 @@ db.exec(`
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     subscribed INTEGER DEFAULT 0,
-    voted INTEGER DEFAULT 0,
-    FOREIGN KEY (referred_by_id) REFERENCES users(id)
+    voted INTEGER DEFAULT 0
   )
 `);
-// Явно добавляем колонки, если их нет
-try {
-  db.exec("ALTER TABLE users ADD COLUMN subscribed INTEGER DEFAULT 0;");
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-} catch (e) {
-  // Колонка уже существует — это нормально
-}
-
-try {
-  db.exec("ALTER TABLE users ADD COLUMN voted INTEGER DEFAULT 0;");
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-} catch (e) {
-  // Колонка уже существует — это нормально
-}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS Lots (
@@ -101,7 +86,7 @@ const insertTask = db.prepare(`
 db.transaction(() => {
   insertTask.run({ id: 1, task_key: 'subscribe_channel', title: 'Подпишись на Ассист+', reward_crystals: 100 });
   insertTask.run({ id: 2, task_key: 'vote_poll', title: 'Отдай голос на улучшение канала', reward_crystals: 500 });
-  insertTask.run({ id: 3, task_key: 'invite_friend_assistant', title: 'Пригласи друга, который хочет стать бизнес-ассистентом', reward_crystals: 500 });
+  insertTask.run({ id: 3, task_key: 'invite_friend', title: 'Пригласи друга', reward_crystals: 500 });
 })();
 
 db.exec(`

@@ -194,12 +194,12 @@ function TaskCard({ title, reward, buttonText, checkButtonText, action, checkAct
                     children: title
                 }, void 0, false, {
                     fileName: "[project]/src/app/(main)/page.tsx",
-                    lineNumber: 40,
+                    lineNumber: 46,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 39,
+                lineNumber: 45,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -216,7 +216,7 @@ function TaskCard({ title, reward, buttonText, checkButtonText, action, checkAct
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 44,
+                                lineNumber: 50,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -229,13 +229,13 @@ function TaskCard({ title, reward, buttonText, checkButtonText, action, checkAct
                                 }
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 45,
+                                lineNumber: 51,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 43,
+                        lineNumber: 49,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -248,7 +248,7 @@ function TaskCard({ title, reward, buttonText, checkButtonText, action, checkAct
                                 children: buttonText
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 57,
+                                lineNumber: 63,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -258,25 +258,25 @@ function TaskCard({ title, reward, buttonText, checkButtonText, action, checkAct
                                 children: isCompleted ? 'Готово' : checkButtonText
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 65,
+                                lineNumber: 71,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 56,
+                        lineNumber: 62,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 42,
+                lineNumber: 48,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(main)/page.tsx",
-        lineNumber: 38,
+        lineNumber: 44,
         columnNumber: 5
     }, this);
 }
@@ -293,13 +293,17 @@ function HomePage() {
             const tg = window.Telegram?.WebApp;
             if (tg) {
                 tg.ready();
+                // Получаем startapp параметр из WebApp
+                const startappParam = tg.initDataUnsafe?.start_param;
+                console.log('startapp from WebApp:', startappParam);
                 fetch('/api/auth', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        initData: tg.initData
+                        initData: tg.initData,
+                        startapp: startappParam // Добавляем отдельно
                     })
                 }).then({
                     "HomePage.useEffect": (response)=>{
@@ -404,19 +408,27 @@ function HomePage() {
     };
     const handleInviteFriend = ()=>{
         const tg = window.Telegram?.WebApp;
-        if (!tg || !user || !user.id) {
+        if (!tg || !user || !user.tg_id) {
             tg?.showAlert('Не удалось создать ссылку. Пожалуйста, перезагрузите страницу.');
             return;
         }
         const botUsername = ("TURBOPACK compile-time value", "my_auction_admin_bot");
-        const botName = ("TURBOPACK compile-time value", "test admin");
+        const appName = 'assist_plus'; // Имя приложения из BotFather
         if ("TURBOPACK compile-time falsy", 0) {
             "TURBOPACK unreachable";
         }
-        const referralLink = `https://t.me/${botUsername}/${botName}?startapp=ref_${user.id}`;
-        const shareText = `Привет! Присоединяйся к "Ассист+" и получай бонусы. Поможем друг другу найти крутые знакомства и возможности!`;
-        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
-        tg.openTelegramLink(shareUrl);
+        // Правильный формат после настройки Mini App
+        const referralLink = `https://t.me/${botUsername}/${appName}?startapp=ref${user.tg_id}`;
+        console.log('Referral link:', referralLink);
+        const shareText = `Привет! Запусти мини-приложение "Ассист+" и получай бонусы!`;
+        try {
+            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
+            tg.openTelegramLink(shareUrl);
+        } catch (error) {
+            console.error('Share error:', error);
+            navigator.clipboard.writeText(`${shareText}\n${referralLink}`);
+            tg.showAlert('Ссылка скопирована в буфер обмена! Отправь ее другу.');
+        }
     };
     const checkTask = (taskId)=>{
         const tg = window.Telegram?.WebApp;
@@ -435,8 +447,13 @@ function HomePage() {
                 setUser((prev)=>prev ? {
                         ...prev,
                         balance_crystals: data.newBalance,
-                        subscribed_to_channel: taskId === 'subscribe' ? true : prev.subscribed_to_channel,
-                        voted_for_channel: taskId === 'vote' ? true : prev.voted_for_channel
+                        // Обновляем tasks_completed
+                        tasks_completed: {
+                            ...prev.tasks_completed,
+                            subscribe: taskId === 'subscribe' ? true : prev.tasks_completed?.subscribe || false,
+                            vote: taskId === 'vote' ? true : prev.tasks_completed?.vote || false,
+                            invite: taskId === 'invite' ? true : prev.tasks_completed?.invite || false
+                        }
                     } : null);
                 tg.showAlert(data.message || `Награда получена: +${data.reward} плюсов!`);
             } else {
@@ -455,6 +472,7 @@ function HomePage() {
         const tg = window.Telegram?.WebApp;
         tg?.openTelegramLink('https://t.me/assistplus_business');
     };
+    // Обновляем tasks с проверкой на существование tasks_completed
     const tasks = [
         {
             title: 'Подпишись на Ассист+',
@@ -463,7 +481,7 @@ function HomePage() {
             checkButtonText: 'Проверить',
             action: handleSubscribeToChannel,
             checkAction: ()=>checkTask('subscribe'),
-            isCompleted: user?.subscribed_to_channel
+            isCompleted: user?.tasks_completed?.subscribe || false
         },
         {
             title: 'Отдай голос на улучшение канала',
@@ -472,7 +490,7 @@ function HomePage() {
             checkButtonText: 'Проверить',
             action: handleVoteForChannel,
             checkAction: ()=>checkTask('vote'),
-            isCompleted: user?.voted_for_channel
+            isCompleted: user?.tasks_completed?.vote || false
         },
         {
             title: 'Пригласи друга',
@@ -481,7 +499,7 @@ function HomePage() {
             checkButtonText: 'Проверить',
             action: handleInviteFriend,
             checkAction: ()=>checkTask('invite'),
-            isCompleted: false // или добавь логику позже
+            isCompleted: user?.tasks_completed?.invite || false
         }
     ];
     if (loading) {
@@ -490,7 +508,7 @@ function HomePage() {
             children: "Загрузка..."
         }, void 0, false, {
             fileName: "[project]/src/app/(main)/page.tsx",
-            lineNumber: 285,
+            lineNumber: 319,
             columnNumber: 12
         }, this);
     }
@@ -503,7 +521,7 @@ function HomePage() {
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/(main)/page.tsx",
-            lineNumber: 288,
+            lineNumber: 322,
             columnNumber: 12
         }, this);
     }
@@ -513,7 +531,7 @@ function HomePage() {
             children: "Не удалось загрузить данные пользователя."
         }, void 0, false, {
             fileName: "[project]/src/app/(main)/page.tsx",
-            lineNumber: 291,
+            lineNumber: 325,
             columnNumber: 12
         }, this);
     }
@@ -529,13 +547,13 @@ function HomePage() {
                         children: "+"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 297,
+                        lineNumber: 331,
                         columnNumber: 15
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 296,
+                lineNumber: 330,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -546,12 +564,12 @@ function HomePage() {
                     children: "Подписаться на канал"
                 }, void 0, false, {
                     fileName: "[project]/src/app/(main)/page.tsx",
-                    lineNumber: 302,
+                    lineNumber: 336,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 301,
+                lineNumber: 335,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -563,12 +581,12 @@ function HomePage() {
                     tapLimit: DAILY_TAP_LIMIT
                 }, void 0, false, {
                     fileName: "[project]/src/app/(main)/page.tsx",
-                    lineNumber: 311,
+                    lineNumber: 345,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 310,
+                lineNumber: 344,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -576,7 +594,7 @@ function HomePage() {
                 children: "Зарабатывай плюсы и меняй их в аукционе знакомств"
             }, void 0, false, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 318,
+                lineNumber: 352,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -587,7 +605,7 @@ function HomePage() {
                         children: "ЗАДАНИЯ"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 323,
+                        lineNumber: 357,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -596,24 +614,24 @@ function HomePage() {
                                 ...task
                             }, index, false, {
                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 326,
+                                lineNumber: 360,
                                 columnNumber: 13
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 324,
+                        lineNumber: 358,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 322,
+                lineNumber: 356,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(main)/page.tsx",
-        lineNumber: 295,
+        lineNumber: 329,
         columnNumber: 5
     }, this);
 }

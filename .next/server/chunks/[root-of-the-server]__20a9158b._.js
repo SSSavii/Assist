@@ -1,6 +1,6 @@
 module.exports = {
 
-"[project]/.next-internal/server/app/api/auth/route/actions.js [app-rsc] (server actions loader, ecmascript)": (function(__turbopack_context__) {
+"[project]/.next-internal/server/app/api/check-subscription/route/actions.js [app-rsc] (server actions loader, ecmascript)": (function(__turbopack_context__) {
 
 var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
 {
@@ -239,12 +239,12 @@ function validateTelegramHash(initData, botToken) {
     }
 }
 }}),
-"[project]/src/app/api/auth/route.ts [app-route] (ecmascript)": ((__turbopack_context__) => {
+"[project]/src/app/api/check-subscription/route.ts [app-route] (ecmascript)": ((__turbopack_context__) => {
 "use strict";
 
 var { g: global, __dirname } = __turbopack_context__;
 {
-__turbopack_context__.s({
+/* eslint-disable @typescript-eslint/no-explicit-any */ __turbopack_context__.s({
     "POST": (()=>POST)
 });
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/server.js [app-route] (ecmascript)");
@@ -253,13 +253,35 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$telegram$2d$au
 ;
 ;
 ;
-const REFERRAL_BONUS = 500;
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const CHANNEL_USERNAME = '@assistplus_business'; // Убедитесь, что начинается с @
+const TASK_REWARDS = {
+    subscribe: 100,
+    vote: 500,
+    invite: 500
+};
+const TASK_KEYS = {
+    subscribe: 'subscribe_channel',
+    vote: 'vote_poll',
+    invite: 'invite_friend'
+};
 async function POST(req) {
     try {
-        const { initData, startapp } = await req.json();
+        const { initData, taskId } = await req.json();
         if (!initData) {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 error: 'initData is required'
+            }, {
+                status: 400
+            });
+        }
+        if (!taskId || ![
+            'subscribe',
+            'vote',
+            'invite'
+        ].includes(taskId)) {
+            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                error: 'Valid taskId is required'
             }, {
                 status: 400
             });
@@ -281,29 +303,6 @@ async function POST(req) {
         }
         const params = new URLSearchParams(initData);
         const userData = JSON.parse(params.get('user') || '{}');
-        // ВАЖНОЕ ИСПРАВЛЕНИЕ: Используем переданный startapp или извлекаем из initData
-        let startParam = startapp; // Приоритет у переданного параметра
-        if (!startParam) {
-            // Пытаемся извлечь из initData разными способами
-            startParam = params.get('startapp') || params.get('start_param') || params.get('start');
-            // Дополнительная попытка извлечь из объекта initDataUnsafe
-            try {
-                const initDataObj = Object.fromEntries(params.entries());
-                if (initDataObj.startapp && !startParam) {
-                    startParam = initDataObj.startapp;
-                }
-                if (initDataObj.start_param && !startParam) {
-                    startParam = initDataObj.start_param;
-                }
-            } catch (e) {
-                console.log('Error parsing startapp from initData:', e);
-            }
-        }
-        console.log('=== AUTH DEBUG ===');
-        console.log('User ID:', userData.id);
-        console.log('Start param received:', startapp);
-        console.log('Start param from initData:', startParam);
-        console.log('All initData params:', Object.fromEntries(params.entries()));
         if (!userData.id) {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 error: 'Invalid user data'
@@ -311,86 +310,10 @@ async function POST(req) {
                 status: 400
             });
         }
-        // Проверяем выполненные задачи пользователя
-        const checkTasksStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
-      SELECT t.task_key 
-      FROM user_tasks ut 
-      JOIN tasks t ON ut.task_id = t.id 
-      WHERE ut.user_id = (SELECT id FROM users WHERE tg_id = ?)
-    `);
-        // Находим или создаем пользователя
-        const findUserStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
-      SELECT * FROM users WHERE tg_id = ?
-    `);
-        let user = findUserStmt.get(userData.id);
-        // ОБРАБОТКА РЕФЕРАЛЬНОЙ ССЫЛКИ ДАЖЕ ДЛЯ СУЩЕСТВУЮЩИХ ПОЛЬЗОВАТЕЛЕЙ
-        let referredById = null;
-        if (startParam && startParam.startsWith('ref')) {
-            const referrerIdStr = startParam.replace(/^ref_?/, '');
-            const referrerTgId = parseInt(referrerIdStr, 10);
-            console.log('Referrer TG ID from param:', referrerTgId);
-            console.log('Current user TG ID:', userData.id);
-            console.log('Is self-referral:', referrerTgId === userData.id);
-            if (!isNaN(referrerTgId) && referrerTgId > 0) {
-                const referrerStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT id FROM users WHERE tg_id = ?');
-                const referrer = referrerStmt.get(referrerTgId);
-                console.log('Found referrer:', referrer);
-                if (referrer) {
-                    referredById = referrer.id;
-                    // НАГРАЖДАЕМ РЕФЕРЕРА ТОЛЬКО ЕСЛИ ЭТО ПЕРВОЕ ПРИГЛАШЕНИЕ ДАННОГО ПОЛЬЗОВАТЕЛЯ
-                    if (user && user.referred_by_id === null) {
-                        const rewardStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
-              UPDATE users 
-              SET balance_crystals = balance_crystals + ?, cases_to_open = cases_to_open + 1 
-              WHERE id = ?
-            `);
-                        rewardStmt.run(REFERRAL_BONUS, referredById);
-                        console.log('🎯 Rewarded referrer with ID:', referredById, 'for inviting user', userData.id);
-                    } else if (!user) {
-                        // Если пользователь новый - реферер получит награду после создания пользователя
-                        console.log('🆕 New user will be created with referrer:', referredById);
-                    } else {
-                        console.log('ℹ️ User already has a referrer or this is not the first invitation');
-                    }
-                } else {
-                    console.log('❌ Referrer not found in database');
-                }
-            }
-        }
-        if (user) {
-            // ОБНОВЛЯЕМ СУЩЕСТВУЮЩЕГО ПОЛЬЗОВАТЕЛЯ - УСТАНАВЛИВАЕМ referred_by_id ЕСЛИ НУЖНО
-            const updateStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
-        UPDATE users 
-        SET username = ?, first_name = ?, last_name = ?, 
-            last_login_at = CURRENT_TIMESTAMP,
-            referred_by_id = COALESCE(referred_by_id, ?) -- Устанавливаем если еще не установлен
-        WHERE tg_id = ?
-      `);
-            updateStmt.run(userData.username, userData.first_name, userData.last_name, referredById, userData.id);
-            user = findUserStmt.get(userData.id);
-            console.log('✅ Existing user updated, referred_by_id:', user?.referred_by_id);
-        } else {
-            // Создаем нового пользователя с рефералом
-            const insertStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
-        INSERT INTO users (tg_id, username, first_name, last_name, referred_by_id, balance_crystals)
-        VALUES (?, ?, ?, ?, ?, 400)
-      `);
-            console.log('Creating user with referred_by_id:', referredById);
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const result = insertStmt.run(userData.id, userData.username, userData.first_name, userData.last_name, referredById);
-            user = findUserStmt.get(userData.id);
-            console.log('🆕 New user created with ID:', user?.id, 'referred_by_id:', user?.referred_by_id);
-            // НАГРАЖДАЕМ РЕФЕРЕРА ПОСЛЕ СОЗДАНИЯ НОВОГО ПОЛЬЗОВАТЕЛЯ
-            if (referredById) {
-                const rewardStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
-          UPDATE users 
-          SET balance_crystals = balance_crystals + ?, cases_to_open = cases_to_open + 1 
-          WHERE id = ?
-        `);
-                rewardStmt.run(REFERRAL_BONUS, referredById);
-                console.log('🎁 Rewarded referrer after user creation:', referredById);
-            }
-        }
+        // Находим пользователя
+        const findUserStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT * FROM users WHERE tg_id = ?');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const user = findUserStmt.get(userData.id);
         if (!user) {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 error: 'User not found'
@@ -398,37 +321,78 @@ async function POST(req) {
                 status: 404
             });
         }
-        // Получаем выполненные задачи
-        const completedTasks = checkTasksStmt.all(user.id);
-        const completedTaskKeys = completedTasks.map((task)=>task.task_key);
-        const response = {
-            id: user.id,
-            tg_id: user.tg_id,
-            username: user.username,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            balance_crystals: user.balance_crystals,
-            last_tap_date: user.last_tap_date,
-            daily_taps_count: user.daily_taps_count,
-            cases_to_open: user.cases_to_open,
-            created_at: user.created_at,
-            last_login_at: user.last_login_at,
-            subscribed_to_channel: user.subscribed === 1,
-            voted_for_channel: user.voted === 1,
-            tasks_completed: {
-                subscribe: completedTaskKeys.includes('subscribe_channel'),
-                vote: completedTaskKeys.includes('vote_poll'),
-                invite: completedTaskKeys.includes('invite_friend')
+        // Проверяем, выполнена ли уже задача
+        const checkTaskStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
+      SELECT 1 FROM user_tasks ut 
+      JOIN tasks t ON ut.task_id = t.id 
+      WHERE ut.user_id = ? AND t.task_key = ?
+    `);
+        const taskCompleted = checkTaskStmt.get(user.id, TASK_KEYS[taskId]);
+        if (taskCompleted) {
+            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                success: false,
+                message: 'Задание уже выполнено'
+            });
+        }
+        let isCompleted = false;
+        let message = '';
+        switch(taskId){
+            case 'subscribe':
+                // Проверка подписки на канал
+                try {
+                    const chatMember = await checkChannelSubscription(userData.id);
+                    isCompleted = chatMember?.status === 'member' || chatMember?.status === 'administrator' || chatMember?.status === 'creator';
+                    message = isCompleted ? 'Подписка подтверждена!' : 'Вы не подписаны на канал';
+                } catch (error) {
+                    console.error('Subscription check error:', error);
+                    return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                        success: false,
+                        message: 'Ошибка проверки подписки. Попробуйте позже.'
+                    });
+                }
+                break;
+            case 'vote':
+                // Для голосования пока возвращаем false - нужно реализовать проверку
+                isCompleted = false;
+                message = 'Проверка голосования временно недоступна';
+                break;
+            case 'invite':
+                // Проверка приглашенных друзей
+                const invitedFriendsStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT COUNT(*) as count FROM users WHERE referred_by_id = ?');
+                const invitedCount = invitedFriendsStmt.get(user.id)?.count || 0;
+                isCompleted = invitedCount > 0;
+                message = isCompleted ? `Вы пригласили ${invitedCount} друзей!` : 'Вы еще никого не пригласили';
+                break;
+        }
+        if (isCompleted) {
+            // Награждаем пользователя
+            const reward = TASK_REWARDS[taskId];
+            const updateBalanceStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('UPDATE users SET balance_crystals = balance_crystals + ? WHERE id = ?');
+            updateBalanceStmt.run(reward, user.id);
+            // Отмечаем задачу как выполненную
+            const taskStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT id FROM tasks WHERE task_key = ?');
+            const task = taskStmt.get(TASK_KEYS[taskId]);
+            if (task) {
+                const insertTaskStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
+          INSERT OR IGNORE INTO user_tasks (user_id, task_id, status) 
+          VALUES (?, ?, 'completed')
+        `);
+                insertTaskStmt.run(user.id, task.id);
             }
-        };
-        console.log('=== FINAL USER DATA ===');
-        console.log('User ID:', user.id);
-        console.log('Referred by:', user.referred_by_id);
-        console.log('Balance:', user.balance_crystals);
-        console.log('Tasks completed:', response.tasks_completed);
-        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json(response);
+            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                success: true,
+                message: `Награда получена: +${reward} плюсов!`,
+                reward: reward,
+                newBalance: user.balance_crystals + reward
+            });
+        } else {
+            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                success: false,
+                message: message
+            });
+        }
     } catch (error) {
-        console.error('Auth error:', error);
+        console.error('Check subscription error:', error);
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             error: 'Internal server error'
         }, {
@@ -436,8 +400,29 @@ async function POST(req) {
         });
     }
 }
+// Функция проверки подписки на канал
+async function checkChannelSubscription(userId) {
+    if (!BOT_TOKEN || !CHANNEL_USERNAME) {
+        throw new Error('Bot token or channel username not configured');
+    }
+    const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChatMember`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            chat_id: CHANNEL_USERNAME,
+            user_id: userId
+        })
+    });
+    if (!response.ok) {
+        throw new Error(`Telegram API error: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data.result;
+}
 }}),
 
 };
 
-//# sourceMappingURL=%5Broot-of-the-server%5D__2928ec21._.js.map
+//# sourceMappingURL=%5Broot-of-the-server%5D__20a9158b._.js.map

@@ -1,6 +1,6 @@
 module.exports = {
 
-"[project]/.next-internal/server/app/api/auth/route/actions.js [app-rsc] (server actions loader, ecmascript)": (function(__turbopack_context__) {
+"[project]/.next-internal/server/app/api/check-subscription/route/actions.js [app-rsc] (server actions loader, ecmascript)": (function(__turbopack_context__) {
 
 var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
 {
@@ -50,6 +50,14 @@ module.exports = mod;
 var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
 {
 const mod = __turbopack_context__.x("next/dist/server/app-render/after-task-async-storage.external.js", () => require("next/dist/server/app-render/after-task-async-storage.external.js"));
+
+module.exports = mod;
+}}),
+"[externals]/url [external] (url, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("url", () => require("url"));
 
 module.exports = mod;
 }}),
@@ -200,14 +208,6 @@ const mod = __turbopack_context__.x("crypto", () => require("crypto"));
 
 module.exports = mod;
 }}),
-"[externals]/url [external] (url, cjs)": (function(__turbopack_context__) {
-
-var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
-{
-const mod = __turbopack_context__.x("url", () => require("url"));
-
-module.exports = mod;
-}}),
 "[project]/src/lib/telegram-auth.ts [app-route] (ecmascript)": ((__turbopack_context__) => {
 "use strict";
 
@@ -239,7 +239,7 @@ function validateTelegramHash(initData, botToken) {
     }
 }
 }}),
-"[project]/src/app/api/auth/route.ts [app-route] (ecmascript)": ((__turbopack_context__) => {
+"[project]/src/app/api/check-subscription/route.ts [app-route] (ecmascript)": ((__turbopack_context__) => {
 "use strict";
 
 var { g: global, __dirname } = __turbopack_context__;
@@ -248,15 +248,17 @@ __turbopack_context__.s({
     "POST": (()=>POST)
 });
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/server.js [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$externals$5d2f$url__$5b$external$5d$__$28$url$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/url [external] (url, cjs)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/init-database.ts [app-route] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$telegram$2d$auth$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/telegram-auth.ts [app-route] (ecmascript)");
+;
 ;
 ;
 ;
 const REFERRAL_BONUS = 500;
 async function POST(req) {
     try {
-        const { initData, startapp } = await req.json();
+        const { initData } = await req.json();
         if (!initData) {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 error: 'initData is required'
@@ -279,31 +281,9 @@ async function POST(req) {
                 status: 403
             });
         }
-        const params = new URLSearchParams(initData);
+        const params = new __TURBOPACK__imported__module__$5b$externals$5d2f$url__$5b$external$5d$__$28$url$2c$__cjs$29$__["URLSearchParams"](initData);
         const userData = JSON.parse(params.get('user') || '{}');
-        // ВАЖНОЕ ИСПРАВЛЕНИЕ: Используем переданный startapp или извлекаем из initData
-        let startParam = startapp; // Приоритет у переданного параметра
-        if (!startParam) {
-            // Пытаемся извлечь из initData разными способами
-            startParam = params.get('startapp') || params.get('start_param') || params.get('start');
-            // Дополнительная попытка извлечь из объекта initDataUnsafe
-            try {
-                const initDataObj = Object.fromEntries(params.entries());
-                if (initDataObj.startapp && !startParam) {
-                    startParam = initDataObj.startapp;
-                }
-                if (initDataObj.start_param && !startParam) {
-                    startParam = initDataObj.start_param;
-                }
-            } catch (e) {
-                console.log('Error parsing startapp from initData:', e);
-            }
-        }
-        console.log('=== AUTH DEBUG ===');
-        console.log('User ID:', userData.id);
-        console.log('Start param received:', startapp);
-        console.log('Start param from initData:', startParam);
-        console.log('All initData params:', Object.fromEntries(params.entries()));
+        const startParam = params.get('startapp') || params.get('start_param');
         if (!userData.id) {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 error: 'Invalid user data'
@@ -323,54 +303,41 @@ async function POST(req) {
       SELECT * FROM users WHERE tg_id = ?
     `);
         let user = findUserStmt.get(userData.id);
-        // ОБРАБОТКА РЕФЕРАЛЬНОЙ ССЫЛКИ ДАЖЕ ДЛЯ СУЩЕСТВУЮЩИХ ПОЛЬЗОВАТЕЛЕЙ
-        let referredById = null;
-        if (startParam && startParam.startsWith('ref')) {
-            const referrerIdStr = startParam.replace(/^ref_?/, '');
-            const referrerTgId = parseInt(referrerIdStr, 10);
-            console.log('Referrer TG ID from param:', referrerTgId);
-            console.log('Current user TG ID:', userData.id);
-            console.log('Is self-referral:', referrerTgId === userData.id);
-            if (!isNaN(referrerTgId) && referrerTgId > 0) {
-                const referrerStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT id FROM users WHERE tg_id = ?');
-                const referrer = referrerStmt.get(referrerTgId);
-                console.log('Found referrer:', referrer);
-                if (referrer) {
-                    referredById = referrer.id;
-                    // НАГРАЖДАЕМ РЕФЕРЕРА ТОЛЬКО ЕСЛИ ЭТО ПЕРВОЕ ПРИГЛАШЕНИЕ ДАННОГО ПОЛЬЗОВАТЕЛЯ
-                    if (user && user.referred_by_id === null) {
+        if (user) {
+            // Обновляем существующего пользователя
+            const updateStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
+        UPDATE users 
+        SET username = ?, first_name = ?, last_name = ?, last_login_at = CURRENT_TIMESTAMP 
+        WHERE tg_id = ?
+      `);
+            updateStmt.run(userData.username, userData.first_name, userData.last_name, userData.id);
+            user = findUserStmt.get(userData.id);
+        } else {
+            // Создаем нового пользователя
+            let referredById = null;
+            // Обработка реферальной ссылки - ВАЖНОЕ ИСПРАВЛЕНИЕ
+            if (startParam && startParam.startsWith('ref_')) {
+                const referrerIdStr = startParam.replace('ref_', '');
+                const referrerId = parseInt(referrerIdStr, 10);
+                console.log('Referrer ID from param:', referrerId);
+                if (!isNaN(referrerId)) {
+                    // ИСПРАВЛЕНИЕ: Ищем реферера по внутреннему id, а не по tg_id
+                    const referrerStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT id FROM users WHERE id = ?');
+                    const referrer = referrerStmt.get(referrerId);
+                    console.log('Found referrer:', referrer);
+                    if (referrer) {
+                        referredById = referrer.id;
+                        // Награждаем реферера
                         const rewardStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
               UPDATE users 
               SET balance_crystals = balance_crystals + ?, cases_to_open = cases_to_open + 1 
               WHERE id = ?
             `);
                         rewardStmt.run(REFERRAL_BONUS, referredById);
-                        console.log('🎯 Rewarded referrer with ID:', referredById, 'for inviting user', userData.id);
-                    } else if (!user) {
-                        // Если пользователь новый - реферер получит награду после создания пользователя
-                        console.log('🆕 New user will be created with referrer:', referredById);
-                    } else {
-                        console.log('ℹ️ User already has a referrer or this is not the first invitation');
+                        console.log('Rewarded referrer:', referredById);
                     }
-                } else {
-                    console.log('❌ Referrer not found in database');
                 }
             }
-        }
-        if (user) {
-            // ОБНОВЛЯЕМ СУЩЕСТВУЮЩЕГО ПОЛЬЗОВАТЕЛЯ - УСТАНАВЛИВАЕМ referred_by_id ЕСЛИ НУЖНО
-            const updateStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
-        UPDATE users 
-        SET username = ?, first_name = ?, last_name = ?, 
-            last_login_at = CURRENT_TIMESTAMP,
-            referred_by_id = COALESCE(referred_by_id, ?) -- Устанавливаем если еще не установлен
-        WHERE tg_id = ?
-      `);
-            updateStmt.run(userData.username, userData.first_name, userData.last_name, referredById, userData.id);
-            user = findUserStmt.get(userData.id);
-            console.log('✅ Existing user updated, referred_by_id:', user?.referred_by_id);
-        } else {
-            // Создаем нового пользователя с рефералом
             const insertStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
         INSERT INTO users (tg_id, username, first_name, last_name, referred_by_id, balance_crystals)
         VALUES (?, ?, ?, ?, ?, 400)
@@ -379,17 +346,7 @@ async function POST(req) {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const result = insertStmt.run(userData.id, userData.username, userData.first_name, userData.last_name, referredById);
             user = findUserStmt.get(userData.id);
-            console.log('🆕 New user created with ID:', user?.id, 'referred_by_id:', user?.referred_by_id);
-            // НАГРАЖДАЕМ РЕФЕРЕРА ПОСЛЕ СОЗДАНИЯ НОВОГО ПОЛЬЗОВАТЕЛЯ
-            if (referredById) {
-                const rewardStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
-          UPDATE users 
-          SET balance_crystals = balance_crystals + ?, cases_to_open = cases_to_open + 1 
-          WHERE id = ?
-        `);
-                rewardStmt.run(REFERRAL_BONUS, referredById);
-                console.log('🎁 Rewarded referrer after user creation:', referredById);
-            }
+            console.log('New user created:', user);
         }
         if (!user) {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
@@ -421,11 +378,6 @@ async function POST(req) {
                 invite: completedTaskKeys.includes('invite_friend')
             }
         };
-        console.log('=== FINAL USER DATA ===');
-        console.log('User ID:', user.id);
-        console.log('Referred by:', user.referred_by_id);
-        console.log('Balance:', user.balance_crystals);
-        console.log('Tasks completed:', response.tasks_completed);
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json(response);
     } catch (error) {
         console.error('Auth error:', error);
@@ -440,4 +392,4 @@ async function POST(req) {
 
 };
 
-//# sourceMappingURL=%5Broot-of-the-server%5D__2928ec21._.js.map
+//# sourceMappingURL=%5Broot-of-the-server%5D__93a17e26._.js.map

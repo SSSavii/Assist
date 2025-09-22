@@ -1,8 +1,5 @@
 {
-  "/(main)/auction/page": "app/(main)/auction/page.js",
   "/(main)/page": "app/(main)/page.js",
-  "/(main)/profile/page": "app/(main)/profile/page.js",
   "/api/auth/route": "app/api/auth/route.js",
-  "/api/user/save-winning/route": "app/api/user/save-winning/route.js",
-  "/api/user/winnings/route": "app/api/user/winnings/route.js"
+  "/api/check-subscription/route": "app/api/check-subscription/route.js"
 }

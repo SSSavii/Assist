@@ -5,12 +5,18 @@ import BalanceCard from 'wxqryy/app/components/BalanceCard';
 
 type UserProfile = {
   id: number;
+  tg_id: number; // Добавляем tg_id
   balance_crystals: number;
   cases_to_open: number;
   daily_taps_count: number;
   last_tap_date: string | null;
   subscribed_to_channel?: boolean;
   voted_for_channel?: boolean;
+  tasks_completed?: {
+    subscribe: boolean;
+    vote: boolean;
+    invite: boolean;
+  };
 };
 
 interface TaskCardProps {
@@ -83,43 +89,51 @@ export default function HomePage() {
   const DAILY_TAP_LIMIT = 100;
 
   useEffect(() => {
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData: tg.initData }),
-      })
-      .then(response => {
-        if (!response.ok) throw new Error(`Ошибка сети: ${response.statusText}`);
-        return response.json();
-      })
-      .then((data: UserProfile) => {
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    
+    // Получаем startapp параметр из WebApp
+    const startappParam = tg.initDataUnsafe?.start_param;
+    console.log('startapp from WebApp:', startappParam);
+    
+    fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        initData: tg.initData,
+        startapp: startappParam // Добавляем отдельно
+      }),
+    })
+    .then(response => {
+      if (!response.ok) throw new Error(`Ошибка сети: ${response.statusText}`);
+      return response.json();
+    })
+    .then((data: UserProfile) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((data as any).error) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((data as any).error) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          setError((data as any).error);
+        setError((data as any).error);
+      } else {
+        setUser(data);
+        const today = new Date().toISOString().split('T')[0];
+        if (data.last_tap_date === today) {
+          setTapsLeft(Math.max(0, DAILY_TAP_LIMIT - data.daily_taps_count));
         } else {
-          setUser(data);
-          const today = new Date().toISOString().split('T')[0];
-          if (data.last_tap_date === today) {
-            setTapsLeft(Math.max(0, DAILY_TAP_LIMIT - data.daily_taps_count));
-          } else {
-            setTapsLeft(DAILY_TAP_LIMIT);
-          }
+          setTapsLeft(DAILY_TAP_LIMIT);
         }
-      })
-      .catch(err => {
-        console.error("Auth fetch error:", err);
-        setError("Не удалось связаться с сервером.");
-      })
-      .finally(() => setLoading(false));
-    } else {
-      setError("Пожалуйста, откройте приложение в Telegram.");
-      setLoading(false);
-    }
-  }, []);
+      }
+    })
+    .catch(err => {
+      console.error("Auth fetch error:", err);
+      setError("Не удалось связаться с сервером.");
+    })
+    .finally(() => setLoading(false));
+  } else {
+    setError("Пожалуйста, откройте приложение в Telegram.");
+    setLoading(false);
+  }
+}, []);
 
   const handleEarnCrystals = () => {
     const tg = window.Telegram?.WebApp;
@@ -190,23 +204,37 @@ export default function HomePage() {
 };
   
   const handleInviteFriend = () => {
-    const tg = window.Telegram?.WebApp;
-    if (!tg || !user || !user.id) {
-        tg?.showAlert('Не удалось создать ссылку. Пожалуйста, перезагрузите страницу.');
-        return;
-    }
-    const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
-    const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME;
-    if (!botUsername || !botName) {
-        console.error("Bot username or app name is not set in .env.local");
-        tg?.showAlert('Ошибка конфигурации приложения.');
-        return;
-    }
-    const referralLink = `https://t.me/${botUsername}/${botName}?startapp=ref_${user.id}`;
-    const shareText = `Привет! Присоединяйся к "Ассист+" и получай бонусы. Поможем друг другу найти крутые знакомства и возможности!`;
+  const tg = window.Telegram?.WebApp;
+  if (!tg || !user || !user.tg_id) {
+    tg?.showAlert('Не удалось создать ссылку. Пожалуйста, перезагрузите страницу.');
+    return;
+  }
+  
+  const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
+  const appName = 'assist_plus'; // Имя приложения из BotFather
+  
+  if (!botUsername) {
+    console.error("Bot username is not set in .env.local");
+    tg?.showAlert('Ошибка конфигурации приложения.');
+    return;
+  }
+  
+  // Правильный формат после настройки Mini App
+  const referralLink = `https://t.me/${botUsername}/${appName}?startapp=ref${user.tg_id}`;
+  
+  console.log('Referral link:', referralLink);
+  
+  const shareText = `Привет! Запусти мини-приложение "Ассист+" и получай бонусы!`;
+  
+  try {
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
     tg.openTelegramLink(shareUrl);
-  };
+  } catch (error) {
+    console.error('Share error:', error);
+    navigator.clipboard.writeText(`${shareText}\n${referralLink}`);
+    tg.showAlert('Ссылка скопирована в буфер обмена! Отправь ее другу.');
+  }
+};
 
 const checkTask = (taskId: 'subscribe' | 'vote' | 'invite') => {
   const tg = window.Telegram?.WebApp;
@@ -225,8 +253,13 @@ const checkTask = (taskId: 'subscribe' | 'vote' | 'invite') => {
             ? {
                 ...prev,
                 balance_crystals: data.newBalance,
-                subscribed_to_channel: taskId === 'subscribe' ? true : prev.subscribed_to_channel,
-                voted_for_channel: taskId === 'vote' ? true : prev.voted_for_channel,
+                // Обновляем tasks_completed
+                tasks_completed: {
+                  ...prev.tasks_completed,
+                  subscribe: taskId === 'subscribe' ? true : prev.tasks_completed?.subscribe || false,
+                  vote: taskId === 'vote' ? true : prev.tasks_completed?.vote || false,
+                  invite: taskId === 'invite' ? true : prev.tasks_completed?.invite || false,
+                }
               }
             : null
         );
@@ -251,35 +284,36 @@ const checkTask = (taskId: 'subscribe' | 'vote' | 'invite') => {
     tg?.openTelegramLink('https://t.me/assistplus_business');
   };
 
+  // Обновляем tasks с проверкой на существование tasks_completed
   const tasks = [
-  { 
-    title: 'Подпишись на Ассист+', 
-    reward: 100, 
-    buttonText: 'Подписаться',
-    checkButtonText: 'Проверить',
-    action: handleSubscribeToChannel,
-    checkAction: () => checkTask('subscribe'),
-    isCompleted: user?.subscribed_to_channel
-  },
-  { 
-    title: 'Отдай голос на улучшение канала', 
-    reward: 500, 
-    buttonText: 'Проголосовать',
-    checkButtonText: 'Проверить',
-    action: handleVoteForChannel,
-    checkAction: () => checkTask('vote'),
-    isCompleted: user?.voted_for_channel
-  },
-  { 
-    title: 'Пригласи друга', 
-    reward: 500, 
-    buttonText: 'Пригласить',
-    checkButtonText: 'Проверить',
-    action: handleInviteFriend,
-    checkAction: () => checkTask('invite'), // пока не реализовано — можно оставить заглушку
-    isCompleted: false // или добавь логику позже
-  },
-];
+    { 
+      title: 'Подпишись на Ассист+', 
+      reward: 100, 
+      buttonText: 'Подписаться',
+      checkButtonText: 'Проверить',
+      action: handleSubscribeToChannel,
+      checkAction: () => checkTask('subscribe'),
+      isCompleted: user?.tasks_completed?.subscribe || false
+    },
+    { 
+      title: 'Отдай голос на улучшение канала', 
+      reward: 500, 
+      buttonText: 'Проголосовать',
+      checkButtonText: 'Проверить',
+      action: handleVoteForChannel,
+      checkAction: () => checkTask('vote'),
+      isCompleted: user?.tasks_completed?.vote || false
+    },
+    { 
+      title: 'Пригласи друга', 
+      reward: 500, 
+      buttonText: 'Пригласить',
+      checkButtonText: 'Проверить',
+      action: handleInviteFriend,
+      checkAction: () => checkTask('invite'),
+      isCompleted: user?.tasks_completed?.invite || false
+    },
+  ];
 
   if (loading) {
     return <div className="flex justify-center items-center h-screen bg-white text-gray-500">Загрузка...</div>;

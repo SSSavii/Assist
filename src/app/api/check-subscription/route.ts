@@ -1,137 +1,178 @@
-// app/api/check-subscription/route.ts
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
-import { URLSearchParams } from 'url';
-import { createHmac } from 'crypto';
-import axios from 'axios';
-
 import db from '@/lib/init-database';
+import { validateTelegramHash } from '@/lib/telegram-auth';
+
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const CHANNEL_USERNAME = '@assistplus_business'; // Должно начинаться с @
+const CHANNEL_USERNAME = '@assistplus_business'; // Убедитесь, что начинается с @
 
-function validateTelegramHash(initData: string, botToken: string): boolean {
-  try {
-    const params = new URLSearchParams(initData);
-    const hash = params.get('hash');
-    if (!hash) return false;
-    params.delete('hash');
-    const dataCheckArr: string[] = [];
-    const sortedKeys = Array.from(params.keys()).sort();
-    sortedKeys.forEach((key) => {
-      dataCheckArr.push(`${key}=${params.get(key)}`);
-    });
-    const dataCheckString = dataCheckArr.join('\n');
-    const secretKey = createHmac('sha256', 'WebAppData').update(botToken).digest();
-    const ownHash = createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
-    return ownHash === hash;
-  } catch (error) {
-    console.error('Hash validation error:', error);
-    return false;
-  }
+interface TaskRewards {
+  subscribe: number;
+  vote: number;
+  invite: number;
 }
 
-async function isUserSubscribed(userId: number): Promise<boolean> {
-  try {
-    const response = await axios.get(
-      `https://api.telegram.org/bot${BOT_TOKEN}/getChatMember`,
-      {
-        params: {
-          chat_id: CHANNEL_USERNAME,
-          user_id: userId,
-        },
-      }
-    );
+const TASK_REWARDS: TaskRewards = {
+  subscribe: 100,
+  vote: 500,
+  invite: 500
+};
 
-    const status = response.data.result?.status;
-    return ['member', 'administrator', 'creator'].includes(status);
-  } catch (error) {
-    console.error('Error checking subscription:', error);
-    return false;
-  }
-}
+const TASK_KEYS = {
+  subscribe: 'subscribe_channel',
+  vote: 'vote_poll',
+  invite: 'invite_friend'
+};
 
 export async function POST(req: NextRequest) {
   try {
     const { initData, taskId } = await req.json();
 
-    if (!initData || !BOT_TOKEN) {
-      return NextResponse.json({ success: false, message: 'Ошибка конфигурации' }, { status: 500 });
+    if (!initData) {
+      return NextResponse.json({ error: 'initData is required' }, { status: 400 });
     }
 
-    if (!validateTelegramHash(initData, BOT_TOKEN)) {
-      return NextResponse.json({ success: false, message: 'Неверные данные' }, { status: 403 });
+    if (!taskId || !['subscribe', 'vote', 'invite'].includes(taskId)) {
+      return NextResponse.json({ error: 'Valid taskId is required' }, { status: 400 });
+    }
+
+    const botToken = process.env.BOT_TOKEN;
+    if (!botToken) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+
+    if (!validateTelegramHash(initData, botToken)) {
+      return NextResponse.json({ error: 'Invalid Telegram hash' }, { status: 403 });
     }
 
     const params = new URLSearchParams(initData);
     const userData = JSON.parse(params.get('user') || '{}');
-    const userId = userData.id;
 
-    if (!userId) {
-      return NextResponse.json({ success: false, message: 'Не удалось определить пользователя' }, { status: 400 });
+    if (!userData.id) {
+      return NextResponse.json({ error: 'Invalid user data' }, { status: 400 });
     }
 
-    // Определяем задачу
-    let taskKey: string;
-    let reward: number;
-
-    if (taskId === 'subscribe') {
-      taskKey = 'subscribe_channel';
-      reward = 100;
-    } else if (taskId === 'vote') {
-      taskKey = 'vote_poll';
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      reward = 500;
-    } else {
-      return NextResponse.json({ success: false, message: 'Неизвестная задача' }, { status: 400 });
-    }
-
-    // Проверяем, есть ли такая задача в БД
-    const taskStmt = db.prepare('SELECT id, reward_crystals FROM tasks WHERE task_key = ?');
-    const task = taskStmt.get(taskKey) as { id: number; reward_crystals: number } | undefined;
-
-    if (!task) {
-      return NextResponse.json({ success: false, message: 'Задача не найдена' }, { status: 404 });
-    }
-
-    // Проверяем, уже ли выполнено
-    const userTaskStmt = db.prepare('SELECT * FROM user_tasks WHERE user_id = ? AND task_id = ?');
-    const userTask = userTaskStmt.get(userId, task.id);
-
-    if (userTask) {
-      return NextResponse.json({ success: false, message: 'Награда уже получена' });
-    }
-
-    // Проверяем подписку
-    const isSubscribed = await isUserSubscribed(userId);
-    if (!isSubscribed) {
-      return NextResponse.json({ success: false, message: 'Вы не подписаны на канал.' });
-    }
-
-    // Всё ок — начисляем награду
-    const userStmt = db.prepare('SELECT balance_crystals FROM users WHERE tg_id = ?');
-    const user = userStmt.get(userId) as { balance_crystals: number } | undefined;
+    // Находим пользователя
+    const findUserStmt = db.prepare('SELECT * FROM users WHERE tg_id = ?');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const user = findUserStmt.get(userData.id) as any;
 
     if (!user) {
-      return NextResponse.json({ success: false, message: 'Пользователь не найден' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const newBalance = user.balance_crystals + task.reward_crystals;
+    // Проверяем, выполнена ли уже задача
+    const checkTaskStmt = db.prepare(`
+      SELECT 1 FROM user_tasks ut 
+      JOIN tasks t ON ut.task_id = t.id 
+      WHERE ut.user_id = ? AND t.task_key = ?
+    `);
+    
+    const taskCompleted = checkTaskStmt.get(user.id, TASK_KEYS[taskId as keyof typeof TASK_KEYS]);
 
-    const insertUserTask = db.prepare('INSERT INTO user_tasks (user_id, task_id, status) VALUES (?, ?, "completed")');
-    const updateUserBalance = db.prepare('UPDATE users SET balance_crystals = ? WHERE tg_id = ?');
+    if (taskCompleted) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Задание уже выполнено' 
+      });
+    }
 
-    db.transaction(() => {
-      insertUserTask.run(userId, task.id);
-      updateUserBalance.run(newBalance, userId);
-    })();
+    let isCompleted = false;
+    let message = '';
 
-    return NextResponse.json({
-      success: true,
-      newBalance,
-      message: `Задание выполнено! Получено +${task.reward_crystals} плюсов.`,
-    });
+    switch (taskId) {
+      case 'subscribe':
+        // Проверка подписки на канал
+        try {
+          const chatMember = await checkChannelSubscription(userData.id);
+          isCompleted = chatMember?.status === 'member' || chatMember?.status === 'administrator' || chatMember?.status === 'creator';
+          message = isCompleted ? 'Подписка подтверждена!' : 'Вы не подписаны на канал';
+        } catch (error) {
+          console.error('Subscription check error:', error);
+          return NextResponse.json({ 
+            success: false, 
+            message: 'Ошибка проверки подписки. Попробуйте позже.' 
+          });
+        }
+        break;
+
+      case 'vote':
+        // Для голосования пока возвращаем false - нужно реализовать проверку
+        isCompleted = false;
+        message = 'Проверка голосования временно недоступна';
+        break;
+
+      case 'invite':
+        // Проверка приглашенных друзей
+        const invitedFriendsStmt = db.prepare('SELECT COUNT(*) as count FROM users WHERE referred_by_id = ?');
+        const invitedCount = (invitedFriendsStmt.get(user.id) as any)?.count || 0;
+        isCompleted = invitedCount > 0;
+        message = isCompleted ? `Вы пригласили ${invitedCount} друзей!` : 'Вы еще никого не пригласили';
+        break;
+    }
+
+    if (isCompleted) {
+      // Награждаем пользователя
+      const reward = TASK_REWARDS[taskId as keyof TaskRewards];
+      
+      const updateBalanceStmt = db.prepare('UPDATE users SET balance_crystals = balance_crystals + ? WHERE id = ?');
+      updateBalanceStmt.run(reward, user.id);
+
+      // Отмечаем задачу как выполненную
+      const taskStmt = db.prepare('SELECT id FROM tasks WHERE task_key = ?');
+      const task = taskStmt.get(TASK_KEYS[taskId as keyof typeof TASK_KEYS]) as any;
+      
+      if (task) {
+        const insertTaskStmt = db.prepare(`
+          INSERT OR IGNORE INTO user_tasks (user_id, task_id, status) 
+          VALUES (?, ?, 'completed')
+        `);
+        insertTaskStmt.run(user.id, task.id);
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Награда получена: +${reward} плюсов!`,
+        reward: reward,
+        newBalance: user.balance_crystals + reward
+      });
+    } else {
+      return NextResponse.json({
+        success: false,
+        message: message
+      });
+    }
+
   } catch (error) {
-    console.error('Error in /api/check-subscription:', error);
-    return NextResponse.json({ success: false, message: 'Ошибка сервера' }, { status: 500 });
+    console.error('Check subscription error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
+}
+
+// Функция проверки подписки на канал
+async function checkChannelSubscription(userId: number) {
+  if (!BOT_TOKEN || !CHANNEL_USERNAME) {
+    throw new Error('Bot token or channel username not configured');
+  }
+
+  const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChatMember`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      chat_id: CHANNEL_USERNAME,
+      user_id: userId
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Telegram API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.result;
 }

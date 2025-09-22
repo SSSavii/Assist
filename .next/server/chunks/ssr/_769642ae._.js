@@ -299,7 +299,7 @@ function FriendsPage() {
                             return;
                         }
                         const botUsername = ("TURBOPACK compile-time value", "my_auction_admin_bot");
-                        const botName = ("TURBOPACK compile-time value", "test admin");
+                        const botName = ("TURBOPACK compile-time value", "test_admin");
                         if ("TURBOPACK compile-time falsy", 0) {
                             "TURBOPACK unreachable";
                         }

@@ -199,23 +199,9 @@ db.exec(`
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     subscribed INTEGER DEFAULT 0,
-    voted INTEGER DEFAULT 0,
-    FOREIGN KEY (referred_by_id) REFERENCES users(id)
+    voted INTEGER DEFAULT 0
   )
 `);
-// Явно добавляем колонки, если их нет
-try {
-    db.exec("ALTER TABLE users ADD COLUMN subscribed INTEGER DEFAULT 0;");
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-} catch (e) {
-// Колонка уже существует — это нормально
-}
-try {
-    db.exec("ALTER TABLE users ADD COLUMN voted INTEGER DEFAULT 0;");
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-} catch (e) {
-// Колонка уже существует — это нормально
-}
 db.exec(`
   CREATE TABLE IF NOT EXISTS Lots (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -283,8 +269,8 @@ db.transaction(()=>{
     });
     insertTask.run({
         id: 3,
-        task_key: 'invite_friend_assistant',
-        title: 'Пригласи друга, который хочет стать бизнес-ассистентом',
+        task_key: 'invite_friend',
+        title: 'Пригласи друга',
         reward_crystals: 500
     });
 })();
@@ -307,7 +293,6 @@ const __TURBOPACK__default__export__ = db;
 
 var { g: global, __dirname } = __turbopack_context__;
 {
-// app/api/check-subscription/route.ts
 __turbopack_context__.s({
     "POST": (()=>POST)
 });
@@ -322,7 +307,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$databa
 ;
 ;
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const CHANNEL_USERNAME = '@assistplus_business'; // Должно начинаться с @
+const CHANNEL_USERNAME = '@assistplus_business';
 function validateTelegramHash(initData, botToken) {
     try {
         const params = new __TURBOPACK__imported__module__$5b$externals$5d2f$url__$5b$external$5d$__$28$url$2c$__cjs$29$__["URLSearchParams"](initData);
@@ -362,6 +347,19 @@ async function isUserSubscribed(userId) {
         return false;
     }
 }
+async function checkUserReferrals(userId) {
+    try {
+        const userStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT id FROM users WHERE tg_id = ?');
+        const user = userStmt.get(userId);
+        if (!user) return 0;
+        const refStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT COUNT(*) as count FROM users WHERE referred_by_id = ?');
+        const result = refStmt.get(user.id);
+        return result.count;
+    } catch (error) {
+        console.error('Error checking referrals:', error);
+        return 0;
+    }
+}
 async function POST(req) {
     try {
         const { initData, taskId } = await req.json();
@@ -392,16 +390,37 @@ async function POST(req) {
                 status: 400
             });
         }
+        // Получаем ID пользователя в нашей БД
+        const userStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT id FROM users WHERE tg_id = ?');
+        const user = userStmt.get(userId);
+        if (!user) {
+            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                success: false,
+                message: 'Пользователь не найден'
+            }, {
+                status: 404
+            });
+        }
+        const userDbId = user.id;
         // Определяем задачу
         let taskKey;
         let reward;
+        let verificationResult = false;
         if (taskId === 'subscribe') {
             taskKey = 'subscribe_channel';
             reward = 100;
+            verificationResult = await isUserSubscribed(userId);
         } else if (taskId === 'vote') {
             taskKey = 'vote_poll';
+            reward = 500;
+            // Для голосования - временно всегда true
+            verificationResult = true;
+        } else if (taskId === 'invite') {
+            taskKey = 'invite_friend';
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             reward = 500;
+            const referralCount = await checkUserReferrals(userId);
+            verificationResult = referralCount > 0;
         } else {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 success: false,
@@ -410,7 +429,7 @@ async function POST(req) {
                 status: 400
             });
         }
-        // Проверяем, есть ли такая задача в БД
+        // Находим задачу в БД
         const taskStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT id, reward_crystals FROM tasks WHERE task_key = ?');
         const task = taskStmt.get(taskKey);
         if (!task) {
@@ -421,48 +440,60 @@ async function POST(req) {
                 status: 404
             });
         }
-        // Проверяем, уже ли выполнено
+        // Проверяем, выполнена ли уже задача
         const userTaskStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT * FROM user_tasks WHERE user_id = ? AND task_id = ?');
-        const userTask = userTaskStmt.get(userId, task.id);
+        const userTask = userTaskStmt.get(userDbId, task.id);
         if (userTask) {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 success: false,
                 message: 'Награда уже получена'
             });
         }
-        // Проверяем подписку
-        const isSubscribed = await isUserSubscribed(userId);
-        if (!isSubscribed) {
-            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-                success: false,
-                message: 'Вы не подписаны на канал.'
-            });
+        // Проверяем выполнение условия
+        if (!verificationResult) {
+            if (taskId === 'subscribe') {
+                return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                    success: false,
+                    message: 'Вы не подписаны на канал.'
+                });
+            } else if (taskId === 'invite') {
+                return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                    success: false,
+                    message: 'У вас нет приглашенных друзей.'
+                });
+            } else {
+                return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                    success: false,
+                    message: 'Условия не выполнены.'
+                });
+            }
         }
-        // Всё ок — начисляем награду
-        const userStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT balance_crystals FROM users WHERE tg_id = ?');
-        const user = userStmt.get(userId);
-        if (!user) {
-            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-                success: false,
-                message: 'Пользователь не найден'
-            }, {
-                status: 404
-            });
-        }
-        const newBalance = user.balance_crystals + task.reward_crystals;
-        const insertUserTask = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('INSERT INTO user_tasks (user_id, task_id, status) VALUES (?, ?, "completed")');
-        const updateUserBalance = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('UPDATE users SET balance_crystals = ? WHERE tg_id = ?');
+        // Начисляем награду
+        const balanceStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT balance_crystals FROM users WHERE id = ?');
+        const currentBalance = balanceStmt.get(userDbId).balance_crystals;
+        const newBalance = currentBalance + task.reward_crystals;
+        const updateBalanceStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('UPDATE users SET balance_crystals = ? WHERE id = ?');
+        const insertTaskStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare("INSERT INTO user_tasks (user_id, task_id, status) VALUES (?, ?, 'completed')");
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].transaction(()=>{
-            insertUserTask.run(userId, task.id);
-            updateUserBalance.run(newBalance, userId);
+            updateBalanceStmt.run(newBalance, userDbId);
+            insertTaskStmt.run(userDbId, task.id);
         })();
+        // Обновляем флаги в основной таблице users
+        if (taskId === 'subscribe') {
+            const updateSubStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('UPDATE users SET subscribed = 1 WHERE id = ?');
+            updateSubStmt.run(userDbId);
+        } else if (taskId === 'vote') {
+            const updateVoteStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('UPDATE users SET voted = 1 WHERE id = ?');
+            updateVoteStmt.run(userDbId);
+        }
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             success: true,
             newBalance,
+            reward: task.reward_crystals,
             message: `Задание выполнено! Получено +${task.reward_crystals} плюсов.`
         });
     } catch (error) {
-        console.error('Error in /api/check-subscription:', error);
+        console.error('Error in check-subscription:', error);
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             success: false,
             message: 'Ошибка сервера'
