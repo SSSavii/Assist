@@ -1,4 +1,3 @@
-// app/page.tsx
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
@@ -37,6 +36,8 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [tapsLeft, setTapsLeft] = useState(0);
+  const [logoError, setLogoError] = useState(false);
+  const [isBalancePressed, setIsBalancePressed] = useState(false);
   const DAILY_TAP_LIMIT = 100;
 
   useEffect(() => {
@@ -284,17 +285,36 @@ export default function HomePage() {
 
   return (
     <main className="main-container">
-      {/* Логотип */}
+      {/* Логотип с fallback и плюсиком - ИСПРАВЛЕННЫЙ */}
       <header className="logo-section">
         <div className="logo-container">
-          <img
-            className="logo-image"
-            alt="Ассист+ логотип"
-            src="/svg4122-a7pi.svg"
-          />
+          <div className="logo-wrapper">
+            {logoError ? (
+              <div className="logo-text-fallback">
+                <span className="assist-text">АССИСТ</span>
+                <span className="plus-text">+</span>
+              </div>
+            ) : (
+              <div className="logo-image-container">
+                <img
+                  className="logo-image"
+                  alt="Ассист+ логотип"
+                  src="/svg4122-a7pi.svg"
+                  onError={() => setLogoError(true)}
+                />
+                {/* Плюсик сдвинут еще больше вверх и вправо */}
+                <img
+                  className="plus-icon"
+                  alt="Плюсик"
+                  src="/svg4122-denw.svg"
+                />
+              </div>
+            )}
+          </div>
           
           <div className="logo-text-container">
             <div className="logo-subtitle">между поколениями</div>
+            {/* Слово "обмен" опущено и сдвинуто влево */}
             <div className="logo-title">обмен</div>
           </div>
         </div>
@@ -311,13 +331,18 @@ export default function HomePage() {
         </button>
       </section>
 
-      {/* Блок с балансом */}
+      {/* Блок с балансом - ИСПРАВЛЕННЫЙ (добавлен эффект нажатия) */}
       <section className="balance-section">
         <div 
           className="balance-container"
           onClick={handleEarnCrystals}
+          onMouseDown={() => setIsBalancePressed(true)}
+          onMouseUp={() => setIsBalancePressed(false)}
+          onMouseLeave={() => setIsBalancePressed(false)}
+          onTouchStart={() => setIsBalancePressed(true)}
+          onTouchEnd={() => setIsBalancePressed(false)}
         >
-          <div className="balance-shadow-box">
+          <div className={`balance-shadow-box ${isBalancePressed ? 'pressed' : ''}`}>
             <img
               className="balance-crystal"
               alt="Кристалл"
@@ -359,7 +384,13 @@ export default function HomePage() {
               >
                 <div className="task-points">
                   <div className="points-text">+{task.points}</div>
-                  <div className="points-icon"></div>
+                  <div className="points-icon">
+                    <img
+                      src="/vector4120-sezw.svg"
+                      alt="Кристалл"
+                      className="points-crystal"
+                    />
+                  </div>
                 </div>
 
                 <div className="task-content">
@@ -407,7 +438,7 @@ export default function HomePage() {
           background-color: #FFFFFF;
         }
 
-        /* Логотип */
+        /* Логотип - ИСПРАВЛЕННЫЙ */
         .logo-section {
           gap: 10px;
           display: flex;
@@ -423,22 +454,65 @@ export default function HomePage() {
           display: flex;
           position: relative;
           align-items: flex-start;
+          flex-direction: column;
+        }
+        
+        .logo-wrapper {
+          position: relative;
+          width: 200px;
+          height: 48px;
+          margin-left: 12px;
+        }
+        
+        .logo-image-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
         }
         
         .logo-image {
+          width: 100%;
+          height: 100%;
+        }
+        
+        .plus-icon {
           position: absolute;
-          top: 0px;
-          left: 12px;
-          width: 200px;
-          height: 48px;
+          top: -15px;  /* Еще больше сдвиг вверх */
+          right: -15px; /* Еще больше сдвиг вправо */
+          width: 24px;
+          height: 24px;
+        }
+        
+        .logo-text-fallback {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+        }
+        
+        .assist-text {
+          font-family: 'Cera Pro', sans-serif;
+          font-weight: 700;
+          font-size: 24px;
+          color: #000000;
+        }
+        
+        .plus-text {
+          font-family: 'Cera Pro', sans-serif;
+          font-weight: 700;
+          font-size: 24px;
+          color: #FF0000;
+          margin-left: 2px;
         }
         
         .logo-text-container {
-          position: absolute;
-          top: 49px;
-          left: calc(50% - 108px);
+          position: relative;
           width: 220px;
           height: 34px;
+          margin-top: 1px;
+          margin-left: -2px;
         }
         
         .logo-subtitle {
@@ -457,16 +531,16 @@ export default function HomePage() {
         
         .logo-title {
           position: absolute;
-          top: 0px;
-          left: calc(50% - 140px);
+          top: 10px; /* Опущено вниз */
+          left: calc(50% - 120px); /* Сдвинуто влево для центрирования */
           font-family: 'Vasek';
           font-style: italic;
           font-weight: 400;
-          font-size: 36px;
+          font-size: 24px;
           text-align: center;
           color: #000000;
-          line-height: 29.2px;
-          letter-spacing: -1.08px;
+          line-height: 19.5px;
+          letter-spacing: -0.72px;
           white-space: nowrap;
         }
 
@@ -490,6 +564,11 @@ export default function HomePage() {
           border: none;
           border-radius: 30px;
           cursor: pointer;
+          transition: transform 0.1s ease-in-out;
+        }
+        
+        .subscribe-button:active {
+          transform: scale(0.98);
         }
         
         .subscribe-text {
@@ -503,7 +582,7 @@ export default function HomePage() {
           letter-spacing: -0.36px;
         }
 
-        /* Блок с балансом */
+        /* Блок с балансом - ИСПРАВЛЕННЫЙ (добавлен эффект нажатия) */
         .balance-section {
           gap: 25px;
           display: flex;
@@ -535,6 +614,11 @@ export default function HomePage() {
           display: flex;
           align-items: center;
           justify-content: center;
+          transition: transform 0.1s ease-in-out;
+        }
+        
+        .balance-shadow-box.pressed {
+          transform: scale(0.98); /* Эффект нажатия */
         }
         
         .balance-crystal {
@@ -544,13 +628,13 @@ export default function HomePage() {
         
         .balance-amount {
           position: absolute;
-          bottom: 15px;
+          bottom: 8px;
           background: rgba(255, 255, 255, 0.8);
-          padding: 8px 16px;
+          padding: 6px 12px;
           border-radius: 20px;
           font-family: 'Cera Pro';
           font-weight: 700;
-          font-size: 24px;
+          font-size: 18px;
           color: #000000;
         }
         
@@ -681,6 +765,14 @@ export default function HomePage() {
           height: 25px;
           background: #FFFFFF;
           border-radius: 12.5px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .points-crystal {
+          width: 15px;
+          height: 15px;
         }
         
         .task-content {
@@ -720,6 +812,11 @@ export default function HomePage() {
           border: none;
           border-radius: 30px;
           cursor: pointer;
+          transition: transform 0.1s ease-in-out;
+        }
+        
+        .task-button:active {
+          transform: scale(0.98);
         }
         
         .button-text {
