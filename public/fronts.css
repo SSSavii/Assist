@@ -1,0 +1,8 @@
+/* public/fonts.css */
+@font-face {
+  font-family: 'Vasek';
+  font-style: italic;
+  font-weight: 400;
+  src: url('/fonts/Vasek-Italic_0.ttf') format('truetype');
+  font-display: swap;
+}

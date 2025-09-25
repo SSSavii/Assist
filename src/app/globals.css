@@ -67,3 +67,17 @@ body, html {
 .sparkle-animation {
   animation: pulse-fade-out ease-in-out forwards;
 }
+/* app/globals.css */
+@font-face {
+  font-family: 'Vasek';
+  font-style: italic;
+  font-weight: 400;
+  src: url('/fonts/Vasek-Italic_0.ttf') format('truetype');
+  font-display: swap;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}

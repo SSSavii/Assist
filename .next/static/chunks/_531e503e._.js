@@ -25,9 +25,13 @@ function HomePage() {
     const [tapsLeft, setTapsLeft] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(0);
     const [logoError, setLogoError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [isBalancePressed, setIsBalancePressed] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [isIOS, setIsIOS] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const DAILY_TAP_LIMIT = 100;
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "HomePage.useEffect": ()=>{
+            // Определяем iOS устройство
+            const userAgent = navigator.userAgent.toLowerCase();
+            setIsIOS(/iphone|ipad|ipod/.test(userAgent));
             const tg = window.Telegram?.WebApp;
             if (tg) {
                 tg.ready();
@@ -259,7 +263,7 @@ function HomePage() {
             children: "Загрузка..."
         }, void 0, false, {
             fileName: "[project]/src/app/(main)/page.tsx",
-            lineNumber: 277,
+            lineNumber: 282,
             columnNumber: 12
         }, this);
     }
@@ -272,7 +276,7 @@ function HomePage() {
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/(main)/page.tsx",
-            lineNumber: 280,
+            lineNumber: 285,
             columnNumber: 12
         }, this);
     }
@@ -282,64 +286,233 @@ function HomePage() {
             children: "Не удалось загрузить данные пользователя."
         }, void 0, false, {
             fileName: "[project]/src/app/(main)/page.tsx",
-            lineNumber: 283,
+            lineNumber: 288,
             columnNumber: 12
         }, this);
     }
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
-        className: "jsx-bc98204ee43c36dc" + " " + "main-container",
+        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+            [
+                "fd4834f72f87cc0f",
+                [
+                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                ]
+            ]
+        ]) + " " + "main-container",
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("header", {
-                className: "jsx-bc98204ee43c36dc" + " " + "logo-section",
+                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                    [
+                        "fd4834f72f87cc0f",
+                        [
+                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                        ]
+                    ]
+                ]) + " " + "logo-section",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "jsx-bc98204ee43c36dc" + " " + "logo-container",
+                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                        [
+                            "fd4834f72f87cc0f",
+                            [
+                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                            ]
+                        ]
+                    ]) + " " + "logo-container",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "jsx-bc98204ee43c36dc" + " " + "logo-wrapper",
-                            children: logoError ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "jsx-bc98204ee43c36dc" + " " + "logo-text-fallback",
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                        className: "jsx-bc98204ee43c36dc" + " " + "assist-text",
-                                        children: "АССИСТ"
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/app/(main)/page.tsx",
-                                        lineNumber: 294,
-                                        columnNumber: 17
-                                    }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                        className: "jsx-bc98204ee43c36dc" + " " + "plus-text",
-                                        children: "+"
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/app/(main)/page.tsx",
-                                        lineNumber: 295,
-                                        columnNumber: 17
-                                    }, this)
+                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                [
+                                    "fd4834f72f87cc0f",
+                                    [
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                    ]
                                 ]
-                            }, void 0, true, {
-                                fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 293,
-                                columnNumber: 15
-                            }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "jsx-bc98204ee43c36dc" + " " + "logo-image-container",
+                            ]) + " " + "logo-wrapper",
+                            children: logoError ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                    [
+                                        "fd4834f72f87cc0f",
+                                        [
+                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                        ]
+                                    ]
+                                ]) + " " + "logo-text-fallback",
                                 children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                        alt: "Ассист+ логотип",
-                                        src: "/svg4122-a7pi.svg",
-                                        onError: ()=>setLogoError(true),
-                                        className: "jsx-bc98204ee43c36dc" + " " + "logo-image"
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                            [
+                                                "fd4834f72f87cc0f",
+                                                [
+                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                ]
+                                            ]
+                                        ]) + " " + "assist-text",
+                                        children: "АССИСТ"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(main)/page.tsx",
                                         lineNumber: 299,
                                         columnNumber: 17
                                     }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                        alt: "Плюсик",
-                                        src: "/svg4122-denw.svg",
-                                        className: "jsx-bc98204ee43c36dc" + " " + "plus-icon"
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                            [
+                                                "fd4834f72f87cc0f",
+                                                [
+                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                ]
+                                            ]
+                                        ]) + " " + "plus-text",
+                                        children: "+"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                        lineNumber: 306,
+                                        lineNumber: 300,
                                         columnNumber: 17
                                     }, this)
                                 ]
@@ -347,74 +520,381 @@ function HomePage() {
                                 fileName: "[project]/src/app/(main)/page.tsx",
                                 lineNumber: 298,
                                 columnNumber: 15
+                            }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                    [
+                                        "fd4834f72f87cc0f",
+                                        [
+                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                        ]
+                                    ]
+                                ]) + " " + "logo-image-container",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                                        alt: "Ассист+ логотип",
+                                        src: "/svg4122-a7pi.svg",
+                                        onError: ()=>setLogoError(true),
+                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                            [
+                                                "fd4834f72f87cc0f",
+                                                [
+                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                ]
+                                            ]
+                                        ]) + " " + "logo-image"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/(main)/page.tsx",
+                                        lineNumber: 304,
+                                        columnNumber: 17
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                                        alt: "Плюсик",
+                                        src: "/svg4122-denw.svg",
+                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                            [
+                                                "fd4834f72f87cc0f",
+                                                [
+                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                ]
+                                            ]
+                                        ]) + " " + "plus-icon"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/(main)/page.tsx",
+                                        lineNumber: 311,
+                                        columnNumber: 17
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/app/(main)/page.tsx",
+                                lineNumber: 303,
+                                columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/(main)/page.tsx",
-                            lineNumber: 291,
+                            lineNumber: 296,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "jsx-bc98204ee43c36dc" + " " + "logo-text-container",
+                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                [
+                                    "fd4834f72f87cc0f",
+                                    [
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                    ]
+                                ]
+                            ]) + " " + "logo-text-container",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "jsx-bc98204ee43c36dc" + " " + "logo-subtitle",
+                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                        [
+                                            "fd4834f72f87cc0f",
+                                            [
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                            ]
+                                        ]
+                                    ]) + " " + "logo-subtitle",
                                     children: "между поколениями"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                    lineNumber: 316,
+                                    lineNumber: 321,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "jsx-bc98204ee43c36dc" + " " + "logo-title",
+                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                        [
+                                            "fd4834f72f87cc0f",
+                                            [
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                            ]
+                                        ]
+                                    ]) + " " + "logo-title",
                                     children: "обмен"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                    lineNumber: 318,
+                                    lineNumber: 323,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(main)/page.tsx",
-                            lineNumber: 315,
+                            lineNumber: 320,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(main)/page.tsx",
-                    lineNumber: 290,
+                    lineNumber: 295,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 289,
+                lineNumber: 294,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
-                className: "jsx-bc98204ee43c36dc" + " " + "subscribe-section",
+                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                    [
+                        "fd4834f72f87cc0f",
+                        [
+                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                        ]
+                    ]
+                ]) + " " + "subscribe-section",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                     onClick: handleSubscribeToChannel,
                     "aria-label": "Подписаться на канал",
-                    className: "jsx-bc98204ee43c36dc" + " " + "subscribe-button",
+                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                        [
+                            "fd4834f72f87cc0f",
+                            [
+                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                            ]
+                        ]
+                    ]) + " " + "subscribe-button",
                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "jsx-bc98204ee43c36dc" + " " + "subscribe-text",
+                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                            [
+                                "fd4834f72f87cc0f",
+                                [
+                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                ]
+                            ]
+                        ]) + " " + "subscribe-text",
                         children: "Подписаться на канал"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 330,
+                        lineNumber: 335,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/(main)/page.tsx",
-                    lineNumber: 325,
+                    lineNumber: 330,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 324,
+                lineNumber: 329,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
-                className: "jsx-bc98204ee43c36dc" + " " + "balance-section",
+                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                    [
+                        "fd4834f72f87cc0f",
+                        [
+                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                        ]
+                    ]
+                ]) + " " + "balance-section",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         onClick: handleEarnCrystals,
@@ -423,50 +903,246 @@ function HomePage() {
                         onMouseLeave: ()=>setIsBalancePressed(false),
                         onTouchStart: ()=>setIsBalancePressed(true),
                         onTouchEnd: ()=>setIsBalancePressed(false),
-                        className: "jsx-bc98204ee43c36dc" + " " + "balance-container",
+                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                            [
+                                "fd4834f72f87cc0f",
+                                [
+                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                ]
+                            ]
+                        ]) + " " + "balance-container",
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "jsx-bc98204ee43c36dc" + " " + `balance-shadow-box ${isBalancePressed ? 'pressed' : ''}`,
+                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                [
+                                    "fd4834f72f87cc0f",
+                                    [
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                    ]
+                                ]
+                            ]) + " " + `balance-shadow-box ${isBalancePressed ? 'pressed' : ''}`,
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                                     alt: "Кристалл",
                                     src: "/vector3530-fpvf.svg",
-                                    className: "jsx-bc98204ee43c36dc" + " " + "balance-crystal"
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/(main)/page.tsx",
-                                    lineNumber: 346,
-                                    columnNumber: 13
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "jsx-bc98204ee43c36dc" + " " + "balance-amount",
-                                    children: user.balance_crystals
+                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                        [
+                                            "fd4834f72f87cc0f",
+                                            [
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                            ]
+                                        ]
+                                    ]) + " " + "balance-crystal"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(main)/page.tsx",
                                     lineNumber: 351,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                        [
+                                            "fd4834f72f87cc0f",
+                                            [
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                            ]
+                                        ]
+                                    ]) + " " + "balance-amount",
+                                    children: user.balance_crystals
+                                }, void 0, false, {
+                                    fileName: "[project]/src/app/(main)/page.tsx",
+                                    lineNumber: 356,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(main)/page.tsx",
-                            lineNumber: 345,
+                            lineNumber: 350,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 336,
+                        lineNumber: 341,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                        className: "jsx-bc98204ee43c36dc" + " " + "balance-description",
+                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                            [
+                                "fd4834f72f87cc0f",
+                                [
+                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                ]
+                            ]
+                        ]) + " " + "balance-description",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                className: "jsx-bc98204ee43c36dc" + " " + "description-text",
+                                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                    [
+                                        "fd4834f72f87cc0f",
+                                        [
+                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                        ]
+                                    ]
+                                ]) + " " + "description-text",
                                 children: [
                                     "Кликай, зарабатывай плюсы, ",
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {
-                                        className: "jsx-bc98204ee43c36dc"
+                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                            [
+                                                "fd4834f72f87cc0f",
+                                                [
+                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                ]
+                                            ]
+                                        ])
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                        lineNumber: 357,
+                                        lineNumber: 362,
                                         columnNumber: 40
                                     }, this),
                                     "и меняй их в",
@@ -474,230 +1150,943 @@ function HomePage() {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 356,
+                                lineNumber: 361,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                className: "jsx-bc98204ee43c36dc" + " " + "description-bold",
+                                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                    [
+                                        "fd4834f72f87cc0f",
+                                        [
+                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                        ]
+                                    ]
+                                ]) + " " + "description-bold",
                                 children: "аукционе знакомств"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 359,
+                                lineNumber: 364,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 355,
+                        lineNumber: 360,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 335,
+                lineNumber: 340,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
-                className: "jsx-bc98204ee43c36dc" + " " + "tasks-section",
+                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                    [
+                        "fd4834f72f87cc0f",
+                        [
+                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                        ]
+                    ]
+                ]) + " " + "tasks-section",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "jsx-bc98204ee43c36dc" + " " + "tasks-container",
+                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                        [
+                            "fd4834f72f87cc0f",
+                            [
+                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                            ]
+                        ]
+                    ]) + " " + "tasks-container",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "jsx-bc98204ee43c36dc" + " " + "tasks-background",
+                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                [
+                                    "fd4834f72f87cc0f",
+                                    [
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                    ]
+                                ]
+                            ]) + " " + "tasks-background",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "jsx-bc98204ee43c36dc" + " " + "tasks-bg-color"
+                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                        [
+                                            "fd4834f72f87cc0f",
+                                            [
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                            ]
+                                        ]
+                                    ]) + " " + "tasks-bg-color"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                    lineNumber: 367,
+                                    lineNumber: 372,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                                     alt: "Фоновое изображение",
                                     src: "/svg1642-j9o.svg",
-                                    className: "jsx-bc98204ee43c36dc" + " " + "tasks-bg-image"
+                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                        [
+                                            "fd4834f72f87cc0f",
+                                            [
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                            ]
+                                        ]
+                                    ]) + " " + "tasks-bg-image"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                    lineNumber: 368,
+                                    lineNumber: 373,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(main)/page.tsx",
-                            lineNumber: 366,
+                            lineNumber: 371,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "jsx-bc98204ee43c36dc" + " " + "tasks-header",
+                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                [
+                                    "fd4834f72f87cc0f",
+                                    [
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                    ]
+                                ]
+                            ]) + " " + "tasks-header",
                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                                className: "jsx-bc98204ee43c36dc" + " " + "tasks-title",
+                                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                    [
+                                        "fd4834f72f87cc0f",
+                                        [
+                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                        ]
+                                    ]
+                                ]) + " " + "tasks-title",
                                 children: "Задания"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 376,
+                                lineNumber: 381,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/(main)/page.tsx",
-                            lineNumber: 375,
+                            lineNumber: 380,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "jsx-bc98204ee43c36dc" + " " + "tasks-list",
+                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                [
+                                    "fd4834f72f87cc0f",
+                                    [
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                    ]
+                                ]
+                            ]) + " " + "tasks-list",
                             children: tasks.map((task)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("article", {
-                                    className: "jsx-bc98204ee43c36dc" + " " + "task-card",
+                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                        [
+                                            "fd4834f72f87cc0f",
+                                            [
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                            ]
+                                        ]
+                                    ]) + " " + "task-card",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "jsx-bc98204ee43c36dc" + " " + "task-points",
+                                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                                [
+                                                    "fd4834f72f87cc0f",
+                                                    [
+                                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                    ]
+                                                ]
+                                            ]) + " " + "task-points",
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    className: "jsx-bc98204ee43c36dc" + " " + "points-text",
+                                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                                        [
+                                                            "fd4834f72f87cc0f",
+                                                            [
+                                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                            ]
+                                                        ]
+                                                    ]) + " " + "points-text",
                                                     children: [
                                                         "+",
                                                         task.points
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                                    lineNumber: 386,
+                                                    lineNumber: 391,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    className: "jsx-bc98204ee43c36dc" + " " + "points-icon",
+                                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                                        [
+                                                            "fd4834f72f87cc0f",
+                                                            [
+                                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                            ]
+                                                        ]
+                                                    ]) + " " + "points-icon",
                                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                                                         src: "/vector4120-sezw.svg",
                                                         alt: "Кристалл",
-                                                        className: "jsx-bc98204ee43c36dc" + " " + "points-crystal"
+                                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                                            [
+                                                                "fd4834f72f87cc0f",
+                                                                [
+                                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                                ]
+                                                            ]
+                                                        ]) + " " + "points-crystal"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                                        lineNumber: 388,
+                                                        lineNumber: 393,
                                                         columnNumber: 21
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                                    lineNumber: 387,
+                                                    lineNumber: 392,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(main)/page.tsx",
-                                            lineNumber: 385,
+                                            lineNumber: 390,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "jsx-bc98204ee43c36dc" + " " + "task-content",
+                                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                                [
+                                                    "fd4834f72f87cc0f",
+                                                    [
+                                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                    ]
+                                                ]
+                                            ]) + " " + "task-content",
                                             children: task.description ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                className: "jsx-bc98204ee43c36dc" + " " + "task-title",
+                                                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                                    [
+                                                        "fd4834f72f87cc0f",
+                                                        [
+                                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                        ]
+                                                    ]
+                                                ]) + " " + "task-title",
                                                 children: [
                                                     task.title,
                                                     " ",
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {
-                                                        className: "jsx-bc98204ee43c36dc"
+                                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                                            [
+                                                                "fd4834f72f87cc0f",
+                                                                [
+                                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                                ]
+                                                            ]
+                                                        ])
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                                        lineNumber: 399,
+                                                        lineNumber: 404,
                                                         columnNumber: 36
                                                     }, this),
                                                     task.description
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                                lineNumber: 398,
+                                                lineNumber: 403,
                                                 columnNumber: 21
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "jsx-bc98204ee43c36dc" + " " + "task-title",
+                                                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                                    [
+                                                        "fd4834f72f87cc0f",
+                                                        [
+                                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                            isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                            isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                        ]
+                                                    ]
+                                                ]) + " " + "task-title",
                                                 children: task.title
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                                lineNumber: 403,
+                                                lineNumber: 408,
                                                 columnNumber: 21
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(main)/page.tsx",
-                                            lineNumber: 396,
+                                            lineNumber: 401,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "jsx-bc98204ee43c36dc" + " " + "task-actions",
+                                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                                [
+                                                    "fd4834f72f87cc0f",
+                                                    [
+                                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                    ]
+                                                ]
+                                            ]) + " " + "task-actions",
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                     onClick: ()=>handleTaskAction(task.id, "check"),
-                                                    className: "jsx-bc98204ee43c36dc" + " " + "task-button check-button",
+                                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                                        [
+                                                            "fd4834f72f87cc0f",
+                                                            [
+                                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                            ]
+                                                        ]
+                                                    ]) + " " + "task-button check-button",
                                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "jsx-bc98204ee43c36dc" + " " + "button-text",
+                                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                                            [
+                                                                "fd4834f72f87cc0f",
+                                                                [
+                                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                                ]
+                                                            ]
+                                                        ]) + " " + "button-text",
                                                         children: task.checkButtonText
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                                        lineNumber: 412,
+                                                        lineNumber: 417,
                                                         columnNumber: 21
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                                    lineNumber: 408,
+                                                    lineNumber: 413,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                     onClick: ()=>handleTaskAction(task.id, "action"),
-                                                    className: "jsx-bc98204ee43c36dc" + " " + "task-button action-button",
+                                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                                        [
+                                                            "fd4834f72f87cc0f",
+                                                            [
+                                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                                isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                            ]
+                                                        ]
+                                                    ]) + " " + "task-button action-button",
                                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "jsx-bc98204ee43c36dc" + " " + "button-text bold",
+                                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                                            [
+                                                                "fd4834f72f87cc0f",
+                                                                [
+                                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                                ]
+                                                            ]
+                                                        ]) + " " + "button-text bold",
                                                         children: task.actionButtonText
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                                        lineNumber: 419,
+                                                        lineNumber: 424,
                                                         columnNumber: 21
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                                    lineNumber: 415,
+                                                    lineNumber: 420,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(main)/page.tsx",
-                                            lineNumber: 407,
+                                            lineNumber: 412,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "jsx-bc98204ee43c36dc" + " " + "task-glow"
+                                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
+                                                [
+                                                    "fd4834f72f87cc0f",
+                                                    [
+                                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                                                        isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                                                        isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                                                    ]
+                                                ]
+                                            ]) + " " + "task-glow"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(main)/page.tsx",
-                                            lineNumber: 423,
+                                            lineNumber: 428,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, task.id, true, {
                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                    lineNumber: 381,
+                                    lineNumber: 386,
                                     columnNumber: 15
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/src/app/(main)/page.tsx",
-                            lineNumber: 379,
+                            lineNumber: 384,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(main)/page.tsx",
-                    lineNumber: 365,
+                    lineNumber: 370,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 364,
+                lineNumber: 369,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
-                id: "bc98204ee43c36dc",
-                children: ".main-container.jsx-bc98204ee43c36dc{background-color:#fff;flex-direction:column;align-items:center;width:100%;min-height:100vh;display:flex;overflow:auto}.logo-section.jsx-bc98204ee43c36dc{flex-direction:column;align-self:stretch;align-items:center;gap:10px;padding-top:40px;display:flex}.logo-container.jsx-bc98204ee43c36dc{flex-direction:column;align-items:flex-start;width:216px;height:83px;display:flex;position:relative}.logo-wrapper.jsx-bc98204ee43c36dc{width:200px;height:48px;margin-left:12px;position:relative}.logo-image-container.jsx-bc98204ee43c36dc{width:100%;height:100%;position:relative}.logo-image.jsx-bc98204ee43c36dc{width:100%;height:100%}.plus-icon.jsx-bc98204ee43c36dc{width:24px;height:24px;position:absolute;top:-15px;right:-15px}.logo-text-fallback.jsx-bc98204ee43c36dc{justify-content:center;align-items:center;width:100%;height:100%;display:flex;position:relative}.assist-text.jsx-bc98204ee43c36dc{color:#000;font-family:Cera Pro,sans-serif;font-size:24px;font-weight:700}.plus-text.jsx-bc98204ee43c36dc{color:red;margin-left:2px;font-family:Cera Pro,sans-serif;font-size:24px;font-weight:700}.logo-text-container.jsx-bc98204ee43c36dc{width:220px;height:34px;margin-top:1px;margin-left:-2px;position:relative}.logo-subtitle.jsx-bc98204ee43c36dc{text-align:center;color:#000;letter-spacing:-1.26px;white-space:nowrap;font-family:Cera Pro;font-size:18px;font-weight:400;line-height:14.6px;position:absolute;top:15px;left:calc(50% - 49px)}.logo-title.jsx-bc98204ee43c36dc{text-align:center;color:#000;letter-spacing:-.72px;white-space:nowrap;font-family:Vasek;font-size:24px;font-style:italic;font-weight:400;line-height:19.5px;position:absolute;top:10px;left:calc(50% - 120px)}.subscribe-section.jsx-bc98204ee43c36dc{flex-direction:column;align-self:stretch;align-items:center;gap:10px;display:flex}.subscribe-button.jsx-bc98204ee43c36dc{cursor:pointer;background:linear-gradient(244deg,#f23939 0%,#db1b1b 100%);border:none;border-radius:30px;flex-direction:column;justify-content:center;align-items:center;gap:10px;padding:15px 20px;transition:transform .1s ease-in-out;display:inline-flex}.subscribe-button.jsx-bc98204ee43c36dc:active{transform:scale(.98)}.subscribe-text.jsx-bc98204ee43c36dc{text-align:center;color:#fff;letter-spacing:-.36px;width:195px;font-family:Cera Pro;font-size:18px;font-weight:700;line-height:18px}.balance-section.jsx-bc98204ee43c36dc{flex-direction:column;align-self:stretch;align-items:center;gap:25px;padding:5px 0 20px;display:flex}.balance-container.jsx-bc98204ee43c36dc{cursor:pointer;width:195px;height:195px;position:relative}.balance-shadow-box.jsx-bc98204ee43c36dc{background:linear-gradient(144deg,#d9d9d9 0%,#cdcdcd 100%);border-radius:30px;justify-content:center;align-items:center;width:195px;height:195px;transition:transform .1s ease-in-out;display:flex;position:absolute;top:0;left:0;box-shadow:5px 5px 10px #00000040,inset 3px 3px 10px #fff,inset -4px -5px 20px #0000004d}.balance-shadow-box.pressed.jsx-bc98204ee43c36dc{transform:scale(.98)}.balance-crystal.jsx-bc98204ee43c36dc{width:106px;height:101px}.balance-amount.jsx-bc98204ee43c36dc{color:#000;background:#fffc;border-radius:20px;padding:6px 12px;font-family:Cera Pro;font-size:18px;font-weight:700;position:absolute;bottom:8px}.balance-description.jsx-bc98204ee43c36dc{text-align:center;color:#000;letter-spacing:-.48px;width:253px;height:29px;font-family:Cera Pro;font-size:16px;font-weight:400;line-height:17.6px}.description-bold.jsx-bc98204ee43c36dc{letter-spacing:-.08px;font-family:Cera Pro;font-weight:700}.tasks-section.jsx-bc98204ee43c36dc{flex-direction:column;align-self:stretch;align-items:center;gap:10px;display:flex}.tasks-container.jsx-bc98204ee43c36dc{border-radius:0 0 32px 32px;flex-direction:column;align-items:center;gap:35px;width:359px;padding:35px 0 8px;display:flex;position:relative;overflow:hidden}.tasks-background.jsx-bc98204ee43c36dc{width:359px;height:1771px;position:absolute;top:0;left:0}.tasks-bg-color.jsx-bc98204ee43c36dc{background-color:#eaeaea;width:359px;height:1680px;position:absolute;top:91px;left:0}.tasks-bg-image.jsx-bc98204ee43c36dc{width:359px;height:218px;position:absolute;top:0;left:0}.tasks-header.jsx-bc98204ee43c36dc{z-index:1;justify-content:flex-end;align-items:center;gap:10px;width:100%;padding:0 16px 0 0;display:flex}.tasks-title.jsx-bc98204ee43c36dc{text-align:right;color:#000;letter-spacing:-.96px;white-space:nowrap;font-family:Cera Pro;font-size:32px;font-weight:700;line-height:35.2px}.tasks-list.jsx-bc98204ee43c36dc{z-index:1;flex-direction:column;align-items:center;gap:10px;display:inline-flex}.task-card.jsx-bc98204ee43c36dc{background:linear-gradient(244deg,#f23939 0%,#db1b1b 100%);border-radius:30px;flex-direction:column;align-items:flex-end;gap:10px;width:343px;padding:20px;display:flex;position:relative;overflow:hidden}.task-points.jsx-bc98204ee43c36dc{justify-content:flex-end;align-items:center;gap:10px;display:inline-flex}.points-text.jsx-bc98204ee43c36dc{color:#fff;white-space:nowrap;font-family:Cera Pro;font-size:24px;font-weight:700;line-height:24px}.points-icon.jsx-bc98204ee43c36dc{background:#fff;border-radius:12.5px;justify-content:center;align-items:center;width:25px;height:25px;display:flex}.points-crystal.jsx-bc98204ee43c36dc{width:15px;height:15px}.task-content.jsx-bc98204ee43c36dc{flex-direction:column;justify-content:center;align-items:flex-end;gap:10px;display:inline-flex}.task-title.jsx-bc98204ee43c36dc{text-align:right;color:#fff;letter-spacing:-.4px;width:285px;font-family:Cera Pro;font-size:20px;font-weight:500;line-height:20px}.task-actions.jsx-bc98204ee43c36dc{justify-content:flex-end;align-items:flex-start;gap:10px;padding-top:15px;display:inline-flex}.task-button.jsx-bc98204ee43c36dc{cursor:pointer;background:#fff;border:none;border-radius:30px;flex-direction:column;justify-content:center;align-items:center;padding:12px 15px;transition:transform .1s ease-in-out;display:inline-flex}.task-button.jsx-bc98204ee43c36dc:active{transform:scale(.98)}.button-text.jsx-bc98204ee43c36dc{color:#0d0d0d;letter-spacing:-.48px;white-space:nowrap;font-family:Cera Pro;font-size:16px;font-weight:400;line-height:16px}.button-text.bold.jsx-bc98204ee43c36dc{font-weight:700}.task-glow.jsx-bc98204ee43c36dc{filter:blur(125px);background:#fffc;border-radius:60px;width:120px;height:120px;position:absolute;top:-43px;left:207px}.loading-container.jsx-bc98204ee43c36dc,.error-container.jsx-bc98204ee43c36dc{background-color:#fff;justify-content:center;align-items:center;height:100vh;font-family:Cera Pro;display:flex}.loading-container.jsx-bc98204ee43c36dc{color:#666}.error-container.jsx-bc98204ee43c36dc{color:red;text-align:center;padding:20px}"
+                id: "fd4834f72f87cc0f",
+                dynamic: [
+                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : '',
+                    isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : '',
+                    isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''
+                ],
+                children: `.main-container.__jsx-style-dynamic-selector{background-color:#fff;flex-direction:column;align-items:center;width:100%;min-height:100vh;display:flex;overflow:auto}.logo-section.__jsx-style-dynamic-selector{flex-direction:column;align-self:stretch;align-items:center;gap:10px;padding-top:40px;display:flex}.logo-container.__jsx-style-dynamic-selector{flex-direction:column;align-items:flex-start;width:216px;height:83px;display:flex;position:relative}.logo-wrapper.__jsx-style-dynamic-selector{width:200px;height:48px;margin-left:12px;position:relative}.logo-image-container.__jsx-style-dynamic-selector{width:100%;height:100%;position:relative}.logo-image.__jsx-style-dynamic-selector{${isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''};width:100%;height:100%}.plus-icon.__jsx-style-dynamic-selector{${isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''};width:24px;height:24px;position:absolute;top:-15px;right:-15px}.logo-text-fallback.__jsx-style-dynamic-selector{justify-content:center;align-items:center;width:100%;height:100%;display:flex;position:relative}.assist-text.__jsx-style-dynamic-selector{color:#000;font-family:Cera Pro,sans-serif;font-size:24px;font-weight:700}.plus-text.__jsx-style-dynamic-selector{color:red;margin-left:2px;font-family:Cera Pro,sans-serif;font-size:24px;font-weight:700}.logo-text-container.__jsx-style-dynamic-selector{width:220px;height:34px;margin-top:1px;margin-left:-2px;position:relative}.logo-subtitle.__jsx-style-dynamic-selector{text-align:center;color:#000;letter-spacing:-1.26px;white-space:nowrap;font-family:Cera Pro;font-size:18px;font-weight:400;line-height:14.6px;position:absolute;top:15px;left:calc(50% - 45px)}.logo-title.__jsx-style-dynamic-selector{color:#000;text-align:center;height:auto;font-family:Vasek;font-size:48px;font-style:italic;font-weight:400;line-height:81%;position:absolute}.subscribe-section.__jsx-style-dynamic-selector{flex-direction:column;align-self:stretch;align-items:center;gap:10px;display:flex}.subscribe-button.__jsx-style-dynamic-selector{cursor:pointer;background:linear-gradient(244deg,#f23939 0%,#db1b1b 100%);border:none;border-radius:30px;flex-direction:column;justify-content:center;align-items:center;gap:10px;padding:15px 20px;transition:transform .1s ease-in-out;display:inline-flex}.subscribe-button.__jsx-style-dynamic-selector:active{transform:scale(.98)}.subscribe-text.__jsx-style-dynamic-selector{text-align:center;color:#fff;letter-spacing:-.36px;width:195px;font-family:Cera Pro;font-size:18px;font-weight:700;line-height:18px}.balance-section.__jsx-style-dynamic-selector{flex-direction:column;align-self:stretch;align-items:center;gap:25px;padding:5px 0 20px;display:flex}.balance-container.__jsx-style-dynamic-selector{cursor:pointer;width:195px;height:195px;position:relative}.balance-shadow-box.__jsx-style-dynamic-selector{background:linear-gradient(144deg,#d9d9d9 0%,#cdcdcd 100%);border-radius:30px;justify-content:center;align-items:center;width:195px;height:195px;transition:transform .1s ease-in-out;display:flex;position:absolute;top:0;left:0;box-shadow:5px 5px 10px #00000040,inset 3px 3px 10px #fff,inset -4px -5px 20px #0000004d}.balance-shadow-box.pressed.__jsx-style-dynamic-selector{transform:scale(.98)}.balance-crystal.__jsx-style-dynamic-selector{${isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : ''};width:106px;height:101px}.balance-amount.__jsx-style-dynamic-selector{color:#000;background:#fffc;border-radius:20px;padding:6px 12px;font-family:Cera Pro;font-size:18px;font-weight:700;position:absolute;bottom:8px}.balance-description.__jsx-style-dynamic-selector{text-align:center;color:#000;letter-spacing:-.48px;width:253px;height:29px;font-family:Cera Pro;font-size:16px;font-weight:400;line-height:17.6px}.description-bold.__jsx-style-dynamic-selector{letter-spacing:-.08px;font-family:Cera Pro;font-weight:700}.tasks-section.__jsx-style-dynamic-selector{flex-direction:column;align-self:stretch;align-items:center;gap:10px;display:flex}.tasks-container.__jsx-style-dynamic-selector{border-radius:0 0 32px 32px;flex-direction:column;align-items:center;gap:35px;width:359px;padding:35px 0 8px;display:flex;position:relative;overflow:hidden}.tasks-background.__jsx-style-dynamic-selector{width:359px;height:1771px;position:absolute;top:0;left:0}.tasks-bg-color.__jsx-style-dynamic-selector{background-color:#eaeaea;width:359px;height:1680px;position:absolute;top:91px;left:0}.tasks-bg-image.__jsx-style-dynamic-selector{${isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''};width:359px;height:218px;position:absolute;top:0;left:0}.tasks-header.__jsx-style-dynamic-selector{z-index:1;justify-content:flex-end;align-items:center;gap:10px;width:100%;padding:0 16px 0 0;display:flex}.tasks-title.__jsx-style-dynamic-selector{text-align:right;color:#000;letter-spacing:-.96px;white-space:nowrap;font-family:Cera Pro;font-size:32px;font-weight:700;line-height:35.2px}.tasks-list.__jsx-style-dynamic-selector{z-index:1;flex-direction:column;align-items:center;gap:10px;display:inline-flex}.task-card.__jsx-style-dynamic-selector{background:linear-gradient(244deg,#f23939 0%,#db1b1b 100%);border-radius:30px;flex-direction:column;align-items:flex-end;gap:10px;width:343px;padding:20px;display:flex;position:relative;overflow:hidden}.task-points.__jsx-style-dynamic-selector{justify-content:flex-end;align-items:center;gap:10px;display:inline-flex}.points-text.__jsx-style-dynamic-selector{color:#fff;white-space:nowrap;font-family:Cera Pro;font-size:24px;font-weight:700;line-height:24px}.points-icon.__jsx-style-dynamic-selector{background:#fff;border-radius:12.5px;justify-content:center;align-items:center;width:25px;height:25px;display:flex}.points-crystal.__jsx-style-dynamic-selector{${isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''};width:15px;height:15px}.task-content.__jsx-style-dynamic-selector{flex-direction:column;justify-content:center;align-items:flex-end;gap:10px;display:inline-flex}.task-title.__jsx-style-dynamic-selector{text-align:right;color:#fff;letter-spacing:-.4px;width:285px;font-family:Cera Pro;font-size:20px;font-weight:500;line-height:20px}.task-actions.__jsx-style-dynamic-selector{justify-content:flex-end;align-items:flex-start;gap:10px;padding-top:15px;display:inline-flex}.task-button.__jsx-style-dynamic-selector{cursor:pointer;background:#fff;border:none;border-radius:30px;flex-direction:column;justify-content:center;align-items:center;padding:12px 15px;transition:transform .1s ease-in-out;display:inline-flex}.task-button.__jsx-style-dynamic-selector:active{transform:scale(.98)}.button-text.__jsx-style-dynamic-selector{color:#0d0d0d;letter-spacing:-.48px;white-space:nowrap;font-family:Cera Pro;font-size:16px;font-weight:400;line-height:16px}.button-text.bold.__jsx-style-dynamic-selector{font-weight:700}.task-glow.__jsx-style-dynamic-selector{filter:blur(125px);background:#fffc;border-radius:60px;width:120px;height:120px;position:absolute;top:-43px;left:207px}.loading-container.__jsx-style-dynamic-selector,.error-container.__jsx-style-dynamic-selector{background-color:#fff;justify-content:center;align-items:center;height:100vh;font-family:Cera Pro;display:flex}.loading-container.__jsx-style-dynamic-selector{color:#666}.error-container.__jsx-style-dynamic-selector{color:red;text-align:center;padding:20px}`
             }, void 0, false, void 0, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(main)/page.tsx",
-        lineNumber: 287,
+        lineNumber: 292,
         columnNumber: 5
     }, this);
 }
-_s(HomePage, "VnJrtE0K2tRBhG1gzCXF/jCYdg0=");
+_s(HomePage, "dQCn0OJYPoS3XNRDCRp7NYALhjM=");
 _c = HomePage;
 var _c;
 __turbopack_context__.k.register(_c, "HomePage");

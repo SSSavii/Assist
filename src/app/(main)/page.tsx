@@ -38,9 +38,14 @@ export default function HomePage() {
   const [tapsLeft, setTapsLeft] = useState(0);
   const [logoError, setLogoError] = useState(false);
   const [isBalancePressed, setIsBalancePressed] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
   const DAILY_TAP_LIMIT = 100;
 
   useEffect(() => {
+    // Определяем iOS устройство
+    const userAgent = navigator.userAgent.toLowerCase();
+    setIsIOS(/iphone|ipad|ipod/.test(userAgent));
+
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.ready();
@@ -473,14 +478,20 @@ export default function HomePage() {
         .logo-image {
           width: 100%;
           height: 100%;
+          ${isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''}
         }
         
         .plus-icon {
           position: absolute;
-          top: -15px;  /* Еще больше сдвиг вверх */
-          right: -15px; /* Еще больше сдвиг вправо */
+          top: -15px;
+          right: -15px;
           width: 24px;
           height: 24px;
+          ${isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''}
         }
         
         .logo-text-fallback {
@@ -518,7 +529,7 @@ export default function HomePage() {
         .logo-subtitle {
           position: absolute;
           top: 15px;
-          left: calc(50% - 49px);
+          left: calc(50% - 45px);
           font-family: 'Cera Pro';
           font-weight: 400;
           font-size: 18px;
@@ -530,18 +541,15 @@ export default function HomePage() {
         }
         
         .logo-title {
-          position: absolute;
-          top: 10px; /* Опущено вниз */
-          left: calc(50% - 120px); /* Сдвинуто влево для центрирования */
-          font-family: 'Vasek';
-          font-style: italic;
-          font-weight: 400;
-          font-size: 24px;
-          text-align: center;
           color: #000000;
-          line-height: 19.5px;
-          letter-spacing: -0.72px;
-          white-space: nowrap;
+          height: auto;
+          position: absolute;
+          font-size: 48px;
+          font-style: italic;
+          font-family: 'Vasek';
+          font-weight: 400;
+          line-height: 81%;
+          text-align: center;
         }
 
         /* Кнопка подписки */
@@ -618,12 +626,20 @@ export default function HomePage() {
         }
         
         .balance-shadow-box.pressed {
-          transform: scale(0.98); /* Эффект нажатия */
+          transform: scale(0.98);
         }
         
         .balance-crystal {
           width: 106px;
           height: 101px;
+          ${isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+          ` : ''}
         }
         
         .balance-amount {
@@ -700,6 +716,9 @@ export default function HomePage() {
           left: 0;
           width: 359px;
           height: 218px;
+          ${isIOS ? `
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''}
         }
         
         .tasks-header {
@@ -773,6 +792,11 @@ export default function HomePage() {
         .points-crystal {
           width: 15px;
           height: 15px;
+          ${isIOS ? `
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            image-rendering: -webkit-optimize-contrast;
+          ` : ''}
         }
         
         .task-content {
