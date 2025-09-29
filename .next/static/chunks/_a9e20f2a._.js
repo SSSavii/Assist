@@ -80,30 +80,17 @@ function BottomNavBar() {
                 };
         }
     };
-    const getItemPadding = (itemId)=>{
-        switch(itemId){
-            case "home":
-                return "gap-[13px] px-2 py-1.5";
-            case "friends":
-                return "gap-[13px] px-2.5 py-1.5";
-            case "profile":
-                return "gap-[11px] px-[3px] py-[5px]";
-            default:
-                return "gap-[11px] p-1.5";
-        }
-    };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
-        className: "flex h-20 items-center justify-between px-[25px] py-2.5 w-full bg-neutral-800 rounded-[15px_15px_0px_0px] overflow-hidden",
+        className: "fixed bottom-0 left-0 right-0 h-20 flex items-center justify-between px-[25px] py-2 bg-[#262626] rounded-t-[15px] overflow-hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.1)]",
         role: "navigation",
         "aria-label": "Основная навигация",
         children: navItems.map((item)=>{
             const isActive = pathname === item.href;
             const iconSize = getIconSize(item.id);
-            const paddingClass = getItemPadding(item.id);
             return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                 href: item.href,
                 onClick: handlePress,
-                className: `flex flex-col items-center justify-center ${paddingClass} hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-neutral-800 w-[66.25px]`,
+                className: "flex flex-col items-center justify-center gap-2 w-[66px] h-full text-decoration-none transition-opacity hover:opacity-80",
                 "aria-label": item.label,
                 "aria-current": isActive ? "page" : undefined,
                 children: [
@@ -113,27 +100,27 @@ function BottomNavBar() {
                         src: item.icon
                     }, void 0, false, {
                         fileName: "[project]/src/app/components/BottomNavBar.tsx",
-                        lineNumber: 82,
+                        lineNumber: 72,
                         columnNumber: 13
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: `font-['Cera_Pro'] font-medium text-sm text-center tracking-[-0.42px] leading-[11.3px] ${isActive ? "text-white" : "text-[#868686]"}`,
+                        className: `font-['Cera_Pro'] font-medium text-sm text-center leading-[11.3px] tracking-[-0.42px] ${isActive ? "text-white" : "text-[#868686]"}`,
                         children: item.label
                     }, void 0, false, {
                         fileName: "[project]/src/app/components/BottomNavBar.tsx",
-                        lineNumber: 87,
+                        lineNumber: 77,
                         columnNumber: 13
                     }, this)
                 ]
             }, item.id, true, {
                 fileName: "[project]/src/app/components/BottomNavBar.tsx",
-                lineNumber: 74,
+                lineNumber: 64,
                 columnNumber: 11
             }, this);
         })
     }, void 0, false, {
         fileName: "[project]/src/app/components/BottomNavBar.tsx",
-        lineNumber: 63,
+        lineNumber: 54,
         columnNumber: 5
     }, this);
 }

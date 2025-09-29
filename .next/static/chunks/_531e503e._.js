@@ -17,6 +17,25 @@ var _s = __turbopack_context__.k.signature();
 'use client';
 ;
 ;
+// Добавляем глобальные стили и мета-теги
+const GlobalStyles = ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+        children: [
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("meta", {
+                name: "viewport",
+                content: "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no",
+                className: "jsx-5e9b65595eea3bc0"
+            }, void 0, false, {
+                fileName: "[project]/src/app/(main)/page.tsx",
+                lineNumber: 9,
+                columnNumber: 5
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                id: "5e9b65595eea3bc0",
+                children: '*{box-sizing:border-box;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}html,body{width:100%;height:100%;margin:0;padding:0;overflow-x:hidden}@font-face{font-family:Cera Pro;src:url(/fonts/CeraPro-Regular.woff2)format("woff2"),url(/fonts/CeraPro-Regular.woff)format("woff");font-weight:400;font-style:normal;font-display:swap}@font-face{font-family:Cera Pro;src:url(/fonts/CeraPro-Light.woff2)format("woff2"),url(/fonts/CeraPro-Light.woff)format("woff");font-weight:300;font-style:normal;font-display:swap}@font-face{font-family:Cera Pro;src:url(/fonts/CeraPro-Medium.woff2)format("woff2"),url(/fonts/CeraPro-Medium.woff)format("woff");font-weight:500;font-style:normal;font-display:swap}@font-face{font-family:Cera Pro;src:url(/fonts/CeraPro-Bold.woff2)format("woff2"),url(/fonts/CeraPro-Bold.woff)format("woff");font-weight:700;font-style:normal;font-display:swap}@font-face{font-family:Vasek;src:url(/fonts/Vasek-Italic.woff2)format("woff2"),url(/fonts/Vasek-Italic.woff)format("woff");font-weight:400;font-style:italic;font-display:swap}body{font-family:Cera Pro,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif}'
+            }, void 0, false, void 0, this)
+        ]
+    }, void 0, true);
+_c = GlobalStyles;
 function HomePage() {
     _s();
     const [user, setUser] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
@@ -25,16 +44,45 @@ function HomePage() {
     const [tapsLeft, setTapsLeft] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(0);
     const [logoError, setLogoError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [isBalancePressed, setIsBalancePressed] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
-    const [isIOS, setIsIOS] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [deviceInfo, setDeviceInfo] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])({
+        isIOS: false,
+        isMobile: false,
+        pixelRatio: 1,
+        viewportWidth: 375,
+        viewportHeight: 812
+    });
     const DAILY_TAP_LIMIT = 100;
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "HomePage.useEffect": ()=>{
-            // Определяем iOS устройство
+            // Определяем устройство и параметры экрана
             const userAgent = navigator.userAgent.toLowerCase();
-            setIsIOS(/iphone|ipad|ipod/.test(userAgent));
+            const isIOS = /iphone|ipad|ipod/.test(userAgent);
+            const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent);
+            const pixelRatio = window.devicePixelRatio || 1;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            setDeviceInfo({
+                isIOS,
+                isMobile,
+                pixelRatio,
+                viewportWidth,
+                viewportHeight
+            });
+            // Устанавливаем размер viewport для Telegram WebApp
             const tg = window.Telegram?.WebApp;
             if (tg) {
                 tg.ready();
+                tg.expand(); // Разворачиваем приложение на весь экран
+                // Отключаем свайп для закрытия
+                tg.disableVerticalSwipes();
+                // Отключаем bounce эффект на iOS
+                if (isIOS) {
+                    document.body.style.position = 'fixed';
+                    document.body.style.width = '100%';
+                    document.body.style.height = '100%';
+                    document.body.style.overflow = 'hidden';
+                }
                 const startappParam = tg.initDataUnsafe?.start_param;
                 console.log('startapp from WebApp:', startappParam);
                 fetch('/api/auth', {
@@ -82,6 +130,10 @@ function HomePage() {
     const handleEarnCrystals = ()=>{
         const tg = window.Telegram?.WebApp;
         if (!user || !tg?.initData || tapsLeft <= 0) return;
+        // Добавляем тактильную обратную связь
+        if (tg.HapticFeedback) {
+            tg.HapticFeedback.impactOccurred('light');
+        }
         setTapsLeft((prev)=>prev - 1);
         setUser((prevUser)=>{
             if (!prevUser) return null;
@@ -263,7 +315,7 @@ function HomePage() {
             children: "Загрузка..."
         }, void 0, false, {
             fileName: "[project]/src/app/(main)/page.tsx",
-            lineNumber: 282,
+            lineNumber: 392,
             columnNumber: 12
         }, this);
     }
@@ -276,7 +328,7 @@ function HomePage() {
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/(main)/page.tsx",
-            lineNumber: 285,
+            lineNumber: 395,
             columnNumber: 12
         }, this);
     }
@@ -286,1810 +338,546 @@ function HomePage() {
             children: "Не удалось загрузить данные пользователя."
         }, void 0, false, {
             fileName: "[project]/src/app/(main)/page.tsx",
-            lineNumber: 288,
+            lineNumber: 398,
             columnNumber: 12
         }, this);
     }
-    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
-        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-            [
-                "fd4834f72f87cc0f",
-                [
-                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                ]
-            ]
-        ]) + " " + "main-container",
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
         children: [
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("header", {
-                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                    [
-                        "fd4834f72f87cc0f",
-                        [
-                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                        ]
-                    ]
-                ]) + " " + "logo-section",
-                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                        [
-                            "fd4834f72f87cc0f",
-                            [
-                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                            ]
-                        ]
-                    ]) + " " + "logo-container",
-                    children: [
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                [
-                                    "fd4834f72f87cc0f",
-                                    [
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                    ]
-                                ]
-                            ]) + " " + "logo-wrapper",
-                            children: logoError ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                    [
-                                        "fd4834f72f87cc0f",
-                                        [
-                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                        ]
-                                    ]
-                                ]) + " " + "logo-text-fallback",
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                            [
-                                                "fd4834f72f87cc0f",
-                                                [
-                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                ]
-                                            ]
-                                        ]) + " " + "assist-text",
-                                        children: "АССИСТ"
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/app/(main)/page.tsx",
-                                        lineNumber: 299,
-                                        columnNumber: 17
-                                    }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                            [
-                                                "fd4834f72f87cc0f",
-                                                [
-                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                ]
-                                            ]
-                                        ]) + " " + "plus-text",
-                                        children: "+"
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/app/(main)/page.tsx",
-                                        lineNumber: 300,
-                                        columnNumber: 17
-                                    }, this)
-                                ]
-                            }, void 0, true, {
-                                fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 298,
-                                columnNumber: 15
-                            }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                    [
-                                        "fd4834f72f87cc0f",
-                                        [
-                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                        ]
-                                    ]
-                                ]) + " " + "logo-image-container",
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                        alt: "Ассист+ логотип",
-                                        src: "/svg4122-a7pi.svg",
-                                        onError: ()=>setLogoError(true),
-                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                            [
-                                                "fd4834f72f87cc0f",
-                                                [
-                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                ]
-                                            ]
-                                        ]) + " " + "logo-image"
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/app/(main)/page.tsx",
-                                        lineNumber: 304,
-                                        columnNumber: 17
-                                    }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                        alt: "Плюсик",
-                                        src: "/svg4122-denw.svg",
-                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                            [
-                                                "fd4834f72f87cc0f",
-                                                [
-                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                ]
-                                            ]
-                                        ]) + " " + "plus-icon"
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/app/(main)/page.tsx",
-                                        lineNumber: 311,
-                                        columnNumber: 17
-                                    }, this)
-                                ]
-                            }, void 0, true, {
-                                fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 303,
-                                columnNumber: 15
-                            }, this)
-                        }, void 0, false, {
-                            fileName: "[project]/src/app/(main)/page.tsx",
-                            lineNumber: 296,
-                            columnNumber: 11
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                [
-                                    "fd4834f72f87cc0f",
-                                    [
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                    ]
-                                ]
-                            ]) + " " + "logo-text-container",
-                            children: [
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                        [
-                                            "fd4834f72f87cc0f",
-                                            [
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                            ]
-                                        ]
-                                    ]) + " " + "logo-subtitle",
-                                    children: "между поколениями"
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/(main)/page.tsx",
-                                    lineNumber: 321,
-                                    columnNumber: 13
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                        [
-                                            "fd4834f72f87cc0f",
-                                            [
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                            ]
-                                        ]
-                                    ]) + " " + "logo-title",
-                                    children: "обмен"
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/(main)/page.tsx",
-                                    lineNumber: 323,
-                                    columnNumber: 13
-                                }, this)
-                            ]
-                        }, void 0, true, {
-                            fileName: "[project]/src/app/(main)/page.tsx",
-                            lineNumber: 320,
-                            columnNumber: 11
-                        }, this)
-                    ]
-                }, void 0, true, {
-                    fileName: "[project]/src/app/(main)/page.tsx",
-                    lineNumber: 295,
-                    columnNumber: 9
-                }, this)
-            }, void 0, false, {
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(GlobalStyles, {}, void 0, false, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 294,
+                lineNumber: 403,
                 columnNumber: 7
             }, this),
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
-                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                    [
-                        "fd4834f72f87cc0f",
-                        [
-                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                        ]
-                    ]
-                ]) + " " + "subscribe-section",
-                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                    onClick: handleSubscribeToChannel,
-                    "aria-label": "Подписаться на канал",
-                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                        [
-                            "fd4834f72f87cc0f",
-                            [
-                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                            ]
-                        ]
-                    ]) + " " + "subscribe-button",
-                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                            [
-                                "fd4834f72f87cc0f",
-                                [
-                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                ]
-                            ]
-                        ]) + " " + "subscribe-text",
-                        children: "Подписаться на канал"
-                    }, void 0, false, {
-                        fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 335,
-                        columnNumber: 11
-                    }, this)
-                }, void 0, false, {
-                    fileName: "[project]/src/app/(main)/page.tsx",
-                    lineNumber: 330,
-                    columnNumber: 9
-                }, this)
-            }, void 0, false, {
-                fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 329,
-                columnNumber: 7
-            }, this),
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
-                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                    [
-                        "fd4834f72f87cc0f",
-                        [
-                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                        ]
-                    ]
-                ]) + " " + "balance-section",
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "jsx-694106ac21320950" + " " + "app-wrapper",
                 children: [
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        onClick: handleEarnCrystals,
-                        onMouseDown: ()=>setIsBalancePressed(true),
-                        onMouseUp: ()=>setIsBalancePressed(false),
-                        onMouseLeave: ()=>setIsBalancePressed(false),
-                        onTouchStart: ()=>setIsBalancePressed(true),
-                        onTouchEnd: ()=>setIsBalancePressed(false),
-                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                            [
-                                "fd4834f72f87cc0f",
-                                [
-                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                ]
-                            ]
-                        ]) + " " + "balance-container",
-                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                [
-                                    "fd4834f72f87cc0f",
-                                    [
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
+                        className: "jsx-694106ac21320950" + " " + "main-container",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("header", {
+                                className: "jsx-694106ac21320950" + " " + "logo-section",
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "jsx-694106ac21320950" + " " + "logo-container",
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "jsx-694106ac21320950" + " " + "logo-wrapper",
+                                            children: logoError ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                className: "jsx-694106ac21320950" + " " + "logo-text-fallback",
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                        className: "jsx-694106ac21320950" + " " + "assist-text",
+                                                        children: "АССИСТ"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/src/app/(main)/page.tsx",
+                                                        lineNumber: 412,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                        className: "jsx-694106ac21320950" + " " + "plus-text",
+                                                        children: "+"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/src/app/(main)/page.tsx",
+                                                        lineNumber: 413,
+                                                        columnNumber: 21
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/src/app/(main)/page.tsx",
+                                                lineNumber: 411,
+                                                columnNumber: 19
+                                            }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                className: "jsx-694106ac21320950" + " " + "logo-image-container",
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                                                        alt: "Ассист+ логотип",
+                                                        src: "/svg4122-a7pi.svg",
+                                                        onError: ()=>setLogoError(true),
+                                                        className: "jsx-694106ac21320950" + " " + "logo-image"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/src/app/(main)/page.tsx",
+                                                        lineNumber: 417,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                                                        alt: "Плюсик",
+                                                        src: "/svg4122-denw.svg",
+                                                        className: "jsx-694106ac21320950" + " " + "plus-icon"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/src/app/(main)/page.tsx",
+                                                        lineNumber: 423,
+                                                        columnNumber: 21
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/src/app/(main)/page.tsx",
+                                                lineNumber: 416,
+                                                columnNumber: 19
+                                            }, this)
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/app/(main)/page.tsx",
+                                            lineNumber: 409,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "jsx-694106ac21320950" + " " + "logo-text-container",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    className: "jsx-694106ac21320950" + " " + "logo-subtitle",
+                                                    children: "между поколениями"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/app/(main)/page.tsx",
+                                                    lineNumber: 433,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    className: "jsx-694106ac21320950" + " " + "logo-title",
+                                                    children: "обмен"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/app/(main)/page.tsx",
+                                                    lineNumber: 434,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/app/(main)/page.tsx",
+                                            lineNumber: 432,
+                                            columnNumber: 15
+                                        }, this)
                                     ]
-                                ]
-                            ]) + " " + `balance-shadow-box ${isBalancePressed ? 'pressed' : ''}`,
-                            children: [
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                    alt: "Кристалл",
-                                    src: "/vector3530-fpvf.svg",
-                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                        [
-                                            "fd4834f72f87cc0f",
-                                            [
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                            ]
-                                        ]
-                                    ]) + " " + "balance-crystal"
-                                }, void 0, false, {
+                                }, void 0, true, {
                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                    lineNumber: 351,
-                                    columnNumber: 13
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                        [
-                                            "fd4834f72f87cc0f",
-                                            [
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                            ]
-                                        ]
-                                    ]) + " " + "balance-amount",
-                                    children: user.balance_crystals
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/(main)/page.tsx",
-                                    lineNumber: 356,
+                                    lineNumber: 408,
                                     columnNumber: 13
                                 }, this)
-                            ]
-                        }, void 0, true, {
-                            fileName: "[project]/src/app/(main)/page.tsx",
-                            lineNumber: 350,
-                            columnNumber: 11
-                        }, this)
-                    }, void 0, false, {
-                        fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 341,
-                        columnNumber: 9
-                    }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                            [
-                                "fd4834f72f87cc0f",
-                                [
-                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                ]
-                            ]
-                        ]) + " " + "balance-description",
-                        children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                    [
-                                        "fd4834f72f87cc0f",
-                                        [
-                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                        ]
-                                    ]
-                                ]) + " " + "description-text",
-                                children: [
-                                    "Кликай, зарабатывай плюсы, ",
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {
-                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                            [
-                                                "fd4834f72f87cc0f",
-                                                [
-                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                ]
-                                            ]
-                                        ])
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/app/(main)/page.tsx",
-                                        lineNumber: 362,
-                                        columnNumber: 40
-                                    }, this),
-                                    "и меняй их в",
-                                    " "
-                                ]
-                            }, void 0, true, {
-                                fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 361,
-                                columnNumber: 11
-                            }, this),
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                    [
-                                        "fd4834f72f87cc0f",
-                                        [
-                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                        ]
-                                    ]
-                                ]) + " " + "description-bold",
-                                children: "аукционе знакомств"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 364,
+                                lineNumber: 407,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
+                                className: "jsx-694106ac21320950" + " " + "balance-section",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        onClick: handleEarnCrystals,
+                                        onMouseDown: ()=>setIsBalancePressed(true),
+                                        onMouseUp: ()=>setIsBalancePressed(false),
+                                        onMouseLeave: ()=>setIsBalancePressed(false),
+                                        onTouchStart: ()=>setIsBalancePressed(true),
+                                        onTouchEnd: ()=>setIsBalancePressed(false),
+                                        className: "jsx-694106ac21320950" + " " + "balance-container",
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "jsx-694106ac21320950" + " " + `balance-shadow-box ${isBalancePressed ? 'pressed' : ''}`,
+                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                                                alt: "Кристалл",
+                                                src: "/images/134.png",
+                                                className: "jsx-694106ac21320950" + " " + "balance-crystal"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/app/(main)/page.tsx",
+                                                lineNumber: 451,
+                                                columnNumber: 17
+                                            }, this)
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/app/(main)/page.tsx",
+                                            lineNumber: 450,
+                                            columnNumber: 15
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/(main)/page.tsx",
+                                        lineNumber: 441,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "jsx-694106ac21320950" + " " + "balance-amount",
+                                        children: user.balance_crystals
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/(main)/page.tsx",
+                                        lineNumber: 459,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "jsx-694106ac21320950" + " " + "balance-description",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                className: "jsx-694106ac21320950" + " " + "description-text",
+                                                children: [
+                                                    "Кликай, зарабатывай плюсы, ",
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {
+                                                        className: "jsx-694106ac21320950"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/src/app/(main)/page.tsx",
+                                                        lineNumber: 463,
+                                                        columnNumber: 44
+                                                    }, this),
+                                                    "и меняй их в",
+                                                    " "
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/src/app/(main)/page.tsx",
+                                                lineNumber: 462,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                className: "jsx-694106ac21320950" + " " + "description-bold",
+                                                children: "аукционе знакомств"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/app/(main)/page.tsx",
+                                                lineNumber: 465,
+                                                columnNumber: 15
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/app/(main)/page.tsx",
+                                        lineNumber: 461,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/app/(main)/page.tsx",
+                                lineNumber: 440,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
+                                className: "jsx-694106ac21320950" + " " + "tasks-section",
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "jsx-694106ac21320950" + " " + "tasks-container",
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "jsx-694106ac21320950" + " " + "tasks-background",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    className: "jsx-694106ac21320950" + " " + "tasks-bg-color"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/app/(main)/page.tsx",
+                                                    lineNumber: 473,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                                                    alt: "Фоновое изображение",
+                                                    src: "/svg1642-j9o.svg",
+                                                    className: "jsx-694106ac21320950" + " " + "tasks-bg-image"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/app/(main)/page.tsx",
+                                                    lineNumber: 474,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/app/(main)/page.tsx",
+                                            lineNumber: 472,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "jsx-694106ac21320950" + " " + "tasks-header",
+                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
+                                                className: "jsx-694106ac21320950" + " " + "tasks-title",
+                                                children: "Задания"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/app/(main)/page.tsx",
+                                                lineNumber: 482,
+                                                columnNumber: 17
+                                            }, this)
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/app/(main)/page.tsx",
+                                            lineNumber: 481,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "jsx-694106ac21320950" + " " + "tasks-list",
+                                            children: tasks.map((task)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("article", {
+                                                    className: "jsx-694106ac21320950" + " " + "task-card",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            className: "jsx-694106ac21320950" + " " + "task-header",
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                    className: "jsx-694106ac21320950" + " " + "task-content",
+                                                                    children: task.description ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                        className: "jsx-694106ac21320950" + " " + "task-title",
+                                                                        children: [
+                                                                            task.title,
+                                                                            " ",
+                                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {
+                                                                                className: "jsx-694106ac21320950"
+                                                                            }, void 0, false, {
+                                                                                fileName: "[project]/src/app/(main)/page.tsx",
+                                                                                lineNumber: 495,
+                                                                                columnNumber: 42
+                                                                            }, this),
+                                                                            task.description
+                                                                        ]
+                                                                    }, void 0, true, {
+                                                                        fileName: "[project]/src/app/(main)/page.tsx",
+                                                                        lineNumber: 494,
+                                                                        columnNumber: 27
+                                                                    }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                        className: "jsx-694106ac21320950" + " " + "task-title",
+                                                                        children: task.title
+                                                                    }, void 0, false, {
+                                                                        fileName: "[project]/src/app/(main)/page.tsx",
+                                                                        lineNumber: 499,
+                                                                        columnNumber: 27
+                                                                    }, this)
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/app/(main)/page.tsx",
+                                                                    lineNumber: 492,
+                                                                    columnNumber: 23
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                    className: "jsx-694106ac21320950" + " " + "task-points",
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                            className: "jsx-694106ac21320950" + " " + "points-text",
+                                                                            children: [
+                                                                                "+",
+                                                                                task.points
+                                                                            ]
+                                                                        }, void 0, true, {
+                                                                            fileName: "[project]/src/app/(main)/page.tsx",
+                                                                            lineNumber: 504,
+                                                                            columnNumber: 25
+                                                                        }, this),
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                            className: "jsx-694106ac21320950" + " " + "points-icon",
+                                                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                                                                                src: "/vector4120-sezw.svg",
+                                                                                alt: "Кристалл",
+                                                                                className: "jsx-694106ac21320950" + " " + "points-crystal"
+                                                                            }, void 0, false, {
+                                                                                fileName: "[project]/src/app/(main)/page.tsx",
+                                                                                lineNumber: 506,
+                                                                                columnNumber: 27
+                                                                            }, this)
+                                                                        }, void 0, false, {
+                                                                            fileName: "[project]/src/app/(main)/page.tsx",
+                                                                            lineNumber: 505,
+                                                                            columnNumber: 25
+                                                                        }, this)
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "[project]/src/app/(main)/page.tsx",
+                                                                    lineNumber: 503,
+                                                                    columnNumber: 23
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/app/(main)/page.tsx",
+                                                            lineNumber: 491,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            className: "jsx-694106ac21320950" + " " + "task-actions",
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                                    onClick: ()=>handleTaskAction(task.id, "check"),
+                                                                    className: "jsx-694106ac21320950" + " " + "task-button check-button",
+                                                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                        className: "jsx-694106ac21320950" + " " + "button-text",
+                                                                        children: task.checkButtonText
+                                                                    }, void 0, false, {
+                                                                        fileName: "[project]/src/app/(main)/page.tsx",
+                                                                        lineNumber: 520,
+                                                                        columnNumber: 25
+                                                                    }, this)
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/app/(main)/page.tsx",
+                                                                    lineNumber: 516,
+                                                                    columnNumber: 23
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                                    onClick: ()=>handleTaskAction(task.id, "action"),
+                                                                    className: "jsx-694106ac21320950" + " " + "task-button action-button",
+                                                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                        className: "jsx-694106ac21320950" + " " + "button-text bold",
+                                                                        children: task.actionButtonText
+                                                                    }, void 0, false, {
+                                                                        fileName: "[project]/src/app/(main)/page.tsx",
+                                                                        lineNumber: 527,
+                                                                        columnNumber: 25
+                                                                    }, this)
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/app/(main)/page.tsx",
+                                                                    lineNumber: 523,
+                                                                    columnNumber: 23
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/app/(main)/page.tsx",
+                                                            lineNumber: 515,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            className: "jsx-694106ac21320950" + " " + "task-glow"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/app/(main)/page.tsx",
+                                                            lineNumber: 531,
+                                                            columnNumber: 21
+                                                        }, this)
+                                                    ]
+                                                }, task.id, true, {
+                                                    fileName: "[project]/src/app/(main)/page.tsx",
+                                                    lineNumber: 487,
+                                                    columnNumber: 19
+                                                }, this))
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/app/(main)/page.tsx",
+                                            lineNumber: 485,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/src/app/(main)/page.tsx",
+                                    lineNumber: 471,
+                                    columnNumber: 13
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/(main)/page.tsx",
+                                lineNumber: 470,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 360,
+                        lineNumber: 405,
                         columnNumber: 9
-                    }, this)
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(BottomNavBar, {}, void 0, false, {
+                        fileName: "[project]/src/app/(main)/page.tsx",
+                        lineNumber: 540,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                        id: "694106ac21320950",
+                        children: ".app-wrapper.jsx-694106ac21320950{min-height:100vh;background-color:#fff;width:100%;max-width:100vw;min-height:-webkit-fill-available;position:relative;overflow-x:hidden}.main-container.jsx-694106ac21320950{width:100%;min-height:100vh;box-sizing:border-box;background-color:#fff;flex-direction:column;align-items:center;gap:8px;min-height:-webkit-fill-available;padding:25px 0 0;display:flex;overflow:auto}.logo-section.jsx-694106ac21320950{flex-direction:column;align-self:stretch;align-items:center;gap:6px;display:flex}.logo-container.jsx-694106ac21320950{flex-direction:column;align-items:flex-start;width:173px;height:66px;display:flex;position:relative}.logo-wrapper.jsx-694106ac21320950{width:160px;height:38px;margin-left:10px;position:relative}.logo-image-container.jsx-694106ac21320950{width:100%;height:100%;position:relative}.logo-image.jsx-694106ac21320950{object-fit:contain;-webkit-backface-visibility:hidden;width:100%;height:100%;transform:translateZ(0)}.plus-icon.jsx-694106ac21320950{object-fit:contain;-webkit-backface-visibility:hidden;width:19px;height:19px;position:absolute;top:-12px;right:-12px;transform:translateZ(0)}.logo-text-fallback.jsx-694106ac21320950{justify-content:center;align-items:center;width:100%;height:100%;display:flex;position:relative}.assist-text.jsx-694106ac21320950{color:#000;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:19px;font-weight:700}.plus-text.jsx-694106ac21320950{color:red;margin-left:2px;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:19px;font-weight:700}.logo-text-container.jsx-694106ac21320950{width:176px;height:27px;margin-top:1px;margin-left:-2px;position:relative}.logo-subtitle.jsx-694106ac21320950{text-align:center;color:#000;letter-spacing:-1px;white-space:nowrap;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;font-weight:400;line-height:11.7px;position:absolute;top:12px;left:calc(50% - 36px)}.logo-title.jsx-694106ac21320950{color:#000;text-align:center;height:auto;font-family:Vasek,Georgia,serif;font-size:38px;font-style:italic;font-weight:400;line-height:81%;position:absolute}.balance-section.jsx-694106ac21320950{flex-direction:column;align-self:stretch;align-items:center;gap:15px;padding:5px 0 12px;display:flex}.balance-container.jsx-694106ac21320950{cursor:pointer;-webkit-tap-highlight-color:transparent;width:114px;height:114px;margin-top:-6px;position:relative}.balance-shadow-box.jsx-694106ac21320950{background:linear-gradient(144deg,#d9d9d9 0%,#cdcdcd 100%);border-radius:24px;justify-content:center;align-items:center;width:114px;height:114px;transition:transform .1s ease-in-out;display:flex;position:absolute;top:0;left:0;box-shadow:4px 4px 8px #00000040,inset 3px 3px 8px #fff,inset -3px -4px 16px #0000004d}.balance-shadow-box.pressed.jsx-694106ac21320950{transform:scale(.98)}.balance-crystal.jsx-694106ac21320950{object-fit:contain;-webkit-backface-visibility:hidden;width:62px;height:58px;transform:translateZ(0)}.balance-amount.jsx-694106ac21320950{color:#000;letter-spacing:-.6px;background:#fffc;border:1px solid #b4b4b4;border-radius:20px;margin-top:-5px;padding:6px 12px;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:20px;font-weight:700;line-height:16.2px}.balance-description.jsx-694106ac21320950{text-align:center;color:#000;letter-spacing:-.34px;width:202px;margin:0;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;font-weight:400;line-height:12.3px}.description-text.jsx-694106ac21320950{letter-spacing:-.05px}.description-bold.jsx-694106ac21320950{letter-spacing:-.05px;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-weight:700}.tasks-section.jsx-694106ac21320950{flex-direction:column;align-self:stretch;align-items:center;gap:6px;width:100%;display:flex}.tasks-container.jsx-694106ac21320950{flex-direction:column;align-items:center;gap:16px;width:100vw;margin-left:-16px;margin-right:-16px;padding:28px 0 12px;display:flex;position:relative;overflow:hidden}.tasks-background.jsx-694106ac21320950{width:100%;height:100%;position:absolute;top:0;bottom:0;left:0}.tasks-bg-color.jsx-694106ac21320950{background-color:#eaeaea;width:100%;height:100%;position:absolute;top:73px;left:0}.tasks-bg-image.jsx-694106ac21320950{object-fit:cover;width:100%;max-width:100vw;height:253px;position:absolute;top:0;left:50%;transform:translate(-50%)}.tasks-header.jsx-694106ac21320950{z-index:1;justify-content:flex-end;align-items:center;gap:6px;width:100%;max-width:100vw;padding:4px 19px 0 0;display:flex}.tasks-title.jsx-694106ac21320950{text-align:right;color:#000;letter-spacing:-.77px;white-space:nowrap;margin:0;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:26px;font-weight:700;line-height:28px}.tasks-list.jsx-694106ac21320950{z-index:1;box-sizing:border-box;flex-direction:column;align-items:center;gap:8px;width:100%;padding:0 16px;display:inline-flex}.task-card.jsx-694106ac21320950{background:linear-gradient(244deg,#f23939 0%,#db1b1b 100%);border-radius:24px;flex-direction:column;align-items:flex-start;gap:4px;width:100%;max-width:calc(100vw - 32px);padding:16px;display:flex;position:relative;overflow:hidden}.task-header.jsx-694106ac21320950{justify-content:space-between;align-items:flex-start;gap:8px;width:100%;display:flex}.task-content.jsx-694106ac21320950{flex-direction:column;flex:1;justify-content:center;align-items:flex-start;display:flex}.task-title.jsx-694106ac21320950{text-align:left;color:#fff;letter-spacing:-.32px;margin:0;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:16px;font-weight:500;line-height:16px}.task-points.jsx-694106ac21320950{flex-shrink:0;align-items:center;gap:8px;display:inline-flex}.points-text.jsx-694106ac21320950{color:#fff;white-space:nowrap;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:19px;font-weight:700;line-height:19px}.points-icon.jsx-694106ac21320950{background:#fff;border-radius:10px;justify-content:center;align-items:center;width:20px;height:20px;display:flex}.points-crystal.jsx-694106ac21320950{object-fit:contain;width:12px;height:12px}.task-actions.jsx-694106ac21320950{justify-content:flex-end;align-items:flex-start;gap:8px;width:100%;padding-top:8px;display:flex}.task-button.jsx-694106ac21320950{cursor:pointer;-webkit-tap-highlight-color:transparent;background:#fff;border:none;border-radius:24px;flex-direction:column;justify-content:center;align-items:center;padding:8px 11px;transition:transform .1s ease-in-out;display:inline-flex}.task-button.jsx-694106ac21320950:active{transform:scale(.98)}.button-text.jsx-694106ac21320950{color:#0d0d0d;letter-spacing:-.64px;white-space:nowrap;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;font-weight:300;line-height:13px}.button-text.bold.jsx-694106ac21320950{font-weight:500}.task-glow.jsx-694106ac21320950{filter:blur(100px);pointer-events:none;background:#fffc;border-radius:48.5px;width:97px;height:97px;position:absolute;top:-35px;right:13px}.loading-container.jsx-694106ac21320950,.error-container.jsx-694106ac21320950{height:100vh;background-color:#fff;justify-content:center;align-items:center;height:-webkit-fill-available;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;display:flex}.loading-container.jsx-694106ac21320950{color:#666}.error-container.jsx-694106ac21320950{color:red;text-align:center;padding:20px}@media (width<=375px){.main-container.jsx-694106ac21320950{padding:20px 0 0}.task-card.jsx-694106ac21320950{padding:13px}.task-title.jsx-694106ac21320950{font-size:14px}.points-text.jsx-694106ac21320950{font-size:18px}}@media (-webkit-device-pixel-ratio>=2),(resolution>=192dpi){.logo-image.jsx-694106ac21320950,.plus-icon.jsx-694106ac21320950,.balance-crystal.jsx-694106ac21320950,.points-crystal.jsx-694106ac21320950,.tasks-bg-image.jsx-694106ac21320950{image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges}}@supports (-webkit-touch-callout:none){.app-wrapper.jsx-694106ac21320950,.main-container.jsx-694106ac21320950{min-height:-webkit-fill-available}}"
+                    }, void 0, false, void 0, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 340,
+                lineNumber: 404,
                 columnNumber: 7
-            }, this),
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
-                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                    [
-                        "fd4834f72f87cc0f",
-                        [
-                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                        ]
-                    ]
-                ]) + " " + "tasks-section",
-                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                        [
-                            "fd4834f72f87cc0f",
-                            [
-                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                            ]
-                        ]
-                    ]) + " " + "tasks-container",
+            }, this)
+        ]
+    }, void 0, true);
+}
+_s(HomePage, "Tls2LC2iuJTtEoGJ4gSPwldlTmk=");
+_c1 = HomePage;
+// components/BottomNavBar.tsx
+function BottomNavBar() {
+    const navItems = [
+        {
+            id: "home",
+            href: '/',
+            label: 'Главная',
+            icon: '/vector6430-oh1s.svg'
+        },
+        {
+            id: "shop",
+            href: '/auction',
+            label: 'Магазин',
+            icon: '/vector6430-lih9.svg'
+        },
+        {
+            id: "friends",
+            href: '/friends',
+            label: 'Друзья',
+            icon: '/vector6430-gzd.svg'
+        },
+        {
+            id: "profile",
+            href: '/profile',
+            label: 'Профиль',
+            icon: '/vector6431-qbze.svg'
+        }
+    ];
+    const handlePress = ()=>{
+        if (window.Telegram?.WebApp?.HapticFeedback) {
+            window.Telegram.WebApp.HapticFeedback.selectionChanged();
+        }
+    };
+    const getIconSize = (itemId)=>{
+        switch(itemId){
+            case "home":
+                return {
+                    width: "23.89px",
+                    height: "20.46px"
+                };
+            case "shop":
+                return {
+                    width: "22.4px",
+                    height: "22.4px"
+                };
+            case "friends":
+                return {
+                    width: "22.4px",
+                    height: "20.8px"
+                };
+            case "profile":
+                return {
+                    width: "22.63px",
+                    height: "22.63px"
+                };
+            default:
+                return {
+                    width: "22.4px",
+                    height: "19.2px"
+                };
+        }
+    };
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
+        className: "jsx-6e692d0a0d237cbe" + " " + "bottom-nav",
+        children: [
+            navItems.map((item)=>{
+                const iconSize = getIconSize(item.id);
+                return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
+                    href: item.href,
+                    onClick: handlePress,
+                    "aria-label": item.label,
+                    className: "jsx-6e692d0a0d237cbe" + " " + "nav-item",
                     children: [
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                [
-                                    "fd4834f72f87cc0f",
-                                    [
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                    ]
-                                ]
-                            ]) + " " + "tasks-background",
-                            children: [
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                        [
-                                            "fd4834f72f87cc0f",
-                                            [
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                            ]
-                                        ]
-                                    ]) + " " + "tasks-bg-color"
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/(main)/page.tsx",
-                                    lineNumber: 372,
-                                    columnNumber: 13
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                    alt: "Фоновое изображение",
-                                    src: "/svg1642-j9o.svg",
-                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                        [
-                                            "fd4834f72f87cc0f",
-                                            [
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                            ]
-                                        ]
-                                    ]) + " " + "tasks-bg-image"
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/(main)/page.tsx",
-                                    lineNumber: 373,
-                                    columnNumber: 13
-                                }, this)
-                            ]
-                        }, void 0, true, {
-                            fileName: "[project]/src/app/(main)/page.tsx",
-                            lineNumber: 371,
-                            columnNumber: 11
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                [
-                                    "fd4834f72f87cc0f",
-                                    [
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                    ]
-                                ]
-                            ]) + " " + "tasks-header",
-                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                    [
-                                        "fd4834f72f87cc0f",
-                                        [
-                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                        ]
-                                    ]
-                                ]) + " " + "tasks-title",
-                                children: "Задания"
-                            }, void 0, false, {
-                                fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 381,
-                                columnNumber: 13
-                            }, this)
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                            style: {
+                                ...iconSize,
+                                objectFit: 'contain'
+                            },
+                            alt: item.label,
+                            src: item.icon,
+                            className: "jsx-6e692d0a0d237cbe"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(main)/page.tsx",
-                            lineNumber: 380,
-                            columnNumber: 11
+                            lineNumber: 1095,
+                            columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                [
-                                    "fd4834f72f87cc0f",
-                                    [
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                    ]
-                                ]
-                            ]) + " " + "tasks-list",
-                            children: tasks.map((task)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("article", {
-                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                        [
-                                            "fd4834f72f87cc0f",
-                                            [
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                            ]
-                                        ]
-                                    ]) + " " + "task-card",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                                [
-                                                    "fd4834f72f87cc0f",
-                                                    [
-                                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                    ]
-                                                ]
-                                            ]) + " " + "task-points",
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                                        [
-                                                            "fd4834f72f87cc0f",
-                                                            [
-                                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                            ]
-                                                        ]
-                                                    ]) + " " + "points-text",
-                                                    children: [
-                                                        "+",
-                                                        task.points
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/src/app/(main)/page.tsx",
-                                                    lineNumber: 391,
-                                                    columnNumber: 19
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                                        [
-                                                            "fd4834f72f87cc0f",
-                                                            [
-                                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                            ]
-                                                        ]
-                                                    ]) + " " + "points-icon",
-                                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                                        src: "/vector4120-sezw.svg",
-                                                        alt: "Кристалл",
-                                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                                            [
-                                                                "fd4834f72f87cc0f",
-                                                                [
-                                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                                ]
-                                                            ]
-                                                        ]) + " " + "points-crystal"
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/app/(main)/page.tsx",
-                                                        lineNumber: 393,
-                                                        columnNumber: 21
-                                                    }, this)
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/app/(main)/page.tsx",
-                                                    lineNumber: 392,
-                                                    columnNumber: 19
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/app/(main)/page.tsx",
-                                            lineNumber: 390,
-                                            columnNumber: 17
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                                [
-                                                    "fd4834f72f87cc0f",
-                                                    [
-                                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                    ]
-                                                ]
-                                            ]) + " " + "task-content",
-                                            children: task.description ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                                    [
-                                                        "fd4834f72f87cc0f",
-                                                        [
-                                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                        ]
-                                                    ]
-                                                ]) + " " + "task-title",
-                                                children: [
-                                                    task.title,
-                                                    " ",
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {
-                                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                                            [
-                                                                "fd4834f72f87cc0f",
-                                                                [
-                                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                                ]
-                                                            ]
-                                                        ])
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/app/(main)/page.tsx",
-                                                        lineNumber: 404,
-                                                        columnNumber: 36
-                                                    }, this),
-                                                    task.description
-                                                ]
-                                            }, void 0, true, {
-                                                fileName: "[project]/src/app/(main)/page.tsx",
-                                                lineNumber: 403,
-                                                columnNumber: 21
-                                            }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                                    [
-                                                        "fd4834f72f87cc0f",
-                                                        [
-                                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                            isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                            isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                        ]
-                                                    ]
-                                                ]) + " " + "task-title",
-                                                children: task.title
-                                            }, void 0, false, {
-                                                fileName: "[project]/src/app/(main)/page.tsx",
-                                                lineNumber: 408,
-                                                columnNumber: 21
-                                            }, this)
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/app/(main)/page.tsx",
-                                            lineNumber: 401,
-                                            columnNumber: 17
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                                [
-                                                    "fd4834f72f87cc0f",
-                                                    [
-                                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                    ]
-                                                ]
-                                            ]) + " " + "task-actions",
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                                    onClick: ()=>handleTaskAction(task.id, "check"),
-                                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                                        [
-                                                            "fd4834f72f87cc0f",
-                                                            [
-                                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                            ]
-                                                        ]
-                                                    ]) + " " + "task-button check-button",
-                                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                                            [
-                                                                "fd4834f72f87cc0f",
-                                                                [
-                                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                                ]
-                                                            ]
-                                                        ]) + " " + "button-text",
-                                                        children: task.checkButtonText
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/app/(main)/page.tsx",
-                                                        lineNumber: 417,
-                                                        columnNumber: 21
-                                                    }, this)
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/app/(main)/page.tsx",
-                                                    lineNumber: 413,
-                                                    columnNumber: 19
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                                    onClick: ()=>handleTaskAction(task.id, "action"),
-                                                    className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                                        [
-                                                            "fd4834f72f87cc0f",
-                                                            [
-                                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                                isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                            ]
-                                                        ]
-                                                    ]) + " " + "task-button action-button",
-                                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                                            [
-                                                                "fd4834f72f87cc0f",
-                                                                [
-                                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                                ]
-                                                            ]
-                                                        ]) + " " + "button-text bold",
-                                                        children: task.actionButtonText
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/app/(main)/page.tsx",
-                                                        lineNumber: 424,
-                                                        columnNumber: 21
-                                                    }, this)
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/app/(main)/page.tsx",
-                                                    lineNumber: 420,
-                                                    columnNumber: 19
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/app/(main)/page.tsx",
-                                            lineNumber: 412,
-                                            columnNumber: 17
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].dynamic([
-                                                [
-                                                    "fd4834f72f87cc0f",
-                                                    [
-                                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                                                        isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                                                        isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                                                    ]
-                                                ]
-                                            ]) + " " + "task-glow"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/app/(main)/page.tsx",
-                                            lineNumber: 428,
-                                            columnNumber: 17
-                                        }, this)
-                                    ]
-                                }, task.id, true, {
-                                    fileName: "[project]/src/app/(main)/page.tsx",
-                                    lineNumber: 386,
-                                    columnNumber: 15
-                                }, this))
+                            className: "jsx-6e692d0a0d237cbe" + " " + "nav-label",
+                            children: item.label
                         }, void 0, false, {
                             fileName: "[project]/src/app/(main)/page.tsx",
-                            lineNumber: 384,
-                            columnNumber: 11
+                            lineNumber: 1103,
+                            columnNumber: 13
                         }, this)
                     ]
-                }, void 0, true, {
+                }, item.id, true, {
                     fileName: "[project]/src/app/(main)/page.tsx",
-                    lineNumber: 370,
-                    columnNumber: 9
-                }, this)
-            }, void 0, false, {
-                fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 369,
-                columnNumber: 7
-            }, this),
+                    lineNumber: 1088,
+                    columnNumber: 11
+                }, this);
+            }),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
-                id: "fd4834f72f87cc0f",
-                dynamic: [
-                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : '',
-                    isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : '',
-                    isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''
-                ],
-                children: `.main-container.__jsx-style-dynamic-selector{background-color:#fff;flex-direction:column;align-items:center;width:100%;min-height:100vh;display:flex;overflow:auto}.logo-section.__jsx-style-dynamic-selector{flex-direction:column;align-self:stretch;align-items:center;gap:10px;padding-top:40px;display:flex}.logo-container.__jsx-style-dynamic-selector{flex-direction:column;align-items:flex-start;width:216px;height:83px;display:flex;position:relative}.logo-wrapper.__jsx-style-dynamic-selector{width:200px;height:48px;margin-left:12px;position:relative}.logo-image-container.__jsx-style-dynamic-selector{width:100%;height:100%;position:relative}.logo-image.__jsx-style-dynamic-selector{${isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''};width:100%;height:100%}.plus-icon.__jsx-style-dynamic-selector{${isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''};width:24px;height:24px;position:absolute;top:-15px;right:-15px}.logo-text-fallback.__jsx-style-dynamic-selector{justify-content:center;align-items:center;width:100%;height:100%;display:flex;position:relative}.assist-text.__jsx-style-dynamic-selector{color:#000;font-family:Cera Pro,sans-serif;font-size:24px;font-weight:700}.plus-text.__jsx-style-dynamic-selector{color:red;margin-left:2px;font-family:Cera Pro,sans-serif;font-size:24px;font-weight:700}.logo-text-container.__jsx-style-dynamic-selector{width:220px;height:34px;margin-top:1px;margin-left:-2px;position:relative}.logo-subtitle.__jsx-style-dynamic-selector{text-align:center;color:#000;letter-spacing:-1.26px;white-space:nowrap;font-family:Cera Pro;font-size:18px;font-weight:400;line-height:14.6px;position:absolute;top:15px;left:calc(50% - 45px)}.logo-title.__jsx-style-dynamic-selector{color:#000;text-align:center;height:auto;font-family:Vasek;font-size:48px;font-style:italic;font-weight:400;line-height:81%;position:absolute}.subscribe-section.__jsx-style-dynamic-selector{flex-direction:column;align-self:stretch;align-items:center;gap:10px;display:flex}.subscribe-button.__jsx-style-dynamic-selector{cursor:pointer;background:linear-gradient(244deg,#f23939 0%,#db1b1b 100%);border:none;border-radius:30px;flex-direction:column;justify-content:center;align-items:center;gap:10px;padding:15px 20px;transition:transform .1s ease-in-out;display:inline-flex}.subscribe-button.__jsx-style-dynamic-selector:active{transform:scale(.98)}.subscribe-text.__jsx-style-dynamic-selector{text-align:center;color:#fff;letter-spacing:-.36px;width:195px;font-family:Cera Pro;font-size:18px;font-weight:700;line-height:18px}.balance-section.__jsx-style-dynamic-selector{flex-direction:column;align-self:stretch;align-items:center;gap:25px;padding:5px 0 20px;display:flex}.balance-container.__jsx-style-dynamic-selector{cursor:pointer;width:195px;height:195px;position:relative}.balance-shadow-box.__jsx-style-dynamic-selector{background:linear-gradient(144deg,#d9d9d9 0%,#cdcdcd 100%);border-radius:30px;justify-content:center;align-items:center;width:195px;height:195px;transition:transform .1s ease-in-out;display:flex;position:absolute;top:0;left:0;box-shadow:5px 5px 10px #00000040,inset 3px 3px 10px #fff,inset -4px -5px 20px #0000004d}.balance-shadow-box.pressed.__jsx-style-dynamic-selector{transform:scale(.98)}.balance-crystal.__jsx-style-dynamic-selector{${isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-          ` : ''};width:106px;height:101px}.balance-amount.__jsx-style-dynamic-selector{color:#000;background:#fffc;border-radius:20px;padding:6px 12px;font-family:Cera Pro;font-size:18px;font-weight:700;position:absolute;bottom:8px}.balance-description.__jsx-style-dynamic-selector{text-align:center;color:#000;letter-spacing:-.48px;width:253px;height:29px;font-family:Cera Pro;font-size:16px;font-weight:400;line-height:17.6px}.description-bold.__jsx-style-dynamic-selector{letter-spacing:-.08px;font-family:Cera Pro;font-weight:700}.tasks-section.__jsx-style-dynamic-selector{flex-direction:column;align-self:stretch;align-items:center;gap:10px;display:flex}.tasks-container.__jsx-style-dynamic-selector{border-radius:0 0 32px 32px;flex-direction:column;align-items:center;gap:35px;width:359px;padding:35px 0 8px;display:flex;position:relative;overflow:hidden}.tasks-background.__jsx-style-dynamic-selector{width:359px;height:1771px;position:absolute;top:0;left:0}.tasks-bg-color.__jsx-style-dynamic-selector{background-color:#eaeaea;width:359px;height:1680px;position:absolute;top:91px;left:0}.tasks-bg-image.__jsx-style-dynamic-selector{${isIOS ? `
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''};width:359px;height:218px;position:absolute;top:0;left:0}.tasks-header.__jsx-style-dynamic-selector{z-index:1;justify-content:flex-end;align-items:center;gap:10px;width:100%;padding:0 16px 0 0;display:flex}.tasks-title.__jsx-style-dynamic-selector{text-align:right;color:#000;letter-spacing:-.96px;white-space:nowrap;font-family:Cera Pro;font-size:32px;font-weight:700;line-height:35.2px}.tasks-list.__jsx-style-dynamic-selector{z-index:1;flex-direction:column;align-items:center;gap:10px;display:inline-flex}.task-card.__jsx-style-dynamic-selector{background:linear-gradient(244deg,#f23939 0%,#db1b1b 100%);border-radius:30px;flex-direction:column;align-items:flex-end;gap:10px;width:343px;padding:20px;display:flex;position:relative;overflow:hidden}.task-points.__jsx-style-dynamic-selector{justify-content:flex-end;align-items:center;gap:10px;display:inline-flex}.points-text.__jsx-style-dynamic-selector{color:#fff;white-space:nowrap;font-family:Cera Pro;font-size:24px;font-weight:700;line-height:24px}.points-icon.__jsx-style-dynamic-selector{background:#fff;border-radius:12.5px;justify-content:center;align-items:center;width:25px;height:25px;display:flex}.points-crystal.__jsx-style-dynamic-selector{${isIOS ? `
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            image-rendering: -webkit-optimize-contrast;
-          ` : ''};width:15px;height:15px}.task-content.__jsx-style-dynamic-selector{flex-direction:column;justify-content:center;align-items:flex-end;gap:10px;display:inline-flex}.task-title.__jsx-style-dynamic-selector{text-align:right;color:#fff;letter-spacing:-.4px;width:285px;font-family:Cera Pro;font-size:20px;font-weight:500;line-height:20px}.task-actions.__jsx-style-dynamic-selector{justify-content:flex-end;align-items:flex-start;gap:10px;padding-top:15px;display:inline-flex}.task-button.__jsx-style-dynamic-selector{cursor:pointer;background:#fff;border:none;border-radius:30px;flex-direction:column;justify-content:center;align-items:center;padding:12px 15px;transition:transform .1s ease-in-out;display:inline-flex}.task-button.__jsx-style-dynamic-selector:active{transform:scale(.98)}.button-text.__jsx-style-dynamic-selector{color:#0d0d0d;letter-spacing:-.48px;white-space:nowrap;font-family:Cera Pro;font-size:16px;font-weight:400;line-height:16px}.button-text.bold.__jsx-style-dynamic-selector{font-weight:700}.task-glow.__jsx-style-dynamic-selector{filter:blur(125px);background:#fffc;border-radius:60px;width:120px;height:120px;position:absolute;top:-43px;left:207px}.loading-container.__jsx-style-dynamic-selector,.error-container.__jsx-style-dynamic-selector{background-color:#fff;justify-content:center;align-items:center;height:100vh;font-family:Cera Pro;display:flex}.loading-container.__jsx-style-dynamic-selector{color:#666}.error-container.__jsx-style-dynamic-selector{color:red;text-align:center;padding:20px}`
+                id: "6e692d0a0d237cbe",
+                children: ".bottom-nav.jsx-6e692d0a0d237cbe{z-index:1000;box-sizing:border-box;background-color:#262626;border-radius:15px 15px 0 0;justify-content:space-between;align-items:center;height:80px;padding:8px 25px;display:flex;position:fixed;bottom:0;left:0;right:0;overflow:hidden;box-shadow:0 -2px 10px #0000001a}.nav-item.jsx-6e692d0a0d237cbe{-webkit-tap-highlight-color:transparent;flex-direction:column;justify-content:center;align-items:center;gap:6px;width:53px;height:100%;text-decoration:none;transition:opacity .2s;display:flex}.nav-item.jsx-6e692d0a0d237cbe:hover{opacity:.8}.nav-label.jsx-6e692d0a0d237cbe{text-align:center;color:#868686;letter-spacing:-.34px;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;font-weight:500;line-height:9px}.nav-item.active.jsx-6e692d0a0d237cbe .nav-label.jsx-6e692d0a0d237cbe{color:#fff}"
             }, void 0, false, void 0, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(main)/page.tsx",
-        lineNumber: 292,
+        lineNumber: 1083,
         columnNumber: 5
     }, this);
 }
-_s(HomePage, "dQCn0OJYPoS3XNRDCRp7NYALhjM=");
-_c = HomePage;
-var _c;
-__turbopack_context__.k.register(_c, "HomePage");
+_c2 = BottomNavBar;
+var _c, _c1, _c2;
+__turbopack_context__.k.register(_c, "GlobalStyles");
+__turbopack_context__.k.register(_c1, "HomePage");
+__turbopack_context__.k.register(_c2, "BottomNavBar");
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(module, globalThis.$RefreshHelpers$);
 }

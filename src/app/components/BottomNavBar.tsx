@@ -50,32 +50,22 @@ export default function BottomNavBar() {
     }
   };
 
-  const getItemPadding = (itemId: string) => {
-    switch (itemId) {
-      case "home": return "gap-[13px] px-2 py-1.5";
-      case "friends": return "gap-[13px] px-2.5 py-1.5";
-      case "profile": return "gap-[11px] px-[3px] py-[5px]";
-      default: return "gap-[11px] p-1.5";
-    }
-  };
-
   return (
     <nav 
-      className="flex h-20 items-center justify-between px-[25px] py-2.5 w-full bg-neutral-800 rounded-[15px_15px_0px_0px] overflow-hidden"
+      className="fixed bottom-0 left-0 right-0 h-20 flex items-center justify-between px-[25px] py-2 bg-[#262626] rounded-t-[15px] overflow-hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.1)]"
       role="navigation"
       aria-label="Основная навигация"
     >
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         const iconSize = getIconSize(item.id);
-        const paddingClass = getItemPadding(item.id);
 
         return (
           <Link
             key={item.id}
             href={item.href}
             onClick={handlePress}
-            className={`flex flex-col items-center justify-center ${paddingClass} hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-neutral-800 w-[66.25px]`}
+            className="flex flex-col items-center justify-center gap-2 w-[66px] h-full text-decoration-none transition-opacity hover:opacity-80"
             aria-label={item.label}
             aria-current={isActive ? "page" : undefined}
           >
@@ -85,7 +75,7 @@ export default function BottomNavBar() {
               src={item.icon}
             />
             <div
-              className={`font-['Cera_Pro'] font-medium text-sm text-center tracking-[-0.42px] leading-[11.3px] ${
+              className={`font-['Cera_Pro'] font-medium text-sm text-center leading-[11.3px] tracking-[-0.42px] ${
                 isActive ? "text-white" : "text-[#868686]"
               }`}
             >

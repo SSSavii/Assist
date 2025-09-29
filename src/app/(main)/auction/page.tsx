@@ -51,14 +51,37 @@ export default function ShopPage() {
     }
 
     tg.ready();
-    // ВРЕМЕННО: симулируем данные пользователя для разработки
-    const mockUser: UserProfile = {
-      id: 1,
-      balance_pluses: 455,
-      cases_to_open: 5
-    };
-    setUser(mockUser);
-    setIsLoading(false);
+    
+    // Загружаем данные пользователя с сервера
+    fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: tg.initData }),
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Не удалось загрузить данные пользователя');
+      return response.json();
+    })
+    .then(data => {
+      if (data && data.error) {
+        throw new Error(data.error);
+      }
+      setUser(data);
+    })
+    .catch(err => {
+      console.error("Shop page fetch error:", err);
+      setError(err.message);
+      // В случае ошибки можно оставить фиктивные данные для разработки
+      const mockUser: UserProfile = {
+        id: 1,
+        balance_pluses: 455,
+        cases_to_open: 5
+      };
+      setUser(mockUser);
+    })
+    .finally(() => {
+      setIsLoading(false);
+    });
   }, []);
 
   // Функция для получения случайного приза с учетом вероятности
@@ -98,7 +121,7 @@ export default function ShopPage() {
   };
 
   const handleSpin = async () => {
-    if (isSpinning || hasSpunRef.current) return;
+    if (isSpinning || hasSpunRef.current || !user || user.cases_to_open <= 0) return;
 
     setIsSpinning(true);
     setError('');
@@ -117,6 +140,12 @@ export default function ShopPage() {
       setWinningPrize(prize);
       setSpinKey(prev => prev + 1);
       
+      // Обновляем баланс пользователя (уменьшаем количество кейсов)
+      setUser(prev => prev ? { 
+        ...prev, 
+        cases_to_open: prev.cases_to_open - 1 
+      } : null);
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
       setIsSpinning(false);
@@ -133,9 +162,6 @@ export default function ShopPage() {
       
       // СОХРАНЯЕМ ВЫИГРЫШ В БАЗУ ДАННЫХ
       saveWinningToDatabase(winningPrize);
-      
-      // В реальном приложении здесь нужно обновить баланс пользователя
-      // setUser(prev => prev ? { ...prev, cases_to_open: prev.cases_to_open - 1 } : null);
     }
     setIsSpinning(false);
     hasSpunRef.current = false;
@@ -164,7 +190,7 @@ export default function ShopPage() {
           У вас доступно <span className="font-semibold">{user?.cases_to_open || 0} кейсов</span>
         </div>
         <div className="text-gray-700">
-          Баланс: <span className="font-semibold">{user?.balance_pluses || 0} плюсов</span>
+          Баланс: <span className="font-semibold">{user?.balance_pluses?.toLocaleString('ru-RU') || 0} плюсов</span>
         </div>
       </div>
 
@@ -181,7 +207,7 @@ export default function ShopPage() {
         
         <button 
           onClick={handleSpin}
-          disabled={isSpinning}
+          disabled={isSpinning || !user || user.cases_to_open <= 0}
           className="w-full h-14 flex items-center justify-center bg-gradient-to-r from-purple-600 to-blue-500 text-white text-lg font-bold rounded-xl 
           transition-all
           shadow-[0_4px_0_0_rgba(91,33,182,0.6)] 

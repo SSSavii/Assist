@@ -7,6 +7,7 @@ import Script from 'next/script';
 export const metadata: Metadata = {
   title: 'Ассист+',
   description: '«Тиндер» для бизнес-знакомств',
+  viewport: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no',
 };
 
 export const viewport: Viewport = {
