@@ -1,23 +1,23 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import HorizontalTextSlotMachine from '@/app/components/TextSlotMachine';
 
-type Prize = { 
-  name: string; 
+type Prize = {
+  name: string;
   type: 'rare' | 'common';
   canWin: boolean;
 };
 
-// Все возможные призы (точные из вашего списка)
 const ALL_PRIZES: Prize[] = [
   // Редкие призы (малый шанс)
   { name: 'Онлайн-мини-разбор с Иваном', type: 'rare', canWin: true },
   { name: 'Приоритетное место в мини-разборе у Ивана', type: 'rare', canWin: true },
-  { name: 'Участие в розыгрыше завтрака с Иваном', type: 'rare', canWin: false }, // Невыпадаемый приз
+  { name: 'Участие в розыгрыше завтрака с Иваном', type: 'rare', canWin: false },
   { name: 'Ответ Ивана голосом на ваш вопрос', type: 'rare', canWin: true },
   { name: 'Звонок 1 на 1 с Антоном Орешкиным', type: 'rare', canWin: true },
-  
+
   // Обычные призы (хороший шанс)
   { name: '3 чек-листа', type: 'common', canWin: true },
   { name: 'Участие в созвоне Антона Орешкина с БА', type: 'common', canWin: true },
@@ -27,7 +27,7 @@ const ALL_PRIZES: Prize[] = [
 
 interface UserProfile {
   id: number;
-  balance_pluses: number;
+  balance_crystals: number; // Changed from balance_pluses to match profile page
   cases_to_open: number;
 }
 
@@ -35,7 +35,6 @@ export default function ShopPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [winningPrize, setWinningPrize] = useState<Prize | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [spinKey, setSpinKey] = useState(0);
@@ -51,8 +50,7 @@ export default function ShopPage() {
     }
 
     tg.ready();
-    
-    // Загружаем данные пользователя с сервера
+
     fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -71,10 +69,10 @@ export default function ShopPage() {
     .catch(err => {
       console.error("Shop page fetch error:", err);
       setError(err.message);
-      // В случае ошибки можно оставить фиктивные данные для разработки
+      // Фиктивные данные для разработки
       const mockUser: UserProfile = {
         id: 1,
-        balance_pluses: 455,
+        balance_crystals: 455, // Changed from balance_pluses
         cases_to_open: 5
       };
       setUser(mockUser);
@@ -84,19 +82,15 @@ export default function ShopPage() {
     });
   }, []);
 
-  // Функция для получения случайного приза с учетом вероятности
   const getRandomPrize = (): Prize => {
     const random = Math.random();
-    
-    // Фильтруем призы, которые могут выпасть
     const availablePrizes = random < 0.2 
       ? ALL_PRIZES.filter(p => p.type === 'rare' && p.canWin)
       : ALL_PRIZES.filter(p => p.type === 'common' && p.canWin);
-    
+
     return availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
   };
 
-  // Функция для сохранения выигрыша в базу данных
   const saveWinningToDatabase = async (prize: Prize) => {
     try {
       const tg = window.Telegram?.WebApp;
@@ -121,7 +115,10 @@ export default function ShopPage() {
   };
 
   const handleSpin = async () => {
-    if (isSpinning || hasSpunRef.current || !user || user.cases_to_open <= 0) return;
+    // TEMPORARY: Removed case cost check
+    // ORIGINAL CODE (uncomment to restore):
+    // if (isSpinning || hasSpunRef.current || !user || user.cases_to_open <= 0) return;
+    if (isSpinning || hasSpunRef.current || !user) return;
 
     setIsSpinning(true);
     setError('');
@@ -132,19 +129,26 @@ export default function ShopPage() {
     try {
       window.Telegram?.WebApp?.HapticFeedback.impactOccurred('light');
 
-      // ВРЕМЕННО: симулируем запрос к серверу для разработки
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Определяем выигрыш
       const prize = getRandomPrize();
       setWinningPrize(prize);
       setSpinKey(prev => prev + 1);
       
-      // Обновляем баланс пользователя (уменьшаем количество кейсов)
-      setUser(prev => prev ? { 
-        ...prev, 
-        cases_to_open: prev.cases_to_open - 1 
-      } : null);
+      // TEMPORARY: Remove case cost reduction
+      // ORIGINAL CODE (uncomment to restore):
+      // setUser(prev => prev ? { 
+      //   ...prev, 
+      //   cases_to_open: prev.cases_to_open - 1 
+      // } : null);
+
+      // Add balance increase for 1000 pluses prize
+      if (prize.name === '1000 A+') {
+        setUser(prev => prev ? {
+          ...prev,
+          balance_crystals: prev.balance_crystals + 1000
+        } : null);
+      }
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
@@ -159,8 +163,6 @@ export default function ShopPage() {
       setShowPrizeAlert(true);
       window.Telegram?.WebApp?.HapticFeedback.notificationOccurred('success');
       window.Telegram?.WebApp.showAlert(`Поздравляем! Вы выиграли: ${winningPrize.name}`);
-      
-      // СОХРАНЯЕМ ВЫИГРЫШ В БАЗУ ДАННЫХ
       saveWinningToDatabase(winningPrize);
     }
     setIsSpinning(false);
@@ -173,7 +175,6 @@ export default function ShopPage() {
 
   return (
     <div className="flex flex-col min-h-screen font-sans items-center px-4 pt-6 pb-4 text-center text-black bg-gray-50">
-
       {/* Заголовок магазина */}
       <div className="w-full mb-6">
         <h1 className="text-2xl font-bold mb-2">
@@ -190,7 +191,9 @@ export default function ShopPage() {
           У вас доступно <span className="font-semibold">{user?.cases_to_open || 0} кейсов</span>
         </div>
         <div className="text-gray-700">
-          Баланс: <span className="font-semibold">{user?.balance_pluses?.toLocaleString('ru-RU') || 0} плюсов</span>
+          Баланс: <span className="font-semibold">
+            {user?.balance_crystals?.toLocaleString('ru-RU') || 0} плюсов
+          </span>
         </div>
       </div>
 
@@ -207,19 +210,27 @@ export default function ShopPage() {
         
         <button 
           onClick={handleSpin}
-          disabled={isSpinning || !user || user.cases_to_open <= 0}
+          // TEMPORARY: Removed cases check from disabled state
+          // ORIGINAL CODE (uncomment to restore):
+          // disabled={isSpinning || !user || user.cases_to_open <= 0}
+          disabled={isSpinning || !user}
           className="w-full h-14 flex items-center justify-center bg-gradient-to-r from-purple-600 to-blue-500 text-white text-lg font-bold rounded-xl 
           transition-all
           shadow-[0_4px_0_0_rgba(91,33,182,0.6)] 
           active:translate-y-1 active:shadow-[0_1px_0_0_rgba(91,33,182,0.6)]
           disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSpinning ? 'Крутится...' : `Крутить (${user?.cases_to_open || 0} шт.)`}
+          {/* TEMPORARY: Removed case count */}
+          {/* ORIGINAL CODE (uncomment to restore): */}
+          {/* {isSpinning ? 'Крутится...' : `Крутить (${user?.cases_to_open || 0} шт.)`} */}
+          {isSpinning ? 'Крутится...' : 'Крутить'}
         </button>
         
-        <div className="text-sm text-purple-600 font-medium mt-2">
+        {/* TEMPORARY: Remove case cost text */}
+        {/* ORIGINAL CODE (uncomment to restore): */}
+        {/* <div className="text-sm text-purple-600 font-medium mt-2">
           Крутить стоит 1 кейс
-        </div>
+        </div> */}
       </div>
 
       {/* Товар - созвон */}
@@ -234,7 +245,7 @@ export default function ShopPage() {
           <div className="flex items-center">
             <span className="text-purple-600 font-bold mr-3">10,000 плюсов</span>
             <button 
-              disabled={!user || user.balance_pluses < 10000}
+              disabled={!user || user.balance_crystals < 10000}
               className="bg-purple-600 text-white text-sm font-semibold px-3 py-1 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Купить
@@ -242,7 +253,6 @@ export default function ShopPage() {
           </div>
         </div>
       </div>
-
     </div>
   );
 }

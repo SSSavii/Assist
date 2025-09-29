@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
@@ -560,7 +561,7 @@ export default function HomePage() {
             flex-direction: column;
             background-color: #FFFFFF;
             padding: 25px 0px 0px;
-            padding-bottom: 0px;
+            padding-bottom: 70px;
             box-sizing: border-box;
             gap: 8px;
           }
