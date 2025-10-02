@@ -740,13 +740,13 @@ export default function HomePage() {
           }
           
           .balance-description {
-            width: 202px;
+            width: 240px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 400;
-            font-size: 11px;
+            font-size: 18px;
             text-align: center;
             color: #000000;
-            line-height: 15px;
+            line-height: 21px;
             letter-spacing: -0.34px;
             margin: 0;
           }
