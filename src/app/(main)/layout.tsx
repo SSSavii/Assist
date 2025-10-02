@@ -1,6 +1,6 @@
 'use client';
 
-import BottomNavBar from "wxqryy/app/components/BottomNavBar";
+import BottomNavBar from "@/app/components/BottomNavBar";
 
 export default function MainLayout({
   children,
@@ -12,9 +12,8 @@ export default function MainLayout({
       <main className="pb-24">
         {children}
       </main>
-      <footer className="fixed bottom-0 left-0 right-0 z-50 bg-white/75 backdrop-blur-lg">
+      <footer className="fixed bottom-0 left-0 right-0 z-50">
         <BottomNavBar />
-        <div className="h-4"></div>
       </footer>
     </div>
   );
