@@ -8,7 +8,7 @@ export default function BottomNavBar() {
   const navItems = [
     { 
       id: "home",
-      href: '/main', 
+      href: '/',  // Изменено с /main на /
       label: 'Главная', 
       iconActive: '/vector6430-oh1s.svg',
       iconInactive: '/1.svg'
@@ -44,11 +44,11 @@ export default function BottomNavBar() {
 
   const getIconSize = (itemId: string) => {
     switch (itemId) {
-      case "home": return { width: "29.86px", height: "25.57px" };
-      case "shop": return { width: "28px", height: "28px" };
-      case "friends": return { width: "28px", height: "26px" };
-      case "profile": return { width: "28.29px", height: "28.29px" };
-      default: return { width: "28px", height: "24px" };
+      case "home": return { width: "23.89px", height: "20.46px" };
+      case "shop": return { width: "22.4px", height: "22.4px" };
+      case "friends": return { width: "22.4px", height: "20.8px" };
+      case "profile": return { width: "22.63px", height: "22.63px" };
+      default: return { width: "22.4px", height: "19.2px" };
     }
   };
 
@@ -100,7 +100,7 @@ export default function BottomNavBar() {
           align-items: center;
           justify-content: center;
           gap: 6px;
-          width: 66px;
+          width: 53px;
           height: 100%;
           text-decoration: none;
           transition: opacity 0.2s ease;
@@ -114,11 +114,11 @@ export default function BottomNavBar() {
         .nav-label {
           font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
           font-weight: 500;
-          font-size: 13px;
+          font-size: 11px;
           text-align: center;
           color: #868686;
-          line-height: 11.3px;
-          letter-spacing: -0.42px;
+          line-height: 9px;
+          letter-spacing: -0.34px;
           transition: color 0.2s ease;
           white-space: nowrap;
         }
