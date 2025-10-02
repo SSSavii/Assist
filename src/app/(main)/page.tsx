@@ -3,7 +3,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import BottomNavBar from "wxqryy/app/components/BottomNavBar";
 // Добавляем глобальные стили и мета-теги
 const GlobalStyles = () => (
   <>
@@ -541,7 +540,6 @@ export default function HomePage() {
         </main>
 
         {/* Навигационная панель */}
-        <BottomNavBar />
 
         <style jsx>{`
           .app-wrapper {
@@ -748,7 +746,7 @@ export default function HomePage() {
             font-size: 11px;
             text-align: center;
             color: #000000;
-            line-height: 12.3px;
+            line-height: 15px;
             letter-spacing: -0.34px;
             margin: 0;
           }
