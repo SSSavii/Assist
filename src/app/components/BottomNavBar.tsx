@@ -1,38 +1,40 @@
-// components/BottomNavBar.tsx
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
-const navItems = [
-  { 
-    id: "home",
-    href: '/', 
-    label: 'Главная', 
-    icon: '/vector6430-oh1s.svg'
-  },
-  { 
-    id: "shop",
-    href: '/auction', 
-    label: 'Магазин', 
-    icon: '/vector6430-lih9.svg'
-  },
-  { 
-    id: "friends",
-    href: '/friends', 
-    label: 'Друзья', 
-    icon: '/vector6430-gzd.svg'
-  },
-  { 
-    id: "profile",
-    href: '/profile', 
-    label: 'Профиль', 
-    icon: '/vector6431-qbze.svg'
-  },
-];
 
 export default function BottomNavBar() {
   const pathname = usePathname();
+
+  const navItems = [
+    { 
+      id: "home",
+      href: '/', 
+      label: 'Главная', 
+      iconActive: '/vector6430-oh1s.svg',
+      iconInactive: '/1.svg'
+    },
+    { 
+      id: "shop",
+      href: '/auction', 
+      label: 'Магазин', 
+      iconActive: '/2.svg',
+      iconInactive: '/vector6430-lih9.svg'
+    },
+    { 
+      id: "friends",
+      href: '/friends', 
+      label: 'Друзья', 
+      iconActive: '/3.svg',
+      iconInactive: '/vector6430-gzd.svg'
+    },
+    { 
+      id: "profile",
+      href: '/profile', 
+      label: 'Профиль', 
+      iconActive: '/4.svg',
+      iconInactive: '/vector6431-qbze.svg'
+    },
+  ];
 
   const handlePress = () => {
     if (window.Telegram?.WebApp?.HapticFeedback) {
@@ -42,48 +44,94 @@ export default function BottomNavBar() {
 
   const getIconSize = (itemId: string) => {
     switch (itemId) {
-      case "home": return { width: "29.86px", height: "25.57px" };
-      case "shop": return { width: "28px", height: "28px" };
-      case "friends": return { width: "28px", height: "26px" };
-      case "profile": return { width: "28.29px", height: "28.29px" };
-      default: return { width: "28px", height: "24px" };
+      case "home": return { width: "23.89px", height: "20.46px" };
+      case "shop": return { width: "22.4px", height: "22.4px" };
+      case "friends": return { width: "22.4px", height: "20.8px" };
+      case "profile": return { width: "22.63px", height: "22.63px" };
+      default: return { width: "22.4px", height: "19.2px" };
     }
   };
 
   return (
-    <nav 
-      className="fixed bottom-0 left-0 right-0 h-20 flex items-center justify-between px-[25px] py-2 bg-[#262626] rounded-t-[15px] overflow-hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.1)]"
-      role="navigation"
-      aria-label="Основная навигация"
-    >
+    <nav className="bottom-nav">
       {navItems.map((item) => {
-        const isActive = pathname === item.href;
         const iconSize = getIconSize(item.id);
+        const isActive = pathname === item.href;
 
         return (
-          <Link
+          <a
             key={item.id}
             href={item.href}
             onClick={handlePress}
-            className="flex flex-col items-center justify-center gap-2 w-[66px] h-full text-decoration-none transition-opacity hover:opacity-80"
+            className={`nav-item ${isActive ? 'active' : ''}`}
             aria-label={item.label}
-            aria-current={isActive ? "page" : undefined}
           >
             <img
-              style={iconSize}
+              style={{
+                ...iconSize,
+                objectFit: 'contain' as const
+              }}
               alt={item.label}
-              src={item.icon}
+              src={isActive ? item.iconActive : item.iconInactive}
             />
-            <div
-              className={`font-['Cera_Pro'] font-medium text-sm text-center leading-[11.3px] tracking-[-0.42px] ${
-                isActive ? "text-white" : "text-[#868686]"
-              }`}
-            >
+            <div className="nav-label">
               {item.label}
             </div>
-          </Link>
+          </a>
         );
       })}
+
+      <style jsx>{`
+        .bottom-nav {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 8px 25px;
+          background-color: #262626;
+          border-radius: 15px 15px 0px 0px;
+          overflow: hidden;
+          z-index: 1000;
+          box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+          box-sizing: border-box;
+        }
+
+        .nav-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          width: 53px;
+          height: 100%;
+          text-decoration: none;
+          transition: opacity 0.2s ease;
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        .nav-item:hover {
+          opacity: 0.8;
+        }
+
+        .nav-label {
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-weight: 500;
+          font-size: 11px;
+          text-align: center;
+          color: #868686;
+          line-height: 9px;
+          letter-spacing: -0.34px;
+          transition: color 0.2s ease;
+        }
+
+        .nav-item.active .nav-label {
+          color: #FFFFFF;
+        }
+      `}</style>
     </nav>
   );
 }

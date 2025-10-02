@@ -59,12 +59,10 @@ __turbopack_context__.s({
     "default": (()=>FriendsPage)
 });
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/styled-jsx/style.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$Avatar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/components/Avatar.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/image.js [app-ssr] (ecmascript)");
 'use client';
-;
 ;
 ;
 ;
@@ -75,13 +73,41 @@ function FriendsPage() {
     const [referrals, setReferrals] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
     const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
-    const [showRules, setShowRules] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false); // Для модального окна
+    const [isClient, setIsClient] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [showRules, setShowRules] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        setIsClient(true);
+    }, []);
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        if (!isClient) return;
         const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.ready();
-            const initData = tg.initData;
-            fetch('/api/auth', {
+        if (!tg) {
+            setError('Telegram WebApp недоступен');
+            setLoading(false);
+            return;
+        }
+        tg.ready();
+        const initData = tg.initData;
+        if (!initData) {
+            setError('initData отсутствует');
+            setLoading(false);
+            return;
+        }
+        console.log('[Friends] Запрос к /api/auth...');
+        fetch('/api/auth', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                initData
+            })
+        }).then(async (res)=>{
+            if (!res.ok) throw new Error(`Auth: ${res.status} ${await res.text()}`);
+            return res.json();
+        }).then((userData)=>{
+            setUser(userData);
+            return fetch('/api/referrals', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -89,353 +115,309 @@ function FriendsPage() {
                 body: JSON.stringify({
                     initData
                 })
-            }).then((response)=>{
-                if (!response.ok) throw new Error(`Ошибка аутентификации: ${response.statusText}`);
-                return response.json();
-            }).then((userData)=>{
-                if (userData && userData.error) {
-                    throw new Error(userData.error);
-                }
-                setUser(userData);
-                return fetch('/api/referrals', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        initData
-                    })
-                });
-            }).then((response)=>{
-                if (!response.ok) throw new Error(`Ошибка загрузки друзей: ${response.statusText}`);
-                return response.json();
-            }).then((referralsData)=>{
-                setReferrals(referralsData || []);
-            }).catch((err)=>{
-                console.error('Fetch error on friends page:', err);
-                setError(err.message || 'Не удалось загрузить данные.');
-            }).finally(()=>{
-                setLoading(false);
             });
-        } else {
-            setError('Telegram WebApp не найден. Откройте приложение в Telegram.');
+        }).then(async (res)=>{
+            if (!res.ok) throw new Error(`Referrals: ${res.status} ${await res.text()}`);
+            return res.json();
+        }).then((data)=>{
+            setReferrals(Array.isArray(data) ? data : []);
+        }).catch((err)=>{
+            console.error('Ошибка в FriendsPage:', err);
+            setError(err.message || 'Не удалось загрузить данные');
+        }).finally(()=>{
             setLoading(false);
-        }
-    }, []);
-    const handleInviteClick = ()=>{
-        const tg = window.Telegram?.WebApp;
-        if (!tg || !user || !user.id) {
-            tg?.showAlert('Не удалось создать ссылку. Попробуйте перезагрузить страницу.');
-            return;
-        }
-        const botUsername = ("TURBOPACK compile-time value", "my_auction_admin_bot");
-        const botName = ("TURBOPACK compile-time value", "test admin");
-        if ("TURBOPACK compile-time falsy", 0) {
-            "TURBOPACK unreachable";
-        }
-        const referralLink = `https://t.me/${botUsername}/${botName}?startapp=ref_${user.id}`;
-        const shareText = `Привет! Присоединяйся к "Ассист+" и получай бонусы. Поможем друг другу найти крутые знакомства и возможности!`;
-        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
-        tg.openTelegramLink(shareUrl);
-    };
-    const iconMaskStyle = (iconPath)=>({
-            maskImage: `url(${iconPath})`,
-            WebkitMaskImage: `url(${iconPath})`,
-            maskSize: 'contain',
-            maskRepeat: 'no-repeat',
-            maskPosition: 'center'
         });
+    }, [
+        isClient
+    ]);
+    if (!isClient) {
+        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+            className: "h-screen bg-white"
+        }, void 0, false, {
+            fileName: "[project]/src/app/(main)/friends/page.tsx",
+            lineNumber: 86,
+            columnNumber: 12
+        }, this);
+    }
     if (loading) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
             className: "flex justify-center items-center h-screen bg-white",
             children: "Загрузка..."
         }, void 0, false, {
             fileName: "[project]/src/app/(main)/friends/page.tsx",
-            lineNumber: 104,
-            columnNumber: 12
+            lineNumber: 91,
+            columnNumber: 7
         }, this);
     }
     if (error) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-            className: "p-4 text-center text-red-500",
+            className: "p-6 text-center text-red-500",
             children: [
-                "Ошибка: ",
-                error
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                    children: [
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                            children: "Ошибка:"
+                        }, void 0, false, {
+                            fileName: "[project]/src/app/(main)/friends/page.tsx",
+                            lineNumber: 100,
+                            columnNumber: 12
+                        }, this),
+                        " ",
+                        error
+                    ]
+                }, void 0, true, {
+                    fileName: "[project]/src/app/(main)/friends/page.tsx",
+                    lineNumber: 100,
+                    columnNumber: 9
+                }, this),
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                    onClick: ()=>window.location.reload(),
+                    className: "mt-4 px-4 py-2 bg-red-500 text-white rounded",
+                    children: "Перезагрузить"
+                }, void 0, false, {
+                    fileName: "[project]/src/app/(main)/friends/page.tsx",
+                    lineNumber: 101,
+                    columnNumber: 9
+                }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/(main)/friends/page.tsx",
-            lineNumber: 108,
-            columnNumber: 12
+            lineNumber: 99,
+            columnNumber: 7
         }, this);
     }
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-        className: "jsx-c476254678ee26e4" + " " + "flex flex-col min-h-screen font-['Unbounded'] bg-white",
+        className: "flex flex-col min-h-screen font-['Unbounded'] bg-white",
         children: [
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "jsx-c476254678ee26e4" + " " + "px-6 pt-4 pb-2",
-                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                    onClick: ()=>setShowRules(true),
-                    className: "jsx-c476254678ee26e4" + " " + "w-full text-left text-sm text-blue-500 underline font-medium",
-                    children: "Условия розыгрышей и бонусов"
-                }, void 0, false, {
-                    fileName: "[project]/src/app/(main)/friends/page.tsx",
-                    lineNumber: 115,
-                    columnNumber: 9
-                }, this)
-            }, void 0, false, {
-                fileName: "[project]/src/app/(main)/friends/page.tsx",
-                lineNumber: 114,
-                columnNumber: 7
-            }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
-                className: "jsx-c476254678ee26e4" + " " + "flex-grow flex flex-col items-center px-6 pt-0 pb-4",
+                className: "flex-grow flex flex-col items-center px-6 pt-6 pb-4",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                         src: MY_ICON_PATH,
-                        alt: "Бонусный кристалл",
+                        alt: "Кристалл",
                         width: 180,
                         height: 180
                     }, void 0, false, {
                         fileName: "[project]/src/app/(main)/friends/page.tsx",
-                        lineNumber: 126,
+                        lineNumber: 114,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
-                        className: "jsx-c476254678ee26e4" + " " + "text-2xl text-black font-extrabold leading-tight mb-6",
+                        className: "text-2xl text-black font-extrabold leading-tight mb-6 text-center",
                         children: [
                             "Приглашай",
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {
-                                className: "jsx-c476254678ee26e4"
-                            }, void 0, false, {
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
                                 fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                lineNumber: 134,
+                                lineNumber: 117,
                                 columnNumber: 20
                             }, this),
                             "друзей и получай",
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {
-                                className: "jsx-c476254678ee26e4"
-                            }, void 0, false, {
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
                                 fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                lineNumber: 134,
+                                lineNumber: 117,
                                 columnNumber: 42
                             }, this),
                             "плюсы"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(main)/friends/page.tsx",
-                        lineNumber: 133,
+                        lineNumber: 116,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                        onClick: ()=>setShowRules(true),
+                        className: "w-full max-w-sm h-16 mb-6 flex items-center justify-center bg-red-500 text-white text-lg font-medium rounded-2xl  transition-all shadow-[0_4px_0_0_rgba(0,0,0,0.3)]  active:translate-y-1 active:shadow-[0_2px_0_0_rgba(0,0,0,0.3)]",
+                        children: "Условия розыгрышей и бонусов"
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/(main)/friends/page.tsx",
+                        lineNumber: 121,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "jsx-c476254678ee26e4" + " " + "w-full max-w-sm mb-6 bg-gray-50 rounded-2xl p-4 border border-gray-100",
+                        className: "w-full max-w-sm mb-6 bg-gray-50 rounded-2xl p-4 border border-gray-100",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                                className: "jsx-c476254678ee26e4" + " " + "text-lg font-bold text-black mb-3 text-left",
+                                className: "text-lg font-bold text-black mb-3 text-left",
                                 children: [
                                     "Вы пригласили: ",
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                        className: "jsx-c476254678ee26e4" + " " + "text-red-500",
+                                        className: "text-red-500",
                                         children: referrals.length
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                        lineNumber: 140,
+                                        lineNumber: 132,
                                         columnNumber: 28
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                lineNumber: 139,
+                                lineNumber: 131,
                                 columnNumber: 11
                             }, this),
                             referrals.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "jsx-c476254678ee26e4" + " " + "flex flex-nowrap items-center overflow-x-auto py-2 
-                         pl-1 pr-4
-                         space-x-[-16px]
-                         [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
-                                children: referrals.map((ref, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$Avatar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                                className: "flex flex-nowrap items-center overflow-x-auto py-2 pl-1 pr-4 space-x-[-16px] [&::-webkit-scrollbar]:hidden",
+                                children: referrals.map((ref)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$Avatar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                                         firstName: ref.first_name,
-                                        lastName: ref.last_name,
-                                        style: {
-                                            zIndex: referrals.length - index
-                                        }
+                                        lastName: ref.last_name
                                     }, ref.id, false, {
                                         fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                        lineNumber: 151,
+                                        lineNumber: 138,
                                         columnNumber: 17
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                lineNumber: 144,
+                                lineNumber: 136,
                                 columnNumber: 13
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                className: "jsx-c476254678ee26e4" + " " + "text-gray-500 text-sm text-left",
+                                className: "text-gray-500 text-sm text-left",
                                 children: "Пока никто не присоединился"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                lineNumber: 160,
+                                lineNumber: 146,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(main)/friends/page.tsx",
-                        lineNumber: 138,
+                        lineNumber: 130,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(main)/friends/page.tsx",
-                lineNumber: 124,
+                lineNumber: 113,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("footer", {
-                className: "jsx-c476254678ee26e4" + " " + "w-full px-6 pb-6 flex-shrink-0",
+                className: "w-full px-6 pb-6",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                    onClick: handleInviteClick,
-                    className: "jsx-c476254678ee26e4" + " " + "w-full h-16 flex items-center justify-center bg-red-500 text-white text-lg gap-2 font-medium rounded-2xl 
-                     transition-all
-                     shadow-[0_6px_0_0_rgba(0,0,0,0.3)] 
-                     active:translate-y-1 active:shadow-[0_2px_0_0_rgba(0,0,0,0.3)]",
+                    onClick: ()=>{
+                        const tg = window.Telegram?.WebApp;
+                        if (!tg) {
+                            console.error('Telegram WebApp недоступен');
+                            alert('Ошибка: приложение должно запускаться в Telegram');
+                            return;
+                        }
+                        const botUsername = ("TURBOPACK compile-time value", "my_auction_admin_bot");
+                        const botName = ("TURBOPACK compile-time value", "test_admin");
+                        if ("TURBOPACK compile-time falsy", 0) {
+                            "TURBOPACK unreachable";
+                        }
+                        if (!user?.id) {
+                            tg.showAlert('Ошибка: пользователь не загружен');
+                            return;
+                        }
+                        const referralLink = `https://t.me/${botUsername}/${botName}?startapp=ref_${user.id}`;
+                        const shareText = `Привет! Присоединяйся к "Ассист+" и получай бонусы.`;
+                        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
+                        tg.openTelegramLink(shareUrl);
+                    },
+                    className: "w-full h-16 flex items-center justify-center bg-red-500 text-white text-lg gap-2 font-medium rounded-2xl  transition-all shadow-[0_4px_0_0_rgba(0,0,0,0.3)]  active:translate-y-1 active:shadow-[0_2px_0_0_rgba(0,0,0,0.3)]",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                            className: "jsx-c476254678ee26e4",
                             children: "Пригласить друга"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(main)/friends/page.tsx",
-                            lineNumber: 189,
+                            lineNumber: 185,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            style: iconMaskStyle(MY_ICON_PATH),
-                            className: "jsx-c476254678ee26e4" + " " + "w-5 h-5 bg-white"
+                            className: "w-5 h-5 bg-white",
+                            style: {
+                                maskImage: `url(${MY_ICON_PATH})`,
+                                WebkitMaskImage: `url(${MY_ICON_PATH})`,
+                                maskSize: 'contain',
+                                maskRepeat: 'no-repeat',
+                                maskPosition: 'center'
+                            }
                         }, void 0, false, {
                             fileName: "[project]/src/app/(main)/friends/page.tsx",
-                            lineNumber: 190,
+                            lineNumber: 186,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                            className: "jsx-c476254678ee26e4",
                             children: "500"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(main)/friends/page.tsx",
-                            lineNumber: 194,
+                            lineNumber: 196,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(main)/friends/page.tsx",
-                    lineNumber: 182,
+                    lineNumber: 152,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(main)/friends/page.tsx",
-                lineNumber: 181,
+                lineNumber: 151,
                 columnNumber: 7
             }, this),
             showRules && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4",
                 onClick: ()=>setShowRules(false),
-                className: "jsx-c476254678ee26e4" + " " + "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "bg-white rounded-2xl p-5 max-w-sm w-full",
                     onClick: (e)=>e.stopPropagation(),
-                    className: "jsx-c476254678ee26e4" + " " + "bg-white rounded-2xl p-5 max-w-sm w-full animate-fadeIn",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                            className: "jsx-c476254678ee26e4" + " " + "text-lg font-bold text-black mb-3",
-                            children: "Условия участия и призы"
+                            className: "text-lg font-bold text-black mb-3",
+                            children: "Условия участия"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(main)/friends/page.tsx",
-                            lineNumber: 208,
+                            lineNumber: 210,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
-                            className: "jsx-c476254678ee26e4" + " " + "text-sm text-gray-700 space-y-2",
+                            className: "text-sm text-gray-700 space-y-2",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                    className: "jsx-c476254678ee26e4",
-                                    children: [
-                                        "• ",
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                            className: "jsx-c476254678ee26e4",
-                                            children: "10 приглашений"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                            lineNumber: 210,
-                                            columnNumber: 21
-                                        }, this),
-                                        " — возможность попасть на онлайн мини-разбор с Иваном Абрамовым. Разбор проводится еженедельно."
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                    lineNumber: 210,
-                                    columnNumber: 15
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                    className: "jsx-c476254678ee26e4",
-                                    children: [
-                                        "• ",
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                            className: "jsx-c476254678ee26e4",
-                                            children: "20 приглашений"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                            lineNumber: 211,
-                                            columnNumber: 21
-                                        }, this),
-                                        " — приоритетное место на мини-разборе, что гарантирует 100% участие в ближайшей сессии."
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                    lineNumber: 211,
-                                    columnNumber: 15
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                    className: "jsx-c476254678ee26e4",
-                                    children: [
-                                        "• ",
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                            className: "jsx-c476254678ee26e4",
-                                            children: "30 приглашений"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/app/(main)/friends/page.tsx",
-                                            lineNumber: 212,
-                                            columnNumber: 21
-                                        }, this),
-                                        " — участие в ежемесячном розыгрыше завтрака с Иваном Абрамовым в Сколково."
-                                    ]
-                                }, void 0, true, {
+                                    children: "• 10 приглашений — возможность попасть на онлайн мини-разбор с Иваном Абрамовым. Разбор проводится еженедельно."
+                                }, void 0, false, {
                                     fileName: "[project]/src/app/(main)/friends/page.tsx",
                                     lineNumber: 212,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                    children: "• 20 приглашений — приоритетное место на мини-разборе, что гарантирует 100% участие в ближайшей сессии."
+                                }, void 0, false, {
+                                    fileName: "[project]/src/app/(main)/friends/page.tsx",
+                                    lineNumber: 213,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                    children: "• 30 приглашений — участие в ежемесячном розыгрыше завтрака с Иваном Абрамовым в Сколково."
+                                }, void 0, false, {
+                                    fileName: "[project]/src/app/(main)/friends/page.tsx",
+                                    lineNumber: 214,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(main)/friends/page.tsx",
-                            lineNumber: 209,
+                            lineNumber: 211,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                             onClick: ()=>setShowRules(false),
-                            className: "jsx-c476254678ee26e4" + " " + "mt-4 w-full py-2 bg-gray-200 text-black font-medium rounded-xl",
+                            className: "mt-4 w-full py-2 bg-red-500 text-white rounded-xl font-medium",
                             children: "Понятно"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(main)/friends/page.tsx",
-                            lineNumber: 214,
+                            lineNumber: 216,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(main)/friends/page.tsx",
-                    lineNumber: 204,
+                    lineNumber: 206,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(main)/friends/page.tsx",
-                lineNumber: 200,
+                lineNumber: 202,
                 columnNumber: 9
-            }, this),
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
-                id: "c476254678ee26e4",
-                children: "@keyframes fadeIn{0%{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.animate-fadeIn.jsx-c476254678ee26e4{animation:.2s ease-out fadeIn}"
-            }, void 0, false, void 0, this)
+            }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(main)/friends/page.tsx",

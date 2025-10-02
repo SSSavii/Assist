@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
+import BottomNavBar from "wxqryy/app/components/BottomNavBar";
 // Добавляем глобальные стили и мета-теги
 const GlobalStyles = () => (
   <>
@@ -198,7 +198,10 @@ export default function HomePage() {
   const handleEarnCrystals = () => {
     const tg = window.Telegram?.WebApp;
     if (!user || !tg?.initData || tapsLeft <= 0) return;
-    
+    if (tapsLeft <= 0) {
+      tg.showAlert('Плюсы на сегодня закончились! Возвращайся завтра.');
+      return;
+    }
     // Добавляем тактильную обратную связь
     if (tg.HapticFeedback) {
       tg.HapticFeedback.impactOccurred('light');
@@ -555,6 +558,7 @@ export default function HomePage() {
             width: 100%;
             display: flex;
             overflow: auto;
+            -webkit-overflow-scrolling: touch;
             min-height: 100vh;
             min-height: -webkit-fill-available;
             align-items: center;
@@ -1032,133 +1036,5 @@ export default function HomePage() {
         `}</style>
       </div>
     </>
-  );
-}
-
-// components/BottomNavBar.tsx
-function BottomNavBar() {
-  const navItems = [
-    { 
-      id: "home",
-      href: '/', 
-      label: 'Главная', 
-      icon: '/vector6430-oh1s.svg'
-    },
-    { 
-      id: "shop",
-      href: '/auction', 
-      label: 'Магазин', 
-      icon: '/vector6430-lih9.svg'
-    },
-    { 
-      id: "friends",
-      href: '/friends', 
-      label: 'Друзья', 
-      icon: '/vector6430-gzd.svg'
-    },
-    { 
-      id: "profile",
-      href: '/profile', 
-      label: 'Профиль', 
-      icon: '/vector6431-qbze.svg'
-    },
-  ];
-
-  const handlePress = () => {
-    if (window.Telegram?.WebApp?.HapticFeedback) {
-      window.Telegram.WebApp.HapticFeedback.selectionChanged();
-    }
-  };
-
-  const getIconSize = (itemId: string) => {
-    switch (itemId) {
-      case "home": return { width: "23.89px", height: "20.46px" };
-      case "shop": return { width: "22.4px", height: "22.4px" };
-      case "friends": return { width: "22.4px", height: "20.8px" };
-      case "profile": return { width: "22.63px", height: "22.63px" };
-      default: return { width: "22.4px", height: "19.2px" };
-    }
-  };
-
-  return (
-    <nav className="bottom-nav">
-      {navItems.map((item) => {
-        const iconSize = getIconSize(item.id);
-
-        return (
-          <a
-            key={item.id}
-            href={item.href}
-            onClick={handlePress}
-            className="nav-item"
-            aria-label={item.label}
-          >
-            <img
-              style={{
-                ...iconSize,
-                objectFit: 'contain' as const
-              }}
-              alt={item.label}
-              src={item.icon}
-            />
-            <div className="nav-label">
-              {item.label}
-            </div>
-          </a>
-        );
-      })}
-
-      <style jsx>{`
-        .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 80px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 25px;
-      background-color: #262626;
-      border-radius: 15px 15px 0px 0px;
-      overflow: hidden;
-      z-index: 1000;
-      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-      box-sizing: border-box;
-    }
-
-        .nav-item {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          width: 53px;
-          height: 100%;
-          text-decoration: none;
-          transition: opacity 0.2s ease;
-          -webkit-tap-highlight-color: transparent;
-        }
-
-        .nav-item:hover {
-          opacity: 0.8;
-        }
-
-        .nav-label {
-          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-          font-weight: 500;
-          font-size: 11px;
-          text-align: center;
-          color: #868686;
-          line-height: 9px;
-          letter-spacing: -0.34px;
-        }
-
-        /* Активный элемент (можно добавить логику для активного состояния) */
-        .nav-item.active .nav-label {
-          color: #FFFFFF;
-        }
-      `}</style>
-    </nav>
   );
 }
