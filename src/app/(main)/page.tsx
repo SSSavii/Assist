@@ -147,13 +147,6 @@ export default function HomePage() {
       // Отключаем свайп для закрытия
       tg.disableVerticalSwipes();
       
-      // Отключаем bounce эффект на iOS
-      if (isIOS) {
-        document.body.style.position = 'fixed';
-        document.body.style.width = '100%';
-        document.body.style.height = '100%';
-        document.body.style.overflow = 'hidden';
-      }
       
       const startappParam = tg.initDataUnsafe?.start_param;
       console.log('startapp from WebApp:', startappParam);
@@ -550,13 +543,17 @@ export default function HomePage() {
             width: 100%;
             max-width: 100vw;
             overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
           }
 
           .main-container {
             width: 100%;
             display: flex;
-            overflow: auto;
+            overflow-y: auto;
+            overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
+            overscroll-behavior-y: contain;
             min-height: 100vh;
             min-height: -webkit-fill-available;
             align-items: center;
@@ -566,6 +563,7 @@ export default function HomePage() {
             padding-bottom: 70px;
             box-sizing: border-box;
             gap: 8px;
+            position: relative;
           }
 
           /* Логотип - уменьшен на 20% */
