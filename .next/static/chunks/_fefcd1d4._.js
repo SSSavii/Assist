@@ -18,35 +18,39 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
-const navItems = [
-    {
-        id: "home",
-        href: '/main',
-        label: 'Главная',
-        icon: '/vector6430-oh1s.svg'
-    },
-    {
-        id: "shop",
-        href: '/auction',
-        label: 'Магазин',
-        icon: '/vector6430-lih9.svg'
-    },
-    {
-        id: "friends",
-        href: '/friends',
-        label: 'Друзья',
-        icon: '/vector6430-gzd.svg'
-    },
-    {
-        id: "profile",
-        href: '/profile',
-        label: 'Профиль',
-        icon: '/vector6431-qbze.svg'
-    }
-];
 function BottomNavBar() {
     _s();
     const pathname = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["usePathname"])();
+    const navItems = [
+        {
+            id: "home",
+            href: '/',
+            label: 'Главная',
+            iconActive: '/vector6430-oh1s.svg',
+            iconInactive: '/1.svg'
+        },
+        {
+            id: "shop",
+            href: '/auction',
+            label: 'Магазин',
+            iconActive: '/2.svg',
+            iconInactive: '/vector6430-lih9.svg'
+        },
+        {
+            id: "friends",
+            href: '/friends',
+            label: 'Друзья',
+            iconActive: '/3.svg',
+            iconInactive: '/vector6430-gzd.svg'
+        },
+        {
+            id: "profile",
+            href: '/profile',
+            label: 'Профиль',
+            iconActive: '/4.svg',
+            iconInactive: '/vector6431-qbze.svg'
+        }
+    ];
     const handlePress = ()=>{
         if (window.Telegram?.WebApp?.HapticFeedback) {
             window.Telegram.WebApp.HapticFeedback.selectionChanged();
@@ -81,56 +85,57 @@ function BottomNavBar() {
                 };
         }
     };
-    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
+        className: "jsx-4bbe7af2c17a2022" + " " + "bottom-nav",
         children: [
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
-                className: "jsx-b3899a0727f7d92e" + " " + "bottom-nav",
-                children: navItems.map((item)=>{
-                    const isActive = pathname === item.href;
-                    const iconSize = getIconSize(item.id);
-                    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
-                        href: item.href,
-                        onClick: handlePress,
-                        className: "nav-item",
-                        "aria-label": item.label,
-                        "aria-current": isActive ? "page" : undefined,
-                        children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                style: iconSize,
-                                alt: item.label,
-                                src: item.icon,
-                                className: "jsx-b3899a0727f7d92e"
-                            }, void 0, false, {
-                                fileName: "[project]/src/app/components/BottomNavBar.tsx",
-                                lineNumber: 68,
-                                columnNumber: 15
-                            }, this),
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "jsx-b3899a0727f7d92e" + " " + `nav-label ${isActive ? 'active' : ''}`,
-                                children: item.label
-                            }, void 0, false, {
-                                fileName: "[project]/src/app/components/BottomNavBar.tsx",
-                                lineNumber: 73,
-                                columnNumber: 15
-                            }, this)
-                        ]
-                    }, item.id, true, {
-                        fileName: "[project]/src/app/components/BottomNavBar.tsx",
-                        lineNumber: 60,
-                        columnNumber: 13
-                    }, this);
-                })
-            }, void 0, false, {
-                fileName: "[project]/src/app/components/BottomNavBar.tsx",
-                lineNumber: 54,
-                columnNumber: 7
-            }, this),
+            navItems.map((item)=>{
+                const iconSize = getIconSize(item.id);
+                const isActive = pathname === item.href;
+                return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                    href: item.href,
+                    onClick: handlePress,
+                    className: `nav-item ${isActive ? 'active' : ''}`,
+                    "aria-label": item.label,
+                    prefetch: true,
+                    children: [
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                            style: {
+                                ...iconSize,
+                                objectFit: 'contain'
+                            },
+                            alt: item.label,
+                            src: isActive ? item.iconActive : item.iconInactive,
+                            className: "jsx-4bbe7af2c17a2022"
+                        }, void 0, false, {
+                            fileName: "[project]/src/app/components/BottomNavBar.tsx",
+                            lineNumber: 71,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "jsx-4bbe7af2c17a2022" + " " + "nav-label",
+                            children: item.label
+                        }, void 0, false, {
+                            fileName: "[project]/src/app/components/BottomNavBar.tsx",
+                            lineNumber: 79,
+                            columnNumber: 13
+                        }, this)
+                    ]
+                }, item.id, true, {
+                    fileName: "[project]/src/app/components/BottomNavBar.tsx",
+                    lineNumber: 63,
+                    columnNumber: 11
+                }, this);
+            }),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
-                id: "b3899a0727f7d92e",
-                children: ".bottom-nav.jsx-b3899a0727f7d92e{z-index:1000;box-sizing:border-box;background-color:#262626;border-radius:15px 15px 0 0;justify-content:space-between;align-items:center;height:80px;padding:8px 25px;display:flex;position:fixed;bottom:0;left:0;right:0;overflow:hidden;box-shadow:0 -2px 10px #0000001a}.nav-item.jsx-b3899a0727f7d92e{-webkit-tap-highlight-color:transparent;flex-direction:column;justify-content:center;align-items:center;gap:6px;width:53px;height:100%;text-decoration:none;transition:opacity .2s;display:flex}.nav-item.jsx-b3899a0727f7d92e:hover{opacity:.8}.nav-label.jsx-b3899a0727f7d92e{text-align:center;color:#868686;letter-spacing:-.34px;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;font-weight:500;line-height:9px}.nav-label.active.jsx-b3899a0727f7d92e{color:#fff}"
+                id: "4bbe7af2c17a2022",
+                children: ".bottom-nav.jsx-4bbe7af2c17a2022{box-sizing:border-box;background-color:#262626;border-radius:15px 15px 0 0;justify-content:space-between;align-items:center;height:80px;padding:8px 25px;display:flex;overflow:hidden}.nav-item.jsx-4bbe7af2c17a2022{-webkit-tap-highlight-color:transparent;flex-direction:column;justify-content:center;align-items:center;gap:6px;width:53px;height:100%;text-decoration:none;transition:opacity .2s;display:flex}.nav-item.jsx-4bbe7af2c17a2022:hover{opacity:.8}.nav-label.jsx-4bbe7af2c17a2022{text-align:center;color:#868686;letter-spacing:-.34px;white-space:nowrap;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;font-weight:500;line-height:9px;transition:color .2s}.nav-item.active.jsx-4bbe7af2c17a2022 .nav-label.jsx-4bbe7af2c17a2022{color:#fff}"
             }, void 0, false, void 0, this)
         ]
-    }, void 0, true);
+    }, void 0, true, {
+        fileName: "[project]/src/app/components/BottomNavBar.tsx",
+        lineNumber: 57,
+        columnNumber: 5
+    }, this);
 }
 _s(BottomNavBar, "xbyQPtUVMO7MNj7WjJlpdWqRcTo=", false, function() {
     return [
@@ -170,22 +175,13 @@ function MainLayout({ children }) {
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("footer", {
-                className: "fixed bottom-0 left-0 right-0 z-50 bg-white/75 backdrop-blur-lg",
-                children: [
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$BottomNavBar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
-                        fileName: "[project]/src/app/(main)/layout.tsx",
-                        lineNumber: 16,
-                        columnNumber: 9
-                    }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "h-4"
-                    }, void 0, false, {
-                        fileName: "[project]/src/app/(main)/layout.tsx",
-                        lineNumber: 17,
-                        columnNumber: 9
-                    }, this)
-                ]
-            }, void 0, true, {
+                className: "fixed bottom-0 left-0 right-0 z-50",
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$BottomNavBar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
+                    fileName: "[project]/src/app/(main)/layout.tsx",
+                    lineNumber: 16,
+                    columnNumber: 9
+                }, this)
+            }, void 0, false, {
                 fileName: "[project]/src/app/(main)/layout.tsx",
                 lineNumber: 15,
                 columnNumber: 7

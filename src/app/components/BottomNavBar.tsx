@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 export default function BottomNavBar() {
@@ -8,7 +9,7 @@ export default function BottomNavBar() {
   const navItems = [
     { 
       id: "home",
-      href: '/',  // Изменено с /main на /
+      href: '/',
       label: 'Главная', 
       iconActive: '/vector6430-oh1s.svg',
       iconInactive: '/1.svg'
@@ -59,12 +60,13 @@ export default function BottomNavBar() {
         const isActive = pathname === item.href;
 
         return (
-          <a
+          <Link
             key={item.id}
             href={item.href}
             onClick={handlePress}
             className={`nav-item ${isActive ? 'active' : ''}`}
             aria-label={item.label}
+            prefetch={true}
           >
             <img
               style={{
@@ -77,7 +79,7 @@ export default function BottomNavBar() {
             <div className="nav-label">
               {item.label}
             </div>
-          </a>
+          </Link>
         );
       })}
 

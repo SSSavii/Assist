@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///Users/georgiiisavich/Desktop/assist_plus/src/app/%28main%29/auction/loading.tsx"],"sourcesContent":["export default function Loading() {\n  return (\n    <div style={{\n      display: 'flex',\n      justifyContent: 'center',\n      alignItems: 'center',\n      height: '100vh',\n      backgroundColor: '#FFFFFF',\n      fontFamily: 'Cera Pro, sans-serif',\n      color: '#666666'\n    }}>\n      Загрузка...\n    </div>\n  );\n}"],"names":[],"mappings":";;;;;AAAe,SAAS;IACtB,qBACE,8OAAC;QAAI,OAAO;YACV,SAAS;YACT,gBAAgB;YAChB,YAAY;YACZ,QAAQ;YACR,iBAAiB;YACjB,YAAY;YACZ,OAAO;QACT;kBAAG;;;;;;AAIP","debugId":null}}]
+}

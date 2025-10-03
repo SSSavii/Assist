@@ -11,9 +11,7 @@ var { g: global, __dirname } = __turbopack_context__;
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/styled-jsx/style.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$BottomNavBar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/components/BottomNavBar.tsx [app-ssr] (ecmascript)");
 'use client';
-;
 ;
 ;
 ;
@@ -26,7 +24,7 @@ const GlobalStyles = ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$pr
                 className: "jsx-5e9b65595eea3bc0"
             }, void 0, false, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 10,
+                lineNumber: 9,
                 columnNumber: 5
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -73,13 +71,6 @@ function HomePage() {
             tg.expand(); // Разворачиваем приложение на весь экран
             // Отключаем свайп для закрытия
             tg.disableVerticalSwipes();
-            // Отключаем bounce эффект на iOS
-            if (isIOS) {
-                document.body.style.position = 'fixed';
-                document.body.style.width = '100%';
-                document.body.style.height = '100%';
-                document.body.style.overflow = 'hidden';
-            }
             const startappParam = tg.initDataUnsafe?.start_param;
             console.log('startapp from WebApp:', startappParam);
             fetch('/api/auth', {
@@ -301,7 +292,7 @@ function HomePage() {
             children: "Загрузка..."
         }, void 0, false, {
             fileName: "[project]/src/app/(main)/page.tsx",
-            lineNumber: 396,
+            lineNumber: 388,
             columnNumber: 12
         }, this);
     }
@@ -314,7 +305,7 @@ function HomePage() {
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/(main)/page.tsx",
-            lineNumber: 399,
+            lineNumber: 391,
             columnNumber: 12
         }, this);
     }
@@ -324,7 +315,7 @@ function HomePage() {
             children: "Не удалось загрузить данные пользователя."
         }, void 0, false, {
             fileName: "[project]/src/app/(main)/page.tsx",
-            lineNumber: 402,
+            lineNumber: 394,
             columnNumber: 12
         }, this);
     }
@@ -332,117 +323,117 @@ function HomePage() {
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(GlobalStyles, {}, void 0, false, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 407,
+                lineNumber: 399,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "jsx-9688e47351427c45" + " " + "app-wrapper",
+                className: "jsx-caf1e975df471255" + " " + "app-wrapper",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
-                        className: "jsx-9688e47351427c45" + " " + "main-container",
+                        className: "jsx-caf1e975df471255" + " " + "main-container",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("header", {
-                                className: "jsx-9688e47351427c45" + " " + "logo-section",
+                                className: "jsx-caf1e975df471255" + " " + "logo-section",
                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "jsx-9688e47351427c45" + " " + "logo-container",
+                                    className: "jsx-caf1e975df471255" + " " + "logo-container",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "jsx-9688e47351427c45" + " " + "logo-wrapper",
+                                            className: "jsx-caf1e975df471255" + " " + "logo-wrapper",
                                             children: logoError ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "jsx-9688e47351427c45" + " " + "logo-text-fallback",
+                                                className: "jsx-caf1e975df471255" + " " + "logo-text-fallback",
                                                 children: [
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                        className: "jsx-9688e47351427c45" + " " + "assist-text",
+                                                        className: "jsx-caf1e975df471255" + " " + "assist-text",
                                                         children: "АССИСТ"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                                        lineNumber: 416,
+                                                        lineNumber: 408,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                        className: "jsx-9688e47351427c45" + " " + "plus-text",
+                                                        className: "jsx-caf1e975df471255" + " " + "plus-text",
                                                         children: "+"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                                        lineNumber: 417,
+                                                        lineNumber: 409,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                                lineNumber: 415,
+                                                lineNumber: 407,
                                                 columnNumber: 19
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "jsx-9688e47351427c45" + " " + "logo-image-container",
+                                                className: "jsx-caf1e975df471255" + " " + "logo-image-container",
                                                 children: [
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                                                         alt: "Ассист+ логотип",
                                                         src: "/svg4122-a7pi.svg",
                                                         onError: ()=>setLogoError(true),
-                                                        className: "jsx-9688e47351427c45" + " " + "logo-image"
+                                                        className: "jsx-caf1e975df471255" + " " + "logo-image"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                                        lineNumber: 421,
+                                                        lineNumber: 413,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                                                         alt: "Плюсик",
                                                         src: "/svg4122-denw.svg",
-                                                        className: "jsx-9688e47351427c45" + " " + "plus-icon"
+                                                        className: "jsx-caf1e975df471255" + " " + "plus-icon"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                                        lineNumber: 427,
+                                                        lineNumber: 419,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                                lineNumber: 420,
+                                                lineNumber: 412,
                                                 columnNumber: 19
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(main)/page.tsx",
-                                            lineNumber: 413,
+                                            lineNumber: 405,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "jsx-9688e47351427c45" + " " + "logo-text-container",
+                                            className: "jsx-caf1e975df471255" + " " + "logo-text-container",
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    className: "jsx-9688e47351427c45" + " " + "logo-subtitle",
+                                                    className: "jsx-caf1e975df471255" + " " + "logo-subtitle",
                                                     children: "между поколениями"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                                    lineNumber: 437,
+                                                    lineNumber: 429,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    className: "jsx-9688e47351427c45" + " " + "logo-title",
+                                                    className: "jsx-caf1e975df471255" + " " + "logo-title",
                                                     children: "обмен"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                                    lineNumber: 438,
+                                                    lineNumber: 430,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(main)/page.tsx",
-                                            lineNumber: 436,
+                                            lineNumber: 428,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                    lineNumber: 412,
+                                    lineNumber: 404,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 411,
+                                lineNumber: 403,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
-                                className: "jsx-9688e47351427c45" + " " + "balance-section",
+                                className: "jsx-caf1e975df471255" + " " + "balance-section",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         onClick: handleEarnCrystals,
@@ -451,48 +442,48 @@ function HomePage() {
                                         onMouseLeave: ()=>setIsBalancePressed(false),
                                         onTouchStart: ()=>setIsBalancePressed(true),
                                         onTouchEnd: ()=>setIsBalancePressed(false),
-                                        className: "jsx-9688e47351427c45" + " " + "balance-container",
+                                        className: "jsx-caf1e975df471255" + " " + "balance-container",
                                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "jsx-9688e47351427c45" + " " + `balance-shadow-box ${isBalancePressed ? 'pressed' : ''}`,
+                                            className: "jsx-caf1e975df471255" + " " + `balance-shadow-box ${isBalancePressed ? 'pressed' : ''}`,
                                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                                                 alt: "Кристалл",
                                                 src: "/images/134.png",
-                                                className: "jsx-9688e47351427c45" + " " + "balance-crystal"
+                                                className: "jsx-caf1e975df471255" + " " + "balance-crystal"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                                lineNumber: 455,
+                                                lineNumber: 447,
                                                 columnNumber: 17
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(main)/page.tsx",
-                                            lineNumber: 454,
+                                            lineNumber: 446,
                                             columnNumber: 15
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                        lineNumber: 445,
+                                        lineNumber: 437,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "jsx-9688e47351427c45" + " " + "balance-amount",
+                                        className: "jsx-caf1e975df471255" + " " + "balance-amount",
                                         children: user.balance_crystals
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                        lineNumber: 463,
+                                        lineNumber: 455,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                        className: "jsx-9688e47351427c45" + " " + "balance-description",
+                                        className: "jsx-caf1e975df471255" + " " + "balance-description",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                className: "jsx-9688e47351427c45" + " " + "description-text",
+                                                className: "jsx-caf1e975df471255" + " " + "description-text",
                                                 children: [
                                                     "Кликай, зарабатывай плюсы, ",
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {
-                                                        className: "jsx-9688e47351427c45"
+                                                        className: "jsx-caf1e975df471255"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                                        lineNumber: 467,
+                                                        lineNumber: 459,
                                                         columnNumber: 44
                                                     }, this),
                                                     "и меняй их в",
@@ -500,246 +491,241 @@ function HomePage() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                                lineNumber: 466,
+                                                lineNumber: 458,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                className: "jsx-9688e47351427c45" + " " + "description-bold",
+                                                className: "jsx-caf1e975df471255" + " " + "description-bold",
                                                 children: "аукционе знакомств"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                                lineNumber: 469,
+                                                lineNumber: 461,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                        lineNumber: 465,
+                                        lineNumber: 457,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 444,
+                                lineNumber: 436,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
-                                className: "jsx-9688e47351427c45" + " " + "tasks-section",
+                                className: "jsx-caf1e975df471255" + " " + "tasks-section",
                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "jsx-9688e47351427c45" + " " + "tasks-container",
+                                    className: "jsx-caf1e975df471255" + " " + "tasks-container",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "jsx-9688e47351427c45" + " " + "tasks-background",
+                                            className: "jsx-caf1e975df471255" + " " + "tasks-background",
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    className: "jsx-9688e47351427c45" + " " + "tasks-bg-color"
+                                                    className: "jsx-caf1e975df471255" + " " + "tasks-bg-color"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                                    lineNumber: 477,
+                                                    lineNumber: 469,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                                                     alt: "Фоновое изображение",
                                                     src: "/svg1642-j9o.svg",
-                                                    className: "jsx-9688e47351427c45" + " " + "tasks-bg-image"
+                                                    className: "jsx-caf1e975df471255" + " " + "tasks-bg-image"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                                    lineNumber: 478,
+                                                    lineNumber: 470,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(main)/page.tsx",
-                                            lineNumber: 476,
+                                            lineNumber: 468,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "jsx-9688e47351427c45" + " " + "tasks-header",
+                                            className: "jsx-caf1e975df471255" + " " + "tasks-header",
                                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                                                className: "jsx-9688e47351427c45" + " " + "tasks-title",
+                                                className: "jsx-caf1e975df471255" + " " + "tasks-title",
                                                 children: "Задания"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                                lineNumber: 486,
+                                                lineNumber: 478,
                                                 columnNumber: 17
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(main)/page.tsx",
-                                            lineNumber: 485,
+                                            lineNumber: 477,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "jsx-9688e47351427c45" + " " + "tasks-list",
+                                            className: "jsx-caf1e975df471255" + " " + "tasks-list",
                                             children: tasks.map((task)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("article", {
-                                                    className: "jsx-9688e47351427c45" + " " + "task-card",
+                                                    className: "jsx-caf1e975df471255" + " " + "task-card",
                                                     children: [
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                            className: "jsx-9688e47351427c45" + " " + "task-header",
+                                                            className: "jsx-caf1e975df471255" + " " + "task-header",
                                                             children: [
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                                    className: "jsx-9688e47351427c45" + " " + "task-content",
+                                                                    className: "jsx-caf1e975df471255" + " " + "task-content",
                                                                     children: task.description ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                                        className: "jsx-9688e47351427c45" + " " + "task-title",
+                                                                        className: "jsx-caf1e975df471255" + " " + "task-title",
                                                                         children: [
                                                                             task.title,
                                                                             " ",
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {
-                                                                                className: "jsx-9688e47351427c45"
+                                                                                className: "jsx-caf1e975df471255"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                                                                lineNumber: 499,
+                                                                                lineNumber: 491,
                                                                                 columnNumber: 42
                                                                             }, this),
                                                                             task.description
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                                                        lineNumber: 498,
+                                                                        lineNumber: 490,
                                                                         columnNumber: 27
                                                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                                        className: "jsx-9688e47351427c45" + " " + "task-title",
+                                                                        className: "jsx-caf1e975df471255" + " " + "task-title",
                                                                         children: task.title
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                                                        lineNumber: 503,
+                                                                        lineNumber: 495,
                                                                         columnNumber: 27
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                                                    lineNumber: 496,
+                                                                    lineNumber: 488,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                                    className: "jsx-9688e47351427c45" + " " + "task-points",
+                                                                    className: "jsx-caf1e975df471255" + " " + "task-points",
                                                                     children: [
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                                            className: "jsx-9688e47351427c45" + " " + "points-text",
+                                                                            className: "jsx-caf1e975df471255" + " " + "points-text",
                                                                             children: [
                                                                                 "+",
                                                                                 task.points
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/app/(main)/page.tsx",
-                                                                            lineNumber: 508,
+                                                                            lineNumber: 500,
                                                                             columnNumber: 25
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                                            className: "jsx-9688e47351427c45" + " " + "points-icon",
+                                                                            className: "jsx-caf1e975df471255" + " " + "points-icon",
                                                                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                                                                                 src: "/vector4120-sezw.svg",
                                                                                 alt: "Кристалл",
-                                                                                className: "jsx-9688e47351427c45" + " " + "points-crystal"
+                                                                                className: "jsx-caf1e975df471255" + " " + "points-crystal"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                                                                lineNumber: 510,
+                                                                                lineNumber: 502,
                                                                                 columnNumber: 27
                                                                             }, this)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/app/(main)/page.tsx",
-                                                                            lineNumber: 509,
+                                                                            lineNumber: 501,
                                                                             columnNumber: 25
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                                                    lineNumber: 507,
+                                                                    lineNumber: 499,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/app/(main)/page.tsx",
-                                                            lineNumber: 495,
+                                                            lineNumber: 487,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                            className: "jsx-9688e47351427c45" + " " + "task-actions",
+                                                            className: "jsx-caf1e975df471255" + " " + "task-actions",
                                                             children: [
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                                     onClick: ()=>handleTaskAction(task.id, "check"),
-                                                                    className: "jsx-9688e47351427c45" + " " + "task-button check-button",
+                                                                    className: "jsx-caf1e975df471255" + " " + "task-button check-button",
                                                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                                        className: "jsx-9688e47351427c45" + " " + "button-text",
+                                                                        className: "jsx-caf1e975df471255" + " " + "button-text",
                                                                         children: task.checkButtonText
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                                                        lineNumber: 524,
+                                                                        lineNumber: 516,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                                                    lineNumber: 520,
+                                                                    lineNumber: 512,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                                     onClick: ()=>handleTaskAction(task.id, "action"),
-                                                                    className: "jsx-9688e47351427c45" + " " + "task-button action-button",
+                                                                    className: "jsx-caf1e975df471255" + " " + "task-button action-button",
                                                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                                        className: "jsx-9688e47351427c45" + " " + "button-text bold",
+                                                                        className: "jsx-caf1e975df471255" + " " + "button-text bold",
                                                                         children: task.actionButtonText
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/(main)/page.tsx",
-                                                                        lineNumber: 531,
+                                                                        lineNumber: 523,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                                                    lineNumber: 527,
+                                                                    lineNumber: 519,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/app/(main)/page.tsx",
-                                                            lineNumber: 519,
+                                                            lineNumber: 511,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                            className: "jsx-9688e47351427c45" + " " + "task-glow"
+                                                            className: "jsx-caf1e975df471255" + " " + "task-glow"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/(main)/page.tsx",
-                                                            lineNumber: 535,
+                                                            lineNumber: 527,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, task.id, true, {
                                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                                    lineNumber: 491,
+                                                    lineNumber: 483,
                                                     columnNumber: 19
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(main)/page.tsx",
-                                            lineNumber: 489,
+                                            lineNumber: 481,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(main)/page.tsx",
-                                    lineNumber: 475,
+                                    lineNumber: 467,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(main)/page.tsx",
-                                lineNumber: 474,
+                                lineNumber: 466,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 409,
-                        columnNumber: 9
-                    }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$BottomNavBar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
-                        fileName: "[project]/src/app/(main)/page.tsx",
-                        lineNumber: 544,
+                        lineNumber: 401,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
-                        id: "9688e47351427c45",
-                        children: ".app-wrapper.jsx-9688e47351427c45{background-color:#fff;width:100%;max-width:100vw;min-height:-webkit-fill-available;position:relative;overflow-x:hidden}.main-container.jsx-9688e47351427c45{-webkit-overflow-scrolling:touch;box-sizing:border-box;background-color:#fff;flex-direction:column;align-items:center;gap:8px;width:100%;min-height:-webkit-fill-available;padding:25px 0 70px;display:flex;overflow:auto}.logo-section.jsx-9688e47351427c45{flex-direction:column;align-self:stretch;align-items:center;gap:6px;display:flex}.logo-container.jsx-9688e47351427c45{flex-direction:column;align-items:flex-start;width:173px;height:66px;display:flex;position:relative}.logo-wrapper.jsx-9688e47351427c45{width:160px;height:38px;margin-left:10px;position:relative}.logo-image-container.jsx-9688e47351427c45{width:100%;height:100%;position:relative}.logo-image.jsx-9688e47351427c45{object-fit:contain;-webkit-backface-visibility:hidden;width:100%;height:100%;transform:translateZ(0)}.plus-icon.jsx-9688e47351427c45{object-fit:contain;-webkit-backface-visibility:hidden;width:19px;height:19px;position:absolute;top:-12px;right:-12px;transform:translateZ(0)}.logo-text-fallback.jsx-9688e47351427c45{justify-content:center;align-items:center;width:100%;height:100%;display:flex;position:relative}.assist-text.jsx-9688e47351427c45{color:#000;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:19px;font-weight:700}.plus-text.jsx-9688e47351427c45{color:red;margin-left:2px;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:19px;font-weight:700}.logo-text-container.jsx-9688e47351427c45{width:176px;height:27px;margin-top:1px;margin-left:-2px;position:relative}.logo-subtitle.jsx-9688e47351427c45{text-align:center;color:#000;letter-spacing:-1px;white-space:nowrap;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;font-weight:400;line-height:11.7px;position:absolute;top:12px;left:calc(50% - 36px)}.logo-title.jsx-9688e47351427c45{color:#000;text-align:center;height:auto;font-family:Vasek,Georgia,serif;font-size:38px;font-style:italic;font-weight:400;line-height:81%;position:absolute}.balance-section.jsx-9688e47351427c45{flex-direction:column;align-self:stretch;align-items:center;gap:15px;padding:5px 0 12px;display:flex}.balance-container.jsx-9688e47351427c45{cursor:pointer;-webkit-tap-highlight-color:transparent;width:114px;height:114px;margin-top:-6px;position:relative}.balance-shadow-box.jsx-9688e47351427c45{background:linear-gradient(144deg,#d9d9d9 0%,#cdcdcd 100%);border-radius:24px;justify-content:center;align-items:center;width:114px;height:114px;transition:transform .1s ease-in-out;display:flex;position:absolute;top:0;left:0;box-shadow:4px 4px 8px #00000040,inset 3px 3px 8px #fff,inset -3px -4px 16px #0000004d}.balance-shadow-box.pressed.jsx-9688e47351427c45{transform:scale(.98)}.balance-crystal.jsx-9688e47351427c45{object-fit:contain;-webkit-backface-visibility:hidden;width:62px;height:58px;transform:translateZ(0)}.balance-amount.jsx-9688e47351427c45{color:#000;letter-spacing:-.6px;background:#fffc;border:1px solid #b4b4b4;border-radius:20px;margin-top:-5px;padding:6px 12px;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:20px;font-weight:700;line-height:16.2px}.balance-description.jsx-9688e47351427c45{text-align:center;color:#000;letter-spacing:-.34px;width:202px;margin:0;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;font-weight:400;line-height:12.3px}.description-text.jsx-9688e47351427c45{letter-spacing:-.05px}.description-bold.jsx-9688e47351427c45{letter-spacing:-.05px;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-weight:700}.tasks-section.jsx-9688e47351427c45{flex-direction:column;align-self:stretch;align-items:center;gap:6px;width:100%;display:flex}.tasks-container.jsx-9688e47351427c45{flex-direction:column;align-items:center;gap:16px;width:100vw;margin-left:-16px;margin-right:-16px;padding:28px 0 12px;display:flex;position:relative;overflow:hidden}.tasks-background.jsx-9688e47351427c45{width:100%;height:100%;position:absolute;top:0;bottom:0;left:0}.tasks-bg-color.jsx-9688e47351427c45{background-color:#eaeaea;width:100%;height:100%;position:absolute;top:73px;left:0}.tasks-bg-image.jsx-9688e47351427c45{object-fit:cover;width:100%;max-width:100vw;height:253px;position:absolute;top:0;left:50%;transform:translate(-50%)}.tasks-header.jsx-9688e47351427c45{z-index:1;justify-content:flex-end;align-items:center;gap:6px;width:100%;max-width:100vw;padding:4px 19px 0 0;display:flex}.tasks-title.jsx-9688e47351427c45{text-align:right;color:#000;letter-spacing:-.77px;white-space:nowrap;margin:0;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:26px;font-weight:700;line-height:28px}.tasks-list.jsx-9688e47351427c45{z-index:1;box-sizing:border-box;flex-direction:column;align-items:center;gap:8px;width:100%;padding:0 16px;display:inline-flex}.task-card.jsx-9688e47351427c45{background:linear-gradient(244deg,#f23939 0%,#db1b1b 100%);border-radius:24px;flex-direction:column;align-items:flex-start;gap:4px;width:100%;max-width:calc(100vw - 32px);padding:16px;display:flex;position:relative;overflow:hidden}.task-header.jsx-9688e47351427c45{justify-content:space-between;align-items:flex-start;gap:8px;width:100%;display:flex}.task-content.jsx-9688e47351427c45{flex-direction:column;flex:1;justify-content:center;align-items:flex-start;display:flex}.task-title.jsx-9688e47351427c45{text-align:left;color:#fff;letter-spacing:-.32px;margin:0;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:16px;font-weight:500;line-height:16px}.task-points.jsx-9688e47351427c45{flex-shrink:0;align-items:center;gap:8px;display:inline-flex}.points-text.jsx-9688e47351427c45{color:#fff;white-space:nowrap;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:19px;font-weight:700;line-height:19px}.points-icon.jsx-9688e47351427c45{background:#fff;border-radius:10px;justify-content:center;align-items:center;width:20px;height:20px;display:flex}.points-crystal.jsx-9688e47351427c45{object-fit:contain;width:12px;height:12px}.task-actions.jsx-9688e47351427c45{justify-content:flex-end;align-items:flex-start;gap:8px;width:100%;padding-top:8px;display:flex}.task-button.jsx-9688e47351427c45{cursor:pointer;-webkit-tap-highlight-color:transparent;background:#fff;border:none;border-radius:24px;flex-direction:column;justify-content:center;align-items:center;padding:8px 11px;transition:transform .1s ease-in-out;display:inline-flex}.task-button.jsx-9688e47351427c45:active{transform:scale(.98)}.button-text.jsx-9688e47351427c45{color:#0d0d0d;letter-spacing:-.64px;white-space:nowrap;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;font-weight:300;line-height:13px}.button-text.bold.jsx-9688e47351427c45{font-weight:500}.task-glow.jsx-9688e47351427c45{filter:blur(100px);pointer-events:none;background:#fffc;border-radius:48.5px;width:97px;height:97px;position:absolute;top:-35px;right:13px}.loading-container.jsx-9688e47351427c45,.error-container.jsx-9688e47351427c45{background-color:#fff;justify-content:center;align-items:center;height:-webkit-fill-available;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;display:flex}.loading-container.jsx-9688e47351427c45{color:#666}.error-container.jsx-9688e47351427c45{color:red;text-align:center;padding:20px}@media (width<=375px){.main-container.jsx-9688e47351427c45{padding:20px 0 0}.task-card.jsx-9688e47351427c45{padding:13px}.task-title.jsx-9688e47351427c45{font-size:14px}.points-text.jsx-9688e47351427c45{font-size:18px}}@media (-webkit-device-pixel-ratio>=2),(resolution>=192dpi){.logo-image.jsx-9688e47351427c45,.plus-icon.jsx-9688e47351427c45,.balance-crystal.jsx-9688e47351427c45,.points-crystal.jsx-9688e47351427c45,.tasks-bg-image.jsx-9688e47351427c45{image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges}}@supports (-webkit-touch-callout:none){.app-wrapper.jsx-9688e47351427c45,.main-container.jsx-9688e47351427c45{min-height:-webkit-fill-available}}"
+                        id: "caf1e975df471255",
+                        children: ".app-wrapper.jsx-caf1e975df471255{-webkit-overflow-scrolling:touch;background-color:#fff;width:100%;max-width:100vw;min-height:-webkit-fill-available;position:relative;overflow:hidden auto}.main-container.jsx-caf1e975df471255{-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;box-sizing:border-box;background-color:#fff;flex-direction:column;align-items:center;gap:8px;width:100%;min-height:-webkit-fill-available;padding:25px 0 70px;display:flex;position:relative;overflow:hidden auto}.logo-section.jsx-caf1e975df471255{flex-direction:column;align-self:stretch;align-items:center;gap:6px;display:flex}.logo-container.jsx-caf1e975df471255{flex-direction:column;align-items:flex-start;width:173px;height:66px;display:flex;position:relative}.logo-wrapper.jsx-caf1e975df471255{width:160px;height:38px;margin-left:10px;position:relative}.logo-image-container.jsx-caf1e975df471255{width:100%;height:100%;position:relative}.logo-image.jsx-caf1e975df471255{object-fit:contain;-webkit-backface-visibility:hidden;width:100%;height:100%;transform:translateZ(0)}.plus-icon.jsx-caf1e975df471255{object-fit:contain;-webkit-backface-visibility:hidden;width:19px;height:19px;position:absolute;top:-12px;right:-12px;transform:translateZ(0)}.logo-text-fallback.jsx-caf1e975df471255{justify-content:center;align-items:center;width:100%;height:100%;display:flex;position:relative}.assist-text.jsx-caf1e975df471255{color:#000;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:19px;font-weight:700}.plus-text.jsx-caf1e975df471255{color:red;margin-left:2px;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:19px;font-weight:700}.logo-text-container.jsx-caf1e975df471255{width:176px;height:27px;margin-top:1px;margin-left:-2px;position:relative}.logo-subtitle.jsx-caf1e975df471255{text-align:center;color:#000;letter-spacing:-1px;white-space:nowrap;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;font-weight:400;line-height:11.7px;position:absolute;top:12px;left:calc(50% - 36px)}.logo-title.jsx-caf1e975df471255{color:#000;text-align:center;height:auto;font-family:Vasek,Georgia,serif;font-size:38px;font-style:italic;font-weight:400;line-height:81%;position:absolute}.balance-section.jsx-caf1e975df471255{flex-direction:column;align-self:stretch;align-items:center;gap:15px;padding:5px 0 12px;display:flex}.balance-container.jsx-caf1e975df471255{cursor:pointer;-webkit-tap-highlight-color:transparent;width:114px;height:114px;margin-top:-6px;position:relative}.balance-shadow-box.jsx-caf1e975df471255{background:linear-gradient(144deg,#d9d9d9 0%,#cdcdcd 100%);border-radius:24px;justify-content:center;align-items:center;width:114px;height:114px;transition:transform .1s ease-in-out;display:flex;position:absolute;top:0;left:0;box-shadow:4px 4px 8px #00000040,inset 3px 3px 8px #fff,inset -3px -4px 16px #0000004d}.balance-shadow-box.pressed.jsx-caf1e975df471255{transform:scale(.98)}.balance-crystal.jsx-caf1e975df471255{object-fit:contain;-webkit-backface-visibility:hidden;width:62px;height:58px;transform:translateZ(0)}.balance-amount.jsx-caf1e975df471255{color:#000;letter-spacing:-.6px;background:#fffc;border:1px solid #b4b4b4;border-radius:20px;margin-top:-5px;padding:6px 12px;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:20px;font-weight:700;line-height:16.2px}.balance-description.jsx-caf1e975df471255{text-align:center;color:#000;letter-spacing:-.34px;width:240px;margin:0;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:18px;font-weight:400;line-height:21px}.description-text.jsx-caf1e975df471255{letter-spacing:-.05px}.description-bold.jsx-caf1e975df471255{letter-spacing:-.05px;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-weight:700}.tasks-section.jsx-caf1e975df471255{flex-direction:column;align-self:stretch;align-items:center;gap:6px;width:100%;display:flex}.tasks-container.jsx-caf1e975df471255{flex-direction:column;align-items:center;gap:16px;width:100vw;margin-left:-16px;margin-right:-16px;padding:28px 0 12px;display:flex;position:relative;overflow:hidden}.tasks-background.jsx-caf1e975df471255{width:100%;height:100%;position:absolute;top:0;bottom:0;left:0}.tasks-bg-color.jsx-caf1e975df471255{background-color:#eaeaea;width:100%;height:100%;position:absolute;top:73px;left:0}.tasks-bg-image.jsx-caf1e975df471255{object-fit:cover;width:100%;max-width:100vw;height:253px;position:absolute;top:0;left:50%;transform:translate(-50%)}.tasks-header.jsx-caf1e975df471255{z-index:1;justify-content:flex-end;align-items:center;gap:6px;width:100%;max-width:100vw;padding:4px 19px 0 0;display:flex}.tasks-title.jsx-caf1e975df471255{text-align:right;color:#000;letter-spacing:-.77px;white-space:nowrap;margin:0;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:26px;font-weight:700;line-height:28px}.tasks-list.jsx-caf1e975df471255{z-index:1;box-sizing:border-box;flex-direction:column;align-items:center;gap:8px;width:100%;padding:0 16px;display:inline-flex}.task-card.jsx-caf1e975df471255{background:linear-gradient(244deg,#f23939 0%,#db1b1b 100%);border-radius:24px;flex-direction:column;align-items:flex-start;gap:4px;width:100%;max-width:calc(100vw - 32px);padding:16px;display:flex;position:relative;overflow:hidden}.task-header.jsx-caf1e975df471255{justify-content:space-between;align-items:flex-start;gap:8px;width:100%;display:flex}.task-content.jsx-caf1e975df471255{flex-direction:column;flex:1;justify-content:center;align-items:flex-start;display:flex}.task-title.jsx-caf1e975df471255{text-align:left;color:#fff;letter-spacing:-.32px;margin:0;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:16px;font-weight:500;line-height:16px}.task-points.jsx-caf1e975df471255{flex-shrink:0;align-items:center;gap:8px;display:inline-flex}.points-text.jsx-caf1e975df471255{color:#fff;white-space:nowrap;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:19px;font-weight:700;line-height:19px}.points-icon.jsx-caf1e975df471255{background:#fff;border-radius:10px;justify-content:center;align-items:center;width:20px;height:20px;display:flex}.points-crystal.jsx-caf1e975df471255{object-fit:contain;width:12px;height:12px}.task-actions.jsx-caf1e975df471255{justify-content:flex-end;align-items:flex-start;gap:8px;width:100%;padding-top:8px;display:flex}.task-button.jsx-caf1e975df471255{cursor:pointer;-webkit-tap-highlight-color:transparent;background:#fff;border:none;border-radius:24px;flex-direction:column;justify-content:center;align-items:center;padding:8px 11px;transition:transform .1s ease-in-out;display:inline-flex}.task-button.jsx-caf1e975df471255:active{transform:scale(.98)}.button-text.jsx-caf1e975df471255{color:#0d0d0d;letter-spacing:-.64px;white-space:nowrap;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;font-weight:300;line-height:13px}.button-text.bold.jsx-caf1e975df471255{font-weight:500}.task-glow.jsx-caf1e975df471255{filter:blur(100px);pointer-events:none;background:#fffc;border-radius:48.5px;width:97px;height:97px;position:absolute;top:-35px;right:13px}.loading-container.jsx-caf1e975df471255,.error-container.jsx-caf1e975df471255{background-color:#fff;justify-content:center;align-items:center;height:-webkit-fill-available;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;display:flex}.loading-container.jsx-caf1e975df471255{color:#666}.error-container.jsx-caf1e975df471255{color:red;text-align:center;padding:20px}@media (width<=375px){.main-container.jsx-caf1e975df471255{padding:20px 0 0}.task-card.jsx-caf1e975df471255{padding:13px}.task-title.jsx-caf1e975df471255{font-size:14px}.points-text.jsx-caf1e975df471255{font-size:18px}}@media (-webkit-device-pixel-ratio>=2),(resolution>=192dpi){.logo-image.jsx-caf1e975df471255,.plus-icon.jsx-caf1e975df471255,.balance-crystal.jsx-caf1e975df471255,.points-crystal.jsx-caf1e975df471255,.tasks-bg-image.jsx-caf1e975df471255{image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges}}@supports (-webkit-touch-callout:none){.app-wrapper.jsx-caf1e975df471255,.main-container.jsx-caf1e975df471255{min-height:-webkit-fill-available}}"
                     }, void 0, false, void 0, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(main)/page.tsx",
-                lineNumber: 408,
+                lineNumber: 400,
                 columnNumber: 7
             }, this)
         ]
