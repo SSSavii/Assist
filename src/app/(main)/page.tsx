@@ -75,6 +75,7 @@ const GlobalStyles = () => (
 );
 
 type UserProfile = {
+  username: string;
   id: number;
   tg_id: number;
   balance_crystals: number;
@@ -264,39 +265,25 @@ export default function HomePage() {
   const handleInviteFriend = () => {
   const tg = window.Telegram?.WebApp;
   
-  console.log('=== INVITE FRIEND CLICKED ===');
-  console.log('Telegram WebApp exists:', !!tg);
-  console.log('User object:', user);
-  console.log('Loading:', loading);
-  
   if (!tg) {
-    console.error('❌ No Telegram WebApp');
+    alert('❌ Telegram WebApp не найден');
     return;
   }
   
   if (loading) {
-    console.log('⏳ Still loading...');
-    tg.showAlert('Загрузка данных. Подождите немного.');
+    tg.showAlert('⏳ Загрузка данных. Подождите.');
     return;
   }
   
   if (!user) {
-    console.error('❌ User is null');
-    tg.showAlert('Данные пользователя не загружены. Перезагрузите страницу.');
+    tg.showAlert('❌ Пользователь не загружен. Перезагрузите приложение.');
     return;
   }
-  
-  console.log('User data:', {
-    id: user.id,
-    tg_id: user.tg_id,
-    balance: user.balance_crystals
-  });
   
   const userId = user.tg_id;
   
   if (!userId) {
-    console.error('❌ No tg_id in user object');
-    tg.showAlert('ID пользователя не найден. Перезагрузите страницу.');
+    tg.showAlert(`❌ tg_id отсутствует. User object: ${JSON.stringify(user)}`);
     return;
   }
   
@@ -306,15 +293,11 @@ export default function HomePage() {
   const referralLink = `https://t.me/${botUsername}/${appName}?startapp=ref${userId}`;
   const shareText = `Привет! Запусти мини-приложение "Ассист+" и получай бонусы!`;
   
-  console.log('✅ Referral link created:', referralLink);
-  
   try {
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
-    console.log('Opening share URL...');
     tg.openTelegramLink(shareUrl);
   } catch (error) {
-    console.error('Share error:', error);
-    tg.showAlert(`Ссылка для друга:\n${referralLink}`);
+    tg.showAlert(`Ошибка: ${error}\n\nСсылка: ${referralLink}`);
   }
 };
 
@@ -418,6 +401,26 @@ export default function HomePage() {
       isCompleted: user?.tasks_completed?.invite || false,
     },
   ]);
+  // Добавьте после всех useState и useEffect, перед return
+const [showDebug, setShowDebug] = useState(true); // Показываем дебаг панель
+
+// Функция для копирования в буфер обмена
+const copyToClipboard = (text: string) => {
+  const tg = window.Telegram?.WebApp;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => tg?.showAlert('Скопировано!'))
+      .catch(() => tg?.showAlert('Ошибка копирования'));
+  } else {
+    tg?.showAlert(text);
+  }
+};
+
+// Функция создания реферальной ссылки (для дебага)
+const createReferralLink = () => {
+  if (!user?.tg_id) return 'Нет tg_id';
+  return `https://t.me/my_auction_admin_bot/assist_plus?startapp=ref${user.tg_id}`;
+};
 
   const handleTaskAction = (taskId: number, actionType: "check" | "action") => {
     const task = tasks.find(t => t.id === taskId);
@@ -441,7 +444,140 @@ export default function HomePage() {
   }
 
   return (
-    <>
+  <>
+    {/* DEBUG PANEL - УДАЛИТЬ ПОСЛЕ ОТЛАДКИ */}
+    {showDebug && (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 9999,
+        backgroundColor: '#000000',
+        color: '#00ff00',
+        padding: '10px',
+        fontSize: '11px',
+        fontFamily: 'monospace',
+        maxHeight: '300px',
+        overflowY: 'auto',
+        borderBottom: '2px solid #00ff00'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+          <strong>🔍 DEBUG PANEL</strong>
+          <button 
+            onClick={() => setShowDebug(false)}
+            style={{
+              background: '#ff0000',
+              color: '#ffffff',
+              border: 'none',
+              padding: '2px 8px',
+              cursor: 'pointer',
+              borderRadius: '3px'
+            }}
+          >
+            Закрыть
+          </button>
+        </div>
+        
+        <div style={{ marginBottom: '8px' }}>
+          <strong>Loading:</strong> {loading ? '⏳ ДА' : '✅ НЕТ'}
+        </div>
+        
+        <div style={{ marginBottom: '8px' }}>
+          <strong>Error:</strong> {error || '✅ Нет'}
+        </div>
+        
+        <div style={{ marginBottom: '8px' }}>
+          <strong>User exists:</strong> {user ? '✅ ДА' : '❌ НЕТ'}
+        </div>
+        
+        {user && (
+          <>
+            <div style={{ marginBottom: '8px' }}>
+              <strong>User.id:</strong> {user.id}
+            </div>
+            <div style={{ marginBottom: '8px' }}>
+              <strong>User.tg_id:</strong> {user.tg_id || '❌ ОТСУТСТВУЕТ'}
+            </div>
+            <div style={{ marginBottom: '8px' }}>
+              <strong>Balance:</strong> {user.balance_crystals}
+            </div>
+            <div style={{ marginBottom: '8px' }}>
+              <strong>Username:</strong> {user.username || 'N/A'}
+            </div>
+          </>
+        )}
+        
+        <div style={{ 
+          marginTop: '10px', 
+          padding: '8px', 
+          backgroundColor: '#1a1a1a',
+          borderRadius: '4px',
+          wordBreak: 'break-all'
+        }}>
+          <strong>Реферальная ссылка:</strong>
+          <div style={{ marginTop: '5px', color: '#ffffff' }}>
+            {createReferralLink()}
+          </div>
+          <button
+            onClick={() => copyToClipboard(createReferralLink())}
+            style={{
+              marginTop: '5px',
+              background: '#00ff00',
+              color: '#000000',
+              border: 'none',
+              padding: '5px 10px',
+              cursor: 'pointer',
+              borderRadius: '3px',
+              fontWeight: 'bold'
+            }}
+          >
+            📋 Копировать ссылку
+          </button>
+        </div>
+        
+        <div style={{ marginTop: '10px' }}>
+          <button
+            onClick={handleInviteFriend}
+            style={{
+              background: '#0088cc',
+              color: '#ffffff',
+              border: 'none',
+              padding: '8px 15px',
+              cursor: 'pointer',
+              borderRadius: '5px',
+              fontWeight: 'bold',
+              width: '100%'
+            }}
+          >
+            🚀 Тест: Пригласить друга
+          </button>
+        </div>
+      </div>
+    )}
+    
+    {/* Кнопка для показа дебаг панели если закрыли */}
+    {!showDebug && (
+      <button
+        onClick={() => setShowDebug(true)}
+        style={{
+          position: 'fixed',
+          top: '10px',
+          right: '10px',
+          zIndex: 9998,
+          background: '#00ff00',
+          color: '#000000',
+          border: 'none',
+          padding: '5px 10px',
+          cursor: 'pointer',
+          borderRadius: '5px',
+          fontWeight: 'bold'
+        }}
+      >
+        🔍 DEBUG
+      </button>
+    )}
+    
       <GlobalStyles />
       <div className="app-wrapper">
         <main className="main-container">
