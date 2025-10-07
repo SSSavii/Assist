@@ -1,5 +1,6 @@
 {
-  "/(main)/auction/page": "app/(main)/auction/page.js",
   "/(main)/page": "app/(main)/page.js",
-  "/api/auth/route": "app/api/auth/route.js"
+  "/api/auth/route": "app/api/auth/route.js",
+  "/api/check-subscription/route": "app/api/check-subscription/route.js",
+  "/api/tap/route": "app/api/tap/route.js"
 }

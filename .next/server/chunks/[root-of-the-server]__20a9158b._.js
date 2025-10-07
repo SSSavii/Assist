@@ -102,8 +102,8 @@ db.exec(`
     cases_to_open INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    subscribed INTEGER DEFAULT 0,
-    voted INTEGER DEFAULT 0
+    subscribed_to_channel INTEGER DEFAULT 0,
+    boost_count_before INTEGER DEFAULT 0
   )
 `);
 db.exec(`
@@ -189,6 +189,17 @@ db.exec(`
     FOREIGN KEY(task_id) REFERENCES tasks(id)
   )
 `);
+db.exec(`
+  CREATE TABLE IF NOT EXISTS referral_rewards (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    referred_user_id INTEGER NOT NULL,
+    rewarded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, referred_user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (referred_user_id) REFERENCES users(id)
+  )
+`);
 console.log('✅ Все таблицы базы данных успешно инициализированы');
 const __TURBOPACK__default__export__ = db;
 }}),
@@ -254,7 +265,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$telegram$2d$au
 ;
 ;
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const CHANNEL_USERNAME = '@assistplus_business'; // Убедитесь, что начинается с @
+const CHANNEL_ID = '-1002782276287'; // ID канала из ссылки на буст
 const TASK_REWARDS = {
     subscribe: 100,
     vote: 500,
@@ -312,7 +323,6 @@ async function POST(req) {
         }
         // Находим пользователя
         const findUserStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT * FROM users WHERE tg_id = ?');
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const user = findUserStmt.get(userData.id);
         if (!user) {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
@@ -342,7 +352,14 @@ async function POST(req) {
                 try {
                     const chatMember = await checkChannelSubscription(userData.id);
                     isCompleted = chatMember?.status === 'member' || chatMember?.status === 'administrator' || chatMember?.status === 'creator';
-                    message = isCompleted ? 'Подписка подтверждена!' : 'Вы не подписаны на канал';
+                    if (isCompleted) {
+                        // Обновляем статус подписки в БД
+                        const updateSubStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('UPDATE users SET subscribed_to_channel = 1 WHERE id = ?');
+                        updateSubStmt.run(user.id);
+                        message = 'Подписка подтверждена!';
+                    } else {
+                        message = 'Вы не подписаны на канал';
+                    }
                 } catch (error) {
                     console.error('Subscription check error:', error);
                     return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
@@ -352,16 +369,112 @@ async function POST(req) {
                 }
                 break;
             case 'vote':
-                // Для голосования пока возвращаем false - нужно реализовать проверку
-                isCompleted = false;
-                message = 'Проверка голосования временно недоступна';
+                // Проверка буста канала
+                try {
+                    // Сначала проверяем подписку
+                    const chatMember = await checkChannelSubscription(userData.id);
+                    const isSubscribed = chatMember?.status === 'member' || chatMember?.status === 'administrator' || chatMember?.status === 'creator';
+                    if (!isSubscribed) {
+                        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                            success: false,
+                            message: 'Сначала подпишитесь на канал'
+                        });
+                    }
+                    // Получаем текущее количество бустов
+                    const currentBoostCount = await getChannelBoostCount();
+                    if (currentBoostCount === null) {
+                        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                            success: false,
+                            message: 'Не удалось получить информацию о бустах'
+                        });
+                    }
+                    // Проверяем, увеличилось ли количество бустов
+                    if (user.boost_count_before > 0 && currentBoostCount > user.boost_count_before) {
+                        isCompleted = true;
+                        message = 'Спасибо за поддержку канала!';
+                    } else {
+                        isCompleted = false;
+                        message = 'Буст не обнаружен. Попробуйте еще раз через несколько секунд.';
+                    }
+                } catch (error) {
+                    console.error('Vote check error:', error);
+                    return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                        success: false,
+                        message: 'Ошибка проверки. Попробуйте позже.'
+                    });
+                }
                 break;
             case 'invite':
-                // Проверка приглашенных друзей
-                const invitedFriendsStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT COUNT(*) as count FROM users WHERE referred_by_id = ?');
-                const invitedCount = invitedFriendsStmt.get(user.id)?.count || 0;
-                isCompleted = invitedCount > 0;
-                message = isCompleted ? `Вы пригласили ${invitedCount} друзей!` : 'Вы еще никого не пригласили';
+                // Проверка приглашенных друзей, которые подписаны на канал
+                const invitedSubscribedStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
+          SELECT COUNT(*) as count 
+          FROM users 
+          WHERE referred_by_id = ? 
+          AND subscribed_to_channel = 1
+        `);
+                const subscribedCount = invitedSubscribedStmt.get(user.id)?.count || 0;
+                if (subscribedCount === 0) {
+                    isCompleted = false;
+                    message = 'Ваши друзья должны подписаться на канал';
+                    break;
+                }
+                // Проверяем, за скольких друзей уже начислены бонусы
+                const rewardedCountStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
+          SELECT COUNT(*) as count 
+          FROM referral_rewards 
+          WHERE user_id = ?
+        `);
+                const rewardedCount = rewardedCountStmt.get(user.id)?.count || 0;
+                // Если есть новые подписанные друзья, за которых не начислены бонусы
+                if (subscribedCount > rewardedCount) {
+                    // Получаем список друзей, за которых еще не начислены бонусы
+                    const unrewardedFriendsStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
+            SELECT u.id 
+            FROM users u
+            WHERE u.referred_by_id = ? 
+            AND u.subscribed_to_channel = 1
+            AND u.id NOT IN (
+              SELECT referred_user_id 
+              FROM referral_rewards 
+              WHERE user_id = ?
+            )
+          `);
+                    const unrewardedFriends = unrewardedFriendsStmt.all(user.id, user.id);
+                    // Начисляем бонусы за каждого нового друга
+                    const insertRewardStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
+            INSERT OR IGNORE INTO referral_rewards (user_id, referred_user_id) 
+            VALUES (?, ?)
+          `);
+                    let totalReward = 0;
+                    for (const friend of unrewardedFriends){
+                        insertRewardStmt.run(user.id, friend.id);
+                        totalReward += TASK_REWARDS.invite;
+                    }
+                    // Обновляем баланс
+                    const updateBalanceStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('UPDATE users SET balance_crystals = balance_crystals + ? WHERE id = ?');
+                    updateBalanceStmt.run(totalReward, user.id);
+                    // Отмечаем задачу как выполненную
+                    const taskStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT id FROM tasks WHERE task_key = ?');
+                    const task = taskStmt.get(TASK_KEYS.invite);
+                    if (task) {
+                        const insertTaskStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
+              INSERT OR IGNORE INTO user_tasks (user_id, task_id, status) 
+              VALUES (?, ?, 'completed')
+            `);
+                        insertTaskStmt.run(user.id, task.id);
+                    }
+                    // Возвращаем результат сразу
+                    return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                        success: true,
+                        message: `Награда за ${unrewardedFriends.length} друзей: +${totalReward} плюсов!`,
+                        reward: totalReward,
+                        newBalance: user.balance_crystals + totalReward,
+                        friendsCount: subscribedCount
+                    });
+                } else {
+                    isCompleted = false;
+                    message = subscribedCount > 0 ? `У вас ${subscribedCount} подписанных друзей. Награда уже получена!` : 'Пригласите друзей и попросите их подписаться на канал';
+                }
                 break;
         }
         if (isCompleted) {
@@ -402,24 +515,59 @@ async function POST(req) {
 }
 // Функция проверки подписки на канал
 async function checkChannelSubscription(userId) {
-    if (!BOT_TOKEN || !CHANNEL_USERNAME) {
-        throw new Error('Bot token or channel username not configured');
+    if (!BOT_TOKEN || !CHANNEL_ID) {
+        throw new Error('Bot token or channel ID not configured');
     }
-    const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChatMember`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            chat_id: CHANNEL_USERNAME,
-            user_id: userId
-        })
-    });
-    if (!response.ok) {
-        throw new Error(`Telegram API error: ${response.statusText}`);
+    try {
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChatMember`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                chat_id: CHANNEL_ID,
+                user_id: userId
+            })
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Telegram API error:', errorData);
+            throw new Error(`Telegram API error: ${response.statusText}`);
+        }
+        const data = await response.json();
+        return data.result;
+    } catch (error) {
+        console.error('Error checking subscription:', error);
+        throw error;
     }
-    const data = await response.json();
-    return data.result;
+}
+// Функция получения количества бустов канала
+async function getChannelBoostCount() {
+    if (!BOT_TOKEN || !CHANNEL_ID) {
+        throw new Error('Bot token or channel ID not configured');
+    }
+    try {
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChat`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                chat_id: CHANNEL_ID
+            })
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Telegram API error:', errorData);
+            return null;
+        }
+        const data = await response.json();
+        // Возвращаем количество бустов, если доступно
+        return data.result?.boost_count || 0;
+    } catch (error) {
+        console.error('Error getting boost count:', error);
+        return null;
+    }
 }
 }}),
 

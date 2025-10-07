@@ -84,7 +84,7 @@ function BottomNavBar() {
         }
     };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
-        className: "jsx-e1c698b26abe3335" + " " + "bottom-nav",
+        className: "jsx-4bbe7af2c17a2022" + " " + "bottom-nav",
         children: [
             navItems.map((item)=>{
                 const iconSize = getIconSize(item.id);
@@ -93,7 +93,7 @@ function BottomNavBar() {
                     href: item.href,
                     onClick: handlePress,
                     "aria-label": item.label,
-                    className: "jsx-e1c698b26abe3335" + " " + `nav-item ${isActive ? 'active' : ''}`,
+                    className: "jsx-4bbe7af2c17a2022" + " " + `nav-item ${isActive ? 'active' : ''}`,
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                             style: {
@@ -102,14 +102,14 @@ function BottomNavBar() {
                             },
                             alt: item.label,
                             src: isActive ? item.iconActive : item.iconInactive,
-                            className: "jsx-e1c698b26abe3335"
+                            className: "jsx-4bbe7af2c17a2022"
                         }, void 0, false, {
                             fileName: "[project]/src/app/components/BottomNavBar.tsx",
                             lineNumber: 69,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "jsx-e1c698b26abe3335" + " " + "nav-label",
+                            className: "jsx-4bbe7af2c17a2022" + " " + "nav-label",
                             children: item.label
                         }, void 0, false, {
                             fileName: "[project]/src/app/components/BottomNavBar.tsx",
@@ -124,8 +124,8 @@ function BottomNavBar() {
                 }, this);
             }),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
-                id: "e1c698b26abe3335",
-                children: ".bottom-nav.jsx-e1c698b26abe3335{z-index:1000;box-sizing:border-box;background-color:#262626;border-radius:15px 15px 0 0;justify-content:space-between;align-items:center;height:80px;padding:8px 25px;display:flex;position:fixed;bottom:0;left:0;right:0;overflow:hidden;box-shadow:0 -2px 10px #0000001a}.nav-item.jsx-e1c698b26abe3335{-webkit-tap-highlight-color:transparent;flex-direction:column;justify-content:center;align-items:center;gap:6px;width:53px;height:100%;text-decoration:none;transition:opacity .2s;display:flex}.nav-item.jsx-e1c698b26abe3335:hover{opacity:.8}.nav-label.jsx-e1c698b26abe3335{text-align:center;color:#868686;letter-spacing:-.34px;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;font-weight:500;line-height:9px;transition:color .2s}.nav-item.active.jsx-e1c698b26abe3335 .nav-label.jsx-e1c698b26abe3335{color:#fff}"
+                id: "4bbe7af2c17a2022",
+                children: ".bottom-nav.jsx-4bbe7af2c17a2022{box-sizing:border-box;background-color:#262626;border-radius:15px 15px 0 0;justify-content:space-between;align-items:center;height:80px;padding:8px 25px;display:flex;overflow:hidden}.nav-item.jsx-4bbe7af2c17a2022{-webkit-tap-highlight-color:transparent;flex-direction:column;justify-content:center;align-items:center;gap:6px;width:53px;height:100%;text-decoration:none;transition:opacity .2s;display:flex}.nav-item.jsx-4bbe7af2c17a2022:hover{opacity:.8}.nav-label.jsx-4bbe7af2c17a2022{text-align:center;color:#868686;letter-spacing:-.34px;white-space:nowrap;font-family:Cera Pro,-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;font-weight:500;line-height:9px;transition:color .2s}.nav-item.active.jsx-4bbe7af2c17a2022 .nav-label.jsx-4bbe7af2c17a2022{color:#fff}"
             }, void 0, false, void 0, this)
         ]
     }, void 0, true, {
@@ -172,22 +172,13 @@ function MainLayout({ children }) {
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("footer", {
-                className: "fixed bottom-0 left-0 right-0 z-50 bg-white/75 backdrop-blur-lg",
-                children: [
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$BottomNavBar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
-                        fileName: "[project]/src/app/(main)/layout.tsx",
-                        lineNumber: 16,
-                        columnNumber: 9
-                    }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "h-4"
-                    }, void 0, false, {
-                        fileName: "[project]/src/app/(main)/layout.tsx",
-                        lineNumber: 17,
-                        columnNumber: 9
-                    }, this)
-                ]
-            }, void 0, true, {
+                className: "fixed bottom-0 left-0 right-0 z-50",
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$BottomNavBar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
+                    fileName: "[project]/src/app/(main)/layout.tsx",
+                    lineNumber: 16,
+                    columnNumber: 9
+                }, this)
+            }, void 0, false, {
                 fileName: "[project]/src/app/(main)/layout.tsx",
                 lineNumber: 15,
                 columnNumber: 7

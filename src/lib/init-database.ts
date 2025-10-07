@@ -21,8 +21,8 @@ db.exec(`
     cases_to_open INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    subscribed INTEGER DEFAULT 0,
-    voted INTEGER DEFAULT 0
+    subscribed_to_channel INTEGER DEFAULT 0,
+    boost_count_before INTEGER DEFAULT 0
   )
 `);
 
@@ -98,6 +98,18 @@ db.exec(`
     PRIMARY KEY (user_id, task_id),
     FOREIGN KEY(user_id) REFERENCES users(id),
     FOREIGN KEY(task_id) REFERENCES tasks(id)
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS referral_rewards (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    referred_user_id INTEGER NOT NULL,
+    rewarded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, referred_user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (referred_user_id) REFERENCES users(id)
   )
 `);
 

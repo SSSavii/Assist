@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-// Добавляем глобальные стили и мета-теги
+
 const GlobalStyles = () => (
   <>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -22,7 +22,6 @@ const GlobalStyles = () => (
         overflow-x: hidden;
       }
       
-      /* Подключение шрифтов */
       @font-face {
         font-family: 'Cera Pro';
         src: url('/fonts/CeraPro-Regular.woff2') format('woff2'),
@@ -68,7 +67,6 @@ const GlobalStyles = () => (
         font-display: swap;
       }
       
-      /* Фоллбэк шрифты */
       body {
         font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       }
@@ -122,7 +120,6 @@ export default function HomePage() {
   const DAILY_TAP_LIMIT = 100;
 
   useEffect(() => {
-    // Определяем устройство и параметры экрана
     const userAgent = navigator.userAgent.toLowerCase();
     const isIOS = /iphone|ipad|ipod/.test(userAgent);
     const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent);
@@ -138,15 +135,11 @@ export default function HomePage() {
       viewportHeight
     });
 
-    // Устанавливаем размер viewport для Telegram WebApp
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.ready();
-      tg.expand(); // Разворачиваем приложение на весь экран
-      
-      // Отключаем свайп для закрытия
+      tg.expand();
       tg.disableVerticalSwipes();
-      
       
       const startappParam = tg.initDataUnsafe?.start_param;
       console.log('startapp from WebApp:', startappParam);
@@ -194,7 +187,7 @@ export default function HomePage() {
       tg.showAlert('Плюсы на сегодня закончились! Возвращайся завтра.');
       return;
     }
-    // Добавляем тактильную обратную связь
+    
     if (tg.HapticFeedback) {
       tg.HapticFeedback.impactOccurred('light');
     }
@@ -264,33 +257,71 @@ export default function HomePage() {
   };
   
   const handleInviteFriend = () => {
-    const tg = window.Telegram?.WebApp;
-    if (!tg || !user || !user.tg_id) {
-      tg?.showAlert('Не удалось создать ссылку. Пожалуйста, перезагрузите страницу.');
-      return;
-    }
-    
-    const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
-    const appName = 'assist_plus';
-    
-    if (!botUsername) {
-      console.error("Bot username is not set in .env.local");
-      tg?.showAlert('Ошибка конфигурации приложения.');
-      return;
-    }
-    
-    const referralLink = `https://t.me/${botUsername}/${appName}?startapp=ref${user.tg_id}`;
-    const shareText = `Привет! Запусти мини-приложение "Ассист+" и получай бонусы!`;
-    
-    try {
-      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
-      tg.openTelegramLink(shareUrl);
-    } catch (error) {
-      console.error('Share error:', error);
-      navigator.clipboard.writeText(`${shareText}\n${referralLink}`);
-      tg.showAlert('Ссылка скопирована в буфер обмена! Отправь ее другу.');
-    }
-  };
+  const tg = window.Telegram?.WebApp;
+  
+  // Детальное логирование для отладки
+  console.log('=== INVITE FRIEND DEBUG ===');
+  console.log('Telegram WebApp exists:', !!tg);
+  console.log('User object:', user);
+  console.log('User exists:', !!user);
+  console.log('User tg_id:', user?.tg_id);
+  
+  if (!tg) {
+    console.error('Telegram WebApp not available');
+    alert('Telegram WebApp недоступен');
+    return;
+  }
+  
+  if (!user) {
+    console.error('User object is null');
+    tg.showAlert('Данные пользователя не загружены. Перезагрузите страницу.');
+    return;
+  }
+  
+  if (!user.tg_id) {
+    console.error('User tg_id is missing:', user);
+    tg.showAlert('ID пользователя не найден. Перезагрузите страницу.');
+    return;
+  }
+  
+  const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
+  const appName = process.env.NEXT_PUBLIC_APP_NAME || 'assist_plus';
+  
+  console.log('Bot username from env:', botUsername);
+  console.log('App name from env:', appName);
+  console.log('User TG ID:', user.tg_id);
+  
+  // Если переменные окружения не загрузились, используем хардкод для теста
+  const finalBotUsername = botUsername || 'my_auction_admin_bot';
+  const finalAppName = appName || 'assist_plus';
+  
+  console.log('Final bot username:', finalBotUsername);
+  console.log('Final app name:', finalAppName);
+  
+  const referralLink = `https://t.me/${finalBotUsername}/${finalAppName}?startapp=ref${user.tg_id}`;
+  const shareText = `Привет! Запусти мини-приложение "Ассист+" и получай бонусы!`;
+  
+  console.log('Generated referral link:', referralLink);
+  console.log('Share text:', shareText);
+  
+  try {
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
+    console.log('Opening share URL:', shareUrl);
+    tg.openTelegramLink(shareUrl);
+  } catch (error) {
+    console.error('Share error:', error);
+    // Fallback: копируем в буфер обмена
+    const fullText = `${shareText}\n${referralLink}`;
+    navigator.clipboard.writeText(fullText)
+      .then(() => {
+        tg.showAlert('Ссылка скопирована в буфер обмена! Отправь ее другу.');
+      })
+      .catch((err) => {
+        console.error('Clipboard error:', err);
+        tg.showAlert(`Ссылка для друга:\n${referralLink}`);
+      });
+  }
+};
 
   const checkTask = (taskId: 'subscribe' | 'vote' | 'invite') => {
     const tg = window.Telegram?.WebApp;
@@ -331,13 +362,33 @@ export default function HomePage() {
 
   const handleSubscribeToChannel = () => {
     const tg = window.Telegram?.WebApp;
-    tg?.openTelegramLink('https://t.me/assistplus_business');
+    tg?.openTelegramLink('https://t.me/+6flpcSdc4sg5OTAy');
   };
 
   const handleVoteForChannel = () => {
-    const tg = window.Telegram?.WebApp;
-    tg?.openTelegramLink('https://t.me/assistplus_business');
-  };
+  const tg = window.Telegram?.WebApp;
+  
+  // Сначала сохраняем текущее количество бустов
+  if (tg?.initData) {
+    fetch('/api/save-boost-count', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: tg.initData }),
+    })
+    .then(() => {
+      // ИСПРАВЛЕНО: Правильная ссылка на буст
+      tg.openTelegramLink('https://t.me/boost?c=2782276287');
+    })
+    .catch((err) => {
+      console.error('Save boost count error:', err);
+      // Всё равно открываем страницу буста
+      tg.openTelegramLink('https://t.me/boost?c=2782276287');
+    });
+  } else {
+    // Если нет initData, просто открываем ссылку
+    tg?.openTelegramLink('https://t.me/boost?c=2782276287');
+  }
+};
 
   const [tasks] = useState<Task[]>([
     {
@@ -387,7 +438,7 @@ export default function HomePage() {
   if (loading) {
     return <div className="loading-container">Загрузка...</div>;
   }
-    if (error) {
+  if (error) {
     return <div className="error-container">Ошибка: {error}</div>;
   }
   if (!user) {
@@ -399,7 +450,6 @@ export default function HomePage() {
       <GlobalStyles />
       <div className="app-wrapper">
         <main className="main-container">
-          {/* Логотип с fallback и плюсиком */}
           <header className="logo-section">
             <div className="logo-container">
               <div className="logo-wrapper">
@@ -432,7 +482,6 @@ export default function HomePage() {
             </div>
           </header>
 
-          {/* Блок с балансом */}
           <section className="balance-section">
             <div 
               className="balance-container"
@@ -462,7 +511,6 @@ export default function HomePage() {
             </p>
           </section>
 
-          {/* Задания */}
           <section className="tasks-section">
             <div className="tasks-container">
               <div className="tasks-background">
@@ -532,8 +580,6 @@ export default function HomePage() {
           </section>
         </main>
 
-        {/* Навигационная панель */}
-
         <style jsx>{`
           .app-wrapper {
             position: relative;
@@ -566,7 +612,6 @@ export default function HomePage() {
             position: relative;
           }
 
-          /* Логотип - уменьшен на 20% */
           .logo-section {
             gap: 6px;
             display: flex;
@@ -674,7 +719,6 @@ export default function HomePage() {
             text-align: center;
           }
 
-          /* Блок с балансом - уменьшен на 20% */
           .balance-section {
             gap: 15px;
             display: flex;
@@ -759,7 +803,6 @@ export default function HomePage() {
             letter-spacing: -0.05px;
           }
 
-          /* Задания - уменьшены на 20% */
           .tasks-section {
             gap: 6px;
             display: flex;
@@ -881,7 +924,7 @@ export default function HomePage() {
             font-size: 16px;
             text-align: left;
             color: #FFFFFF;
-                        line-height: 16px;
+            line-height: 16px;
             letter-spacing: -0.32px;
             margin: 0;
           }
@@ -971,7 +1014,6 @@ export default function HomePage() {
             pointer-events: none;
           }
 
-          /* Утилиты */
           .loading-container, .error-container {
             display: flex;
             justify-content: center;
@@ -992,7 +1034,6 @@ export default function HomePage() {
             text-align: center;
           }
 
-          /* Адаптивность для маленьких экранов */
           @media (max-width: 375px) {
             .main-container {
               padding: 20px 0px 0px;
@@ -1011,7 +1052,6 @@ export default function HomePage() {
             }
           }
 
-          /* Фикс для высоких DPI экранов */
           @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
             .logo-image, .plus-icon, .balance-crystal, .points-crystal, .tasks-bg-image {
               image-rendering: -webkit-optimize-contrast;
@@ -1019,7 +1059,6 @@ export default function HomePage() {
             }
           }
 
-          /* Фикс для iOS Safari */
           @supports (-webkit-touch-callout: none) {
             .app-wrapper {
               min-height: -webkit-fill-available;

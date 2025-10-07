@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/init-database';
 import { validateTelegramHash } from '@/lib/telegram-auth';
 
 const REFERRAL_BONUS = 500;
+const CHANNEL_ID = '-1002782276287'; // ID вашего канала
 
 interface UserFromDB {
   id: number;
@@ -17,8 +19,8 @@ interface UserFromDB {
   cases_to_open: number;
   created_at: string;
   last_login_at: string;
-  subscribed: number;
-  voted: number;
+  subscribed_to_channel: number;
+  boost_count_before: number;
 }
 
 interface AuthResponse {
@@ -33,8 +35,6 @@ interface AuthResponse {
   cases_to_open: number;
   created_at: string;
   last_login_at: string;
-  subscribed_to_channel?: boolean;
-  voted_for_channel?: boolean;
   tasks_completed: {
     subscribe: boolean;
     vote: boolean;
@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
       console.log('Current user TG ID:', userData.id);
       console.log('Is self-referral:', referrerTgId === userData.id);
       
-      if (!isNaN(referrerTgId) && referrerTgId > 0) {
+      if (!isNaN(referrerTgId) && referrerTgId > 0 && referrerTgId !== userData.id) {
         const referrerStmt = db.prepare('SELECT id FROM users WHERE tg_id = ?');
         const referrer = referrerStmt.get(referrerTgId) as { id: number } | undefined;
         
@@ -127,20 +127,14 @@ export async function POST(req: NextRequest) {
         if (referrer) {
           referredById = referrer.id;
           
-          // НАГРАЖДАЕМ РЕФЕРЕРА ТОЛЬКО ЕСЛИ ЭТО ПЕРВОЕ ПРИГЛАШЕНИЕ ДАННОГО ПОЛЬЗОВАТЕЛЯ
+          // Награда реферу будет начислена при проверке задания invite_friend
+          // только если приглашенный подпишется на канал
           if (user && user.referred_by_id === null) {
-            const rewardStmt = db.prepare(`
-              UPDATE users 
-              SET balance_crystals = balance_crystals + ?, cases_to_open = cases_to_open + 1 
-              WHERE id = ?
-            `);
-            rewardStmt.run(REFERRAL_BONUS, referredById);
-            console.log('🎯 Rewarded referrer with ID:', referredById, 'for inviting user', userData.id);
+            console.log('🔗 Linking existing user to referrer:', referredById);
           } else if (!user) {
-            // Если пользователь новый - реферер получит награду после создания пользователя
             console.log('🆕 New user will be created with referrer:', referredById);
           } else {
-            console.log('ℹ️ User already has a referrer or this is not the first invitation');
+            console.log('ℹ️ User already has a referrer');
           }
         } else {
           console.log('❌ Referrer not found in database');
@@ -186,21 +180,30 @@ export async function POST(req: NextRequest) {
 
       user = findUserStmt.get(userData.id) as UserFromDB;
       console.log('🆕 New user created with ID:', user?.id, 'referred_by_id:', user?.referred_by_id);
-
-      // НАГРАЖДАЕМ РЕФЕРЕРА ПОСЛЕ СОЗДАНИЯ НОВОГО ПОЛЬЗОВАТЕЛЯ
-      if (referredById) {
-        const rewardStmt = db.prepare(`
-          UPDATE users 
-          SET balance_crystals = balance_crystals + ?, cases_to_open = cases_to_open + 1 
-          WHERE id = ?
-        `);
-        rewardStmt.run(REFERRAL_BONUS, referredById);
-        console.log('🎁 Rewarded referrer after user creation:', referredById);
-      }
     }
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // ПРОВЕРКА ПОДПИСКИ НА КАНАЛ
+    try {
+      const subscriptionStatus = await checkChannelSubscription(userData.id);
+      const isSubscribed = subscriptionStatus === true;
+      
+      // Обновляем статус подписки в БД
+      const updateSubStmt = db.prepare(
+        'UPDATE users SET subscribed_to_channel = ? WHERE tg_id = ?'
+      );
+      updateSubStmt.run(isSubscribed ? 1 : 0, userData.id);
+      
+      // Обновляем объект user
+      user.subscribed_to_channel = isSubscribed ? 1 : 0;
+      
+      console.log('📢 Channel subscription status:', isSubscribed);
+    } catch (error) {
+      console.error('Subscription check error:', error);
+      // Продолжаем работу даже если проверка подписки не удалась
     }
 
     // Получаем выполненные задачи
@@ -219,8 +222,6 @@ export async function POST(req: NextRequest) {
       cases_to_open: user.cases_to_open,
       created_at: user.created_at,
       last_login_at: user.last_login_at,
-      subscribed_to_channel: user.subscribed === 1,
-      voted_for_channel: user.voted === 1,
       tasks_completed: {
         subscribe: completedTaskKeys.includes('subscribe_channel'),
         vote: completedTaskKeys.includes('vote_poll'),
@@ -232,6 +233,7 @@ export async function POST(req: NextRequest) {
     console.log('User ID:', user.id);
     console.log('Referred by:', user.referred_by_id);
     console.log('Balance:', user.balance_crystals);
+    console.log('Subscribed to channel:', user.subscribed_to_channel);
     console.log('Tasks completed:', response.tasks_completed);
 
     return NextResponse.json(response);
@@ -242,5 +244,47 @@ export async function POST(req: NextRequest) {
       { error: 'Internal server error' },
       { status: 500 }
     );
+  }
+}
+
+// Функция проверки подписки на канал
+async function checkChannelSubscription(userId: number): Promise<boolean> {
+  const botToken = process.env.BOT_TOKEN;
+  
+  if (!botToken || !CHANNEL_ID) {
+    console.error('Bot token or channel ID not configured');
+    return false;
+  }
+
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/getChatMember`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: CHANNEL_ID,
+        user_id: userId
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Telegram API error:', errorData);
+      return false;
+    }
+
+    const data = await response.json();
+    const status = data.result?.status;
+    
+    // Проверяем статус членства
+    const isSubscribed = status === 'member' || 
+                        status === 'administrator' || 
+                        status === 'creator';
+    
+    return isSubscribed;
+  } catch (error) {
+    console.error('Error checking subscription:', error);
+    return false;
   }
 }
