@@ -18,8 +18,8 @@ interface UserFromDB {
   cases_to_open: number;
   created_at: string;
   last_login_at: string;
-  subscribed: number;
-  voted: number;
+  subscribed_to_channel: number; // ИЗМЕНЕНО: теперь используем новое имя
+  boost_count_before: number;    // ИЗМЕНЕНО: теперь используем новое имя
 }
 
 interface AuthResponse {
@@ -45,24 +45,51 @@ interface AuthResponse {
 
 export async function POST(req: NextRequest) {
   try {
-    const { initData, startapp } = await req.json();
+    const body = await req.json();
+    const { initData, startapp } = body;
+
+    console.log('=== AUTH REQUEST ===');
+    console.log('initData exists:', !!initData);
+    console.log('initData length:', initData?.length || 0);
+    console.log('startapp:', startapp);
 
     if (!initData) {
+      console.error('❌ initData is missing');
       return NextResponse.json({ error: 'initData is required' }, { status: 400 });
     }
 
     const botToken = process.env.BOT_TOKEN;
     if (!botToken) {
+      console.error('❌ BOT_TOKEN not configured');
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
-    if (!validateTelegramHash(initData, botToken)) {
+    console.log('Validating hash...');
+    const isValid = validateTelegramHash(initData, botToken);
+    console.log('Hash valid:', isValid);
+
+    if (!isValid) {
+      console.error('❌ Invalid hash');
       return NextResponse.json({ error: 'Invalid Telegram hash' }, { status: 403 });
     }
 
     const params = new URLSearchParams(initData);
-    const userData = JSON.parse(params.get('user') || '{}');
+    const userParam = params.get('user');
     
+    console.log('User param:', userParam);
+    
+    if (!userParam) {
+      console.error('❌ No user in initData');
+      return NextResponse.json({ error: 'No user data in initData' }, { status: 400 });
+    }
+
+    const userData = JSON.parse(userParam);
+    
+    console.log('=== USER DATA ===');
+    console.log('User ID:', userData.id);
+    console.log('Username:', userData.username);
+    console.log('First name:', userData.first_name);
+
     let startParam = startapp;
     
     if (!startParam) {
@@ -77,16 +104,14 @@ export async function POST(req: NextRequest) {
           startParam = initDataObj.start_param;
         }
       } catch (e) {
-        console.log('Error parsing startapp from initData:', e);
+        console.log('Error parsing startapp:', e);
       }
     }
 
-    console.log('=== AUTH DEBUG ===');
-    console.log('User ID:', userData.id);
-    console.log('Start param received:', startapp);
-    console.log('Start param from initData:', startParam);
+    console.log('Start param:', startParam);
 
     if (!userData.id) {
+      console.error('❌ No user ID');
       return NextResponse.json({ error: 'Invalid user data' }, { status: 400 });
     }
 
@@ -108,27 +133,18 @@ export async function POST(req: NextRequest) {
       const referrerIdStr = startParam.replace(/^ref_?/, '');
       const referrerTgId = parseInt(referrerIdStr, 10);
       
-      console.log('Referrer TG ID from param:', referrerTgId);
+      console.log('Referrer TG ID:', referrerTgId);
       console.log('Current user TG ID:', userData.id);
       
       if (!isNaN(referrerTgId) && referrerTgId > 0 && referrerTgId !== userData.id) {
         const referrerStmt = db.prepare('SELECT id FROM users WHERE tg_id = ?');
         const referrer = referrerStmt.get(referrerTgId) as { id: number } | undefined;
         
-        console.log('Found referrer:', referrer);
-        
         if (referrer) {
           referredById = referrer.id;
-          
-          if (user && user.referred_by_id === null) {
-            console.log('🔗 Linking existing user to referrer:', referredById);
-          } else if (!user) {
-            console.log('🆕 New user will be created with referrer:', referredById);
-          } else {
-            console.log('ℹ️ User already has a referrer');
-          }
+          console.log('✅ Found referrer:', referredById);
         } else {
-          console.log('❌ Referrer not found in database');
+          console.log('❌ Referrer not found');
         }
       }
     }
@@ -149,14 +165,12 @@ export async function POST(req: NextRequest) {
         userData.id
       );
       user = findUserStmt.get(userData.id) as UserFromDB;
-      console.log('✅ Existing user updated, referred_by_id:', user?.referred_by_id);
+      console.log('✅ User updated');
     } else {
       const insertStmt = db.prepare(`
         INSERT INTO users (tg_id, username, first_name, last_name, referred_by_id, balance_crystals)
         VALUES (?, ?, ?, ?, ?, 400)
       `);
-      
-      console.log('Creating user with referred_by_id:', referredById);
       
       insertStmt.run(
         userData.id,
@@ -167,10 +181,11 @@ export async function POST(req: NextRequest) {
       );
 
       user = findUserStmt.get(userData.id) as UserFromDB;
-      console.log('🆕 New user created with ID:', user?.id, 'referred_by_id:', user?.referred_by_id);
+      console.log('✅ New user created');
     }
 
     if (!user) {
+      console.error('❌ User not found after create/update');
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
@@ -189,8 +204,8 @@ export async function POST(req: NextRequest) {
       cases_to_open: user.cases_to_open,
       created_at: user.created_at,
       last_login_at: user.last_login_at,
-      subscribed_to_channel: user.subscribed === 1,
-      voted_for_channel: user.voted === 1,
+      subscribed_to_channel: user.subscribed_to_channel === 1,
+      voted_for_channel: user.boost_count_before > 0,
       tasks_completed: {
         subscribe: completedTaskKeys.includes('subscribe_channel'),
         vote: completedTaskKeys.includes('vote_poll'),
@@ -198,19 +213,17 @@ export async function POST(req: NextRequest) {
       }
     };
 
-    console.log('=== FINAL USER DATA ===');
+    console.log('=== SUCCESS ===');
     console.log('User ID:', user.id);
     console.log('TG ID:', user.tg_id);
-    console.log('Referred by:', user.referred_by_id);
     console.log('Balance:', user.balance_crystals);
-    console.log('Tasks completed:', response.tasks_completed);
 
     return NextResponse.json(response);
 
   } catch (error) {
-    console.error('Auth error:', error);
+    console.error('❌ Auth error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: String(error) },
       { status: 500 }
     );
   }
