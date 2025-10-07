@@ -75,7 +75,6 @@ const GlobalStyles = () => (
 );
 
 type UserProfile = {
-  username: string;
   id: number;
   tg_id: number;
   balance_crystals: number;
@@ -143,7 +142,6 @@ export default function HomePage() {
       tg.disableVerticalSwipes();
       
       const startappParam = tg.initDataUnsafe?.start_param;
-      console.log('startapp from WebApp:', startappParam);
       
       fetch('/api/auth', {
         method: 'POST',
@@ -161,11 +159,6 @@ export default function HomePage() {
         if ((data as any).error) {
           setError((data as any).error);
         } else {
-          console.log('=== USER LOADED FROM API ===');
-          console.log('Full data:', data);
-          console.log('tg_id:', data.tg_id);
-          console.log('id:', data.id);
-          
           setUser(data);
           const today = new Date().toISOString().split('T')[0];
           if (data.last_tap_date === today) {
@@ -216,8 +209,6 @@ export default function HomePage() {
     .then(response => response.json())
     .then(data => {
       if (data.error) {
-        console.error('Tap error:', data.error);
-        
         setUser(prevUser => {
             if (!prevUser) return null;
             const newBalance = (prevUser.balance_crystals || 0) - 1;
@@ -263,43 +254,54 @@ export default function HomePage() {
   };
   
   const handleInviteFriend = () => {
-  const tg = window.Telegram?.WebApp;
-  
-  if (!tg) {
-    alert('❌ Telegram WebApp не найден');
-    return;
-  }
-  
-  if (loading) {
-    tg.showAlert('⏳ Загрузка данных. Подождите.');
-    return;
-  }
-  
-  if (!user) {
-    tg.showAlert('❌ Пользователь не загружен. Перезагрузите приложение.');
-    return;
-  }
-  
-  const userId = user.tg_id;
-  
-  if (!userId) {
-    tg.showAlert(`❌ tg_id отсутствует. User object: ${JSON.stringify(user)}`);
-    return;
-  }
-  
-  const botUsername = 'my_auction_admin_bot';
-  const appName = 'assist_plus';
-  
-  const referralLink = `https://t.me/${botUsername}/${appName}?startapp=ref${userId}`;
-  const shareText = `Привет! Запусти мини-приложение "Ассист+" и получай бонусы!`;
-  
-  try {
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
-    tg.openTelegramLink(shareUrl);
-  } catch (error) {
-    tg.showAlert(`Ошибка: ${error}\n\nСсылка: ${referralLink}`);
-  }
-};
+    const tg = window.Telegram?.WebApp;
+    
+    if (!tg) {
+      return;
+    }
+    
+    if (loading) {
+      tg.showAlert('Загрузка данных. Подождите немного.');
+      return;
+    }
+    
+    if (!user) {
+      tg.showAlert('Данные пользователя не загружены. Перезагрузите страницу.');
+      return;
+    }
+    
+    const userId = user.tg_id;
+    
+    if (!userId) {
+      tg.showAlert('ID пользователя не найден. Перезагрузите страницу.');
+      return;
+    }
+    
+    const botUsername = 'my_auction_admin_bot';
+    const appName = 'assist_plus';
+    
+    const referralLink = `https://t.me/${botUsername}/${appName}?startapp=ref${userId}`;
+    const shareText = `Привет! Запусти мини-приложение "Ассист+" и получай бонусы!`;
+    
+    try {
+      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
+      tg.openTelegramLink(shareUrl);
+    } catch (error) {
+      console.error('Share error:', error);
+      const fullText = `${shareText}\n${referralLink}`;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(fullText)
+          .then(() => {
+            tg.showAlert('Ссылка скопирована в буфер обмена! Отправь ее другу.');
+          })
+          .catch(() => {
+            tg.showAlert(`Ссылка для друга:\n${referralLink}`);
+          });
+      } else {
+        tg.showAlert(`Ссылка для друга:\n${referralLink}`);
+      }
+    }
+  };
 
   const checkTask = (taskId: 'subscribe' | 'vote' | 'invite') => {
     const tg = window.Telegram?.WebApp;
@@ -344,84 +346,59 @@ export default function HomePage() {
   };
 
   const handleVoteForChannel = () => {
-  const tg = window.Telegram?.WebApp;
-  
-  // Сначала сохраняем текущее количество бустов
-  if (tg?.initData) {
-    fetch('/api/save-boost-count', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData: tg.initData }),
-    })
-    .then(() => {
-      // ИСПРАВЛЕНО: Правильная ссылка на буст
-      tg.openTelegramLink('https://t.me/boost?c=2782276287');
-    })
-    .catch((err) => {
-      console.error('Save boost count error:', err);
-      // Всё равно открываем страницу буста
-      tg.openTelegramLink('https://t.me/boost?c=2782276287');
-    });
-  } else {
-    // Если нет initData, просто открываем ссылку
-    tg?.openTelegramLink('https://t.me/boost?c=2782276287');
-  }
-};
+    const tg = window.Telegram?.WebApp;
+    
+    if (tg?.initData) {
+      fetch('/api/save-boost-count', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: tg.initData }),
+      })
+      .then(() => {
+        tg.openTelegramLink('https://t.me/boost?c=2782276287');
+      })
+      .catch((err) => {
+        console.error('Save boost count error:', err);
+        tg.openTelegramLink('https://t.me/boost?c=2782276287');
+      });
+    } else {
+      tg?.openTelegramLink('https://t.me/boost?c=2782276287');
+    }
+  };
 
-  // Убираем useState, делаем обычную переменную которая пересоздаётся при каждом рендере
-const tasks: Task[] = [
-  {
-    id: 1,
-    points: 100,
-    title: "Подпишись на Ассист+",
-    checkButtonText: "Проверить",
-    actionButtonText: "Подписаться",
-    action: handleSubscribeToChannel,
-    checkAction: () => checkTask('subscribe'),
-    isCompleted: user?.tasks_completed?.subscribe || false,
-  },
-  {
-    id: 2,
-    points: 500,
-    title: "Отдай голос",
-    description: "на улучшение канала",
-    checkButtonText: "Проверить",
-    actionButtonText: "Проголосовать",
-    action: handleVoteForChannel,
-    checkAction: () => checkTask('vote'),
-    isCompleted: user?.tasks_completed?.vote || false,
-  },
-  {
-    id: 3,
-    points: 500,
-    title: "Пригласи друга",
-    checkButtonText: "Проверить",
-    actionButtonText: "Пригласить",
-    action: handleInviteFriend,
-    checkAction: () => checkTask('invite'),
-    isCompleted: user?.tasks_completed?.invite || false,
-  },
-];
-  // Добавьте после всех useState и useEffect, перед return
-const [showDebug, setShowDebug] = useState(true); // Показываем дебаг панель
-
-// Функция для копирования в буфер обмена
-const copyToClipboard = (text: string) => {
-  const tg = window.Telegram?.WebApp;
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text)
-      .then(() => tg?.showAlert('Скопировано!'))
-      .catch(() => tg?.showAlert('Ошибка копирования'));
-  } else {
-    tg?.showAlert(text);
-  }
-};
-
-// Функция создания реферальной ссылки (для дебага)
-const createReferralLink = () => {
-  if (!user?.tg_id) return 'Нет tg_id';
-  return `https://t.me/my_auction_admin_bot/assist_plus?startapp=ref${user.tg_id}`;
-};
+  const tasks: Task[] = [
+    {
+      id: 1,
+      points: 100,
+      title: "Подпишись на Ассист+",
+      checkButtonText: "Проверить",
+      actionButtonText: "Подписаться",
+      action: handleSubscribeToChannel,
+      checkAction: () => checkTask('subscribe'),
+      isCompleted: user?.tasks_completed?.subscribe || false,
+    },
+    {
+      id: 2,
+      points: 500,
+      title: "Отдай голос",
+      description: "на улучшение канала",
+      checkButtonText: "Проверить",
+      actionButtonText: "Проголосовать",
+      action: handleVoteForChannel,
+      checkAction: () => checkTask('vote'),
+      isCompleted: user?.tasks_completed?.vote || false,
+    },
+    {
+      id: 3,
+      points: 500,
+      title: "Пригласи друга",
+      checkButtonText: "Проверить",
+      actionButtonText: "Пригласить",
+      action: handleInviteFriend,
+      checkAction: () => checkTask('invite'),
+      isCompleted: user?.tasks_completed?.invite || false,
+    },
+  ];
 
   const handleTaskAction = (taskId: number, actionType: "check" | "action") => {
     const task = tasks.find(t => t.id === taskId);
@@ -445,140 +422,7 @@ const createReferralLink = () => {
   }
 
   return (
-  <>
-    {/* DEBUG PANEL - УДАЛИТЬ ПОСЛЕ ОТЛАДКИ */}
-    {showDebug && (
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 9999,
-        backgroundColor: '#000000',
-        color: '#00ff00',
-        padding: '10px',
-        fontSize: '11px',
-        fontFamily: 'monospace',
-        maxHeight: '300px',
-        overflowY: 'auto',
-        borderBottom: '2px solid #00ff00'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-          <strong>🔍 DEBUG PANEL</strong>
-          <button 
-            onClick={() => setShowDebug(false)}
-            style={{
-              background: '#ff0000',
-              color: '#ffffff',
-              border: 'none',
-              padding: '2px 8px',
-              cursor: 'pointer',
-              borderRadius: '3px'
-            }}
-          >
-            Закрыть
-          </button>
-        </div>
-        
-        <div style={{ marginBottom: '8px' }}>
-          <strong>Loading:</strong> {loading ? '⏳ ДА' : '✅ НЕТ'}
-        </div>
-        
-        <div style={{ marginBottom: '8px' }}>
-          <strong>Error:</strong> {error || '✅ Нет'}
-        </div>
-        
-        <div style={{ marginBottom: '8px' }}>
-          <strong>User exists:</strong> {user ? '✅ ДА' : '❌ НЕТ'}
-        </div>
-        
-        {user && (
-          <>
-            <div style={{ marginBottom: '8px' }}>
-              <strong>User.id:</strong> {user.id}
-            </div>
-            <div style={{ marginBottom: '8px' }}>
-              <strong>User.tg_id:</strong> {user.tg_id || '❌ ОТСУТСТВУЕТ'}
-            </div>
-            <div style={{ marginBottom: '8px' }}>
-              <strong>Balance:</strong> {user.balance_crystals}
-            </div>
-            <div style={{ marginBottom: '8px' }}>
-              <strong>Username:</strong> {user.username || 'N/A'}
-            </div>
-          </>
-        )}
-        
-        <div style={{ 
-          marginTop: '10px', 
-          padding: '8px', 
-          backgroundColor: '#1a1a1a',
-          borderRadius: '4px',
-          wordBreak: 'break-all'
-        }}>
-          <strong>Реферальная ссылка:</strong>
-          <div style={{ marginTop: '5px', color: '#ffffff' }}>
-            {createReferralLink()}
-          </div>
-          <button
-            onClick={() => copyToClipboard(createReferralLink())}
-            style={{
-              marginTop: '5px',
-              background: '#00ff00',
-              color: '#000000',
-              border: 'none',
-              padding: '5px 10px',
-              cursor: 'pointer',
-              borderRadius: '3px',
-              fontWeight: 'bold'
-            }}
-          >
-            📋 Копировать ссылку
-          </button>
-        </div>
-        
-        <div style={{ marginTop: '10px' }}>
-          <button
-            onClick={handleInviteFriend}
-            style={{
-              background: '#0088cc',
-              color: '#ffffff',
-              border: 'none',
-              padding: '8px 15px',
-              cursor: 'pointer',
-              borderRadius: '5px',
-              fontWeight: 'bold',
-              width: '100%'
-            }}
-          >
-            🚀 Тест: Пригласить друга
-          </button>
-        </div>
-      </div>
-    )}
-    
-    {/* Кнопка для показа дебаг панели если закрыли */}
-    {!showDebug && (
-      <button
-        onClick={() => setShowDebug(true)}
-        style={{
-          position: 'fixed',
-          top: '10px',
-          right: '10px',
-          zIndex: 9998,
-          background: '#00ff00',
-          color: '#000000',
-          border: 'none',
-          padding: '5px 10px',
-          cursor: 'pointer',
-          borderRadius: '5px',
-          fontWeight: 'bold'
-        }}
-      >
-        🔍 DEBUG
-      </button>
-    )}
-    
+    <>
       <GlobalStyles />
       <div className="app-wrapper">
         <main className="main-container">
