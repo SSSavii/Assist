@@ -264,65 +264,57 @@ export default function HomePage() {
   const handleInviteFriend = () => {
   const tg = window.Telegram?.WebApp;
   
-  // Детальное логирование
-  console.log('=== INVITE FRIEND DEBUG ===');
-  console.log('Telegram WebApp:', tg);
+  console.log('=== INVITE FRIEND CLICKED ===');
+  console.log('Telegram WebApp exists:', !!tg);
   console.log('User object:', user);
-  console.log('User tg_id:', user?.tg_id);
+  console.log('Loading:', loading);
   
   if (!tg) {
-    console.error('❌ Telegram WebApp not available');
-    alert('Telegram WebApp недоступен. Откройте в Telegram.');
+    console.error('❌ No Telegram WebApp');
+    return;
+  }
+  
+  if (loading) {
+    console.log('⏳ Still loading...');
+    tg.showAlert('Загрузка данных. Подождите немного.');
     return;
   }
   
   if (!user) {
-    console.error('❌ User object is null/undefined');
+    console.error('❌ User is null');
     tg.showAlert('Данные пользователя не загружены. Перезагрузите страницу.');
     return;
   }
   
-  // Используем tg_id или id в зависимости от того, что доступно
-  const userId = user.tg_id || user.id;
+  console.log('User data:', {
+    id: user.id,
+    tg_id: user.tg_id,
+    balance: user.balance_crystals
+  });
   
-  console.log('Resolved user ID:', userId);
+  const userId = user.tg_id;
   
   if (!userId) {
-    console.error('❌ No user ID found:', { user, tg_id: user.tg_id, id: user.id });
+    console.error('❌ No tg_id in user object');
     tg.showAlert('ID пользователя не найден. Перезагрузите страницу.');
     return;
   }
   
-  // Хардкод значений для надёжности
   const botUsername = 'my_auction_admin_bot';
   const appName = 'assist_plus';
   
   const referralLink = `https://t.me/${botUsername}/${appName}?startapp=ref${userId}`;
   const shareText = `Привет! Запусти мини-приложение "Ассист+" и получай бонусы!`;
   
-  console.log('✅ Generated referral link:', referralLink);
-  console.log('Share text:', shareText);
+  console.log('✅ Referral link created:', referralLink);
   
   try {
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
-    console.log('Opening share URL');
+    console.log('Opening share URL...');
     tg.openTelegramLink(shareUrl);
   } catch (error) {
     console.error('Share error:', error);
-    // Fallback: копируем в буфер обмена
-    const fullText = `${shareText}\n${referralLink}`;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(fullText)
-        .then(() => {
-          tg.showAlert('Ссылка скопирована в буфер обмена! Отправь ее другу.');
-        })
-        .catch((err) => {
-          console.error('Clipboard error:', err);
-          tg.showAlert(`Ссылка для друга:\n${referralLink}`);
-        });
-    } else {
-      tg.showAlert(`Ссылка для друга:\n${referralLink}`);
-    }
+    tg.showAlert(`Ссылка для друга:\n${referralLink}`);
   }
 };
 
