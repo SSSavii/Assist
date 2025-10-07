@@ -160,6 +160,11 @@ export default function HomePage() {
         if ((data as any).error) {
           setError((data as any).error);
         } else {
+          console.log('=== USER LOADED FROM API ===');
+          console.log('Full data:', data);
+          console.log('tg_id:', data.tg_id);
+          console.log('id:', data.id);
+          
           setUser(data);
           const today = new Date().toISOString().split('T')[0];
           if (data.last_tap_date === today) {
@@ -259,67 +264,65 @@ export default function HomePage() {
   const handleInviteFriend = () => {
   const tg = window.Telegram?.WebApp;
   
-  // Детальное логирование для отладки
+  // Детальное логирование
   console.log('=== INVITE FRIEND DEBUG ===');
-  console.log('Telegram WebApp exists:', !!tg);
+  console.log('Telegram WebApp:', tg);
   console.log('User object:', user);
-  console.log('User exists:', !!user);
   console.log('User tg_id:', user?.tg_id);
   
   if (!tg) {
-    console.error('Telegram WebApp not available');
-    alert('Telegram WebApp недоступен');
+    console.error('❌ Telegram WebApp not available');
+    alert('Telegram WebApp недоступен. Откройте в Telegram.');
     return;
   }
   
   if (!user) {
-    console.error('User object is null');
+    console.error('❌ User object is null/undefined');
     tg.showAlert('Данные пользователя не загружены. Перезагрузите страницу.');
     return;
   }
   
-  if (!user.tg_id) {
-    console.error('User tg_id is missing:', user);
+  // Используем tg_id или id в зависимости от того, что доступно
+  const userId = user.tg_id || user.id;
+  
+  console.log('Resolved user ID:', userId);
+  
+  if (!userId) {
+    console.error('❌ No user ID found:', { user, tg_id: user.tg_id, id: user.id });
     tg.showAlert('ID пользователя не найден. Перезагрузите страницу.');
     return;
   }
   
-  const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
-  const appName = process.env.NEXT_PUBLIC_APP_NAME || 'assist_plus';
+  // Хардкод значений для надёжности
+  const botUsername = 'my_auction_admin_bot';
+  const appName = 'assist_plus';
   
-  console.log('Bot username from env:', botUsername);
-  console.log('App name from env:', appName);
-  console.log('User TG ID:', user.tg_id);
-  
-  // Если переменные окружения не загрузились, используем хардкод для теста
-  const finalBotUsername = botUsername || 'my_auction_admin_bot';
-  const finalAppName = appName || 'assist_plus';
-  
-  console.log('Final bot username:', finalBotUsername);
-  console.log('Final app name:', finalAppName);
-  
-  const referralLink = `https://t.me/${finalBotUsername}/${finalAppName}?startapp=ref${user.tg_id}`;
+  const referralLink = `https://t.me/${botUsername}/${appName}?startapp=ref${userId}`;
   const shareText = `Привет! Запусти мини-приложение "Ассист+" и получай бонусы!`;
   
-  console.log('Generated referral link:', referralLink);
+  console.log('✅ Generated referral link:', referralLink);
   console.log('Share text:', shareText);
   
   try {
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
-    console.log('Opening share URL:', shareUrl);
+    console.log('Opening share URL');
     tg.openTelegramLink(shareUrl);
   } catch (error) {
     console.error('Share error:', error);
     // Fallback: копируем в буфер обмена
     const fullText = `${shareText}\n${referralLink}`;
-    navigator.clipboard.writeText(fullText)
-      .then(() => {
-        tg.showAlert('Ссылка скопирована в буфер обмена! Отправь ее другу.');
-      })
-      .catch((err) => {
-        console.error('Clipboard error:', err);
-        tg.showAlert(`Ссылка для друга:\n${referralLink}`);
-      });
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(fullText)
+        .then(() => {
+          tg.showAlert('Ссылка скопирована в буфер обмена! Отправь ее другу.');
+        })
+        .catch((err) => {
+          console.error('Clipboard error:', err);
+          tg.showAlert(`Ссылка для друга:\n${referralLink}`);
+        });
+    } else {
+      tg.showAlert(`Ссылка для друга:\n${referralLink}`);
+    }
   }
 };
 
