@@ -368,39 +368,40 @@ export default function HomePage() {
   }
 };
 
-  const [tasks] = useState<Task[]>([
-    {
-      id: 1,
-      points: 100,
-      title: "Подпишись на Ассист+",
-      checkButtonText: "Проверить",
-      actionButtonText: "Подписаться",
-      action: handleSubscribeToChannel,
-      checkAction: () => checkTask('subscribe'),
-      isCompleted: user?.tasks_completed?.subscribe || false,
-    },
-    {
-      id: 2,
-      points: 500,
-      title: "Отдай голос",
-      description: "на улучшение канала",
-      checkButtonText: "Проверить",
-      actionButtonText: "Проголосовать",
-      action: handleVoteForChannel,
-      checkAction: () => checkTask('vote'),
-      isCompleted: user?.tasks_completed?.vote || false,
-    },
-    {
-      id: 3,
-      points: 500,
-      title: "Пригласи друга",
-      checkButtonText: "Проверить",
-      actionButtonText: "Пригласить",
-      action: handleInviteFriend,
-      checkAction: () => checkTask('invite'),
-      isCompleted: user?.tasks_completed?.invite || false,
-    },
-  ]);
+  // Убираем useState, делаем обычную переменную которая пересоздаётся при каждом рендере
+const tasks: Task[] = [
+  {
+    id: 1,
+    points: 100,
+    title: "Подпишись на Ассист+",
+    checkButtonText: "Проверить",
+    actionButtonText: "Подписаться",
+    action: handleSubscribeToChannel,
+    checkAction: () => checkTask('subscribe'),
+    isCompleted: user?.tasks_completed?.subscribe || false,
+  },
+  {
+    id: 2,
+    points: 500,
+    title: "Отдай голос",
+    description: "на улучшение канала",
+    checkButtonText: "Проверить",
+    actionButtonText: "Проголосовать",
+    action: handleVoteForChannel,
+    checkAction: () => checkTask('vote'),
+    isCompleted: user?.tasks_completed?.vote || false,
+  },
+  {
+    id: 3,
+    points: 500,
+    title: "Пригласи друга",
+    checkButtonText: "Проверить",
+    actionButtonText: "Пригласить",
+    action: handleInviteFriend,
+    checkAction: () => checkTask('invite'),
+    isCompleted: user?.tasks_completed?.invite || false,
+  },
+];
   // Добавьте после всех useState и useEffect, перед return
 const [showDebug, setShowDebug] = useState(true); // Показываем дебаг панель
 
