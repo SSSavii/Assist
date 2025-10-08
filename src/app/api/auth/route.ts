@@ -18,8 +18,9 @@ interface UserFromDB {
   cases_to_open: number;
   created_at: string;
   last_login_at: string;
-  subscribed_to_channel: number; // ИЗМЕНЕНО: теперь используем новое имя
-  boost_count_before: number;    // ИЗМЕНЕНО: теперь используем новое имя
+  subscribed_to_channel: number;
+  boost_count_before: number;
+  photo_url: string | null;
 }
 
 interface AuthResponse {
@@ -89,6 +90,7 @@ export async function POST(req: NextRequest) {
     console.log('User ID:', userData.id);
     console.log('Username:', userData.username);
     console.log('First name:', userData.first_name);
+    console.log('Photo URL:', userData.photo_url);
 
     let startParam = startapp;
     
@@ -152,7 +154,7 @@ export async function POST(req: NextRequest) {
     if (user) {
       const updateStmt = db.prepare(`
         UPDATE users 
-        SET username = ?, first_name = ?, last_name = ?, 
+        SET username = ?, first_name = ?, last_name = ?, photo_url = ?,
             last_login_at = CURRENT_TIMESTAMP,
             referred_by_id = COALESCE(referred_by_id, ?)
         WHERE tg_id = ?
@@ -160,7 +162,8 @@ export async function POST(req: NextRequest) {
       updateStmt.run(
         userData.username, 
         userData.first_name, 
-        userData.last_name, 
+        userData.last_name,
+        userData.photo_url || null,
         referredById,
         userData.id
       );
@@ -168,8 +171,8 @@ export async function POST(req: NextRequest) {
       console.log('✅ User updated');
     } else {
       const insertStmt = db.prepare(`
-        INSERT INTO users (tg_id, username, first_name, last_name, referred_by_id, balance_crystals)
-        VALUES (?, ?, ?, ?, ?, 400)
+        INSERT INTO users (tg_id, username, first_name, last_name, photo_url, referred_by_id, balance_crystals)
+        VALUES (?, ?, ?, ?, ?, ?, 400)
       `);
       
       insertStmt.run(
@@ -177,6 +180,7 @@ export async function POST(req: NextRequest) {
         userData.username,
         userData.first_name,
         userData.last_name,
+        userData.photo_url || null,
         referredById
       );
 

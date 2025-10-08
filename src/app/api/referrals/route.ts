@@ -50,7 +50,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Current user not found in DB' }, { status: 404 });
     }
 
-    const findReferralsStmt = db.prepare('SELECT id, first_name, last_name FROM users WHERE referred_by_id = ? ORDER BY created_at DESC');
+    // ИЗМЕНЕНО: добавлено photo_url в SELECT
+    const findReferralsStmt = db.prepare('SELECT id, tg_id, first_name, last_name, photo_url FROM users WHERE referred_by_id = ? ORDER BY created_at DESC');
     const referrals = findReferralsStmt.all(currentUser.id);
 
     return NextResponse.json(referrals);

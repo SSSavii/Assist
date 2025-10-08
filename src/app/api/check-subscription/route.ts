@@ -151,18 +151,62 @@ export async function POST(req: NextRequest) {
         break;
 
       case 'invite':
-        // Проверка приглашенных друзей, которые подписаны на канал
-        const invitedSubscribedStmt = db.prepare(`
-          SELECT COUNT(*) as count 
+      // Проверка приглашенных друзей
+      try {
+        // Получаем всех приглашенных друзей
+        const invitedUsersStmt = db.prepare(`
+          SELECT id, tg_id, subscribed_to_channel 
           FROM users 
-          WHERE referred_by_id = ? 
-          AND subscribed_to_channel = 1
+          WHERE referred_by_id = ?
         `);
-        const subscribedCount = (invitedSubscribedStmt.get(user.id) as any)?.count || 0;
+        const invitedUsers = invitedUsersStmt.all(user.id) as Array<{
+          id: number;
+          tg_id: number;
+          subscribed_to_channel: number;
+        }>;
+        
+        if (invitedUsers.length === 0) {
+          isCompleted = false;
+          message = 'Вы еще никого не пригласили';
+          break;
+        }
+        
+        // Проверяем подписку каждого друга в реальном времени
+        let subscribedCount = 0;
+        const updateSubStmt = db.prepare(
+          'UPDATE users SET subscribed_to_channel = ? WHERE tg_id = ?'
+        );
+        
+        for (const friend of invitedUsers) {
+          // Если уже отмечен как подписанный, пропускаем проверку
+          if (friend.subscribed_to_channel === 1) {
+            subscribedCount++;
+            continue;
+          }
+          
+          // Проверяем подписку через Telegram API
+          try {
+            const chatMember = await checkChannelSubscription(friend.tg_id);
+            const isSubscribed = chatMember?.status === 'member' || 
+                              chatMember?.status === 'administrator' || 
+                              chatMember?.status === 'creator';
+            
+            if (isSubscribed) {
+              // Обновляем статус в БД
+              updateSubStmt.run(1, friend.tg_id);
+              subscribedCount++;
+            }
+          } catch (error) {
+            console.error(`Error checking subscription for user ${friend.tg_id}:`, error);
+            // Продолжаем проверку остальных
+          }
+        }
+        
+        console.log(`User ${user.id} has ${subscribedCount} subscribed friends out of ${invitedUsers.length} invited`);
         
         if (subscribedCount === 0) {
           isCompleted = false;
-          message = 'Ваши друзья должны подписаться на канал';
+          message = `У вас ${invitedUsers.length} приглашенных, но они еще не подписались на канал`;
           break;
         }
         
@@ -223,7 +267,7 @@ export async function POST(req: NextRequest) {
           // Возвращаем результат сразу
           return NextResponse.json({
             success: true,
-            message: `Награда за ${unrewardedFriends.length} друзей: +${totalReward} плюсов!`,
+            message: `🎉 Награда за ${unrewardedFriends.length} друзей: +${totalReward} плюсов!`,
             reward: totalReward,
             newBalance: user.balance_crystals + totalReward,
             friendsCount: subscribedCount
@@ -234,7 +278,14 @@ export async function POST(req: NextRequest) {
             ? `У вас ${subscribedCount} подписанных друзей. Награда уже получена!`
             : 'Пригласите друзей и попросите их подписаться на канал';
         }
-        break;
+      } catch (error) {
+        console.error('Invite check error:', error);
+        return NextResponse.json({ 
+          success: false, 
+          message: 'Ошибка проверки приглашений. Попробуйте позже.' 
+        });
+      }
+      break;
     }
 
     if (isCompleted) {

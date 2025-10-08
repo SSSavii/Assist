@@ -6,13 +6,16 @@ import Image from 'next/image';
 
 type UserProfile = {
   id: number;
+  tg_id: number;
   balance_crystals: number;
 };
 
 type Referral = {
   id: number;
+  tg_id: number;
   first_name: string;
   last_name: string | null;
+  photo_url?: string;
 };
 
 const MY_ICON_PATH = '/images/134.png';
@@ -59,6 +62,7 @@ export default function FriendsPage() {
         return res.json();
       })
       .then((userData) => {
+        console.log('[Friends] User data:', userData);
         setUser(userData);
         return fetch('/api/referrals', {
           method: 'POST',
@@ -71,6 +75,7 @@ export default function FriendsPage() {
         return res.json();
       })
       .then((data) => {
+        console.log('[Friends] Referrals data:', data);
         setReferrals(Array.isArray(data) ? data : []);
       })
       .catch((err) => {
@@ -81,6 +86,34 @@ export default function FriendsPage() {
         setLoading(false);
       });
   }, [isClient]);
+
+  const handleInviteFriend = () => {
+    const tg = window.Telegram?.WebApp;
+    
+    if (!tg) {
+      console.error('Telegram WebApp недоступен');
+      alert('Ошибка: приложение должно запускаться в Telegram');
+      return;
+    }
+
+    if (!user?.tg_id) {
+      console.error('User tg_id not found:', user);
+      tg.showAlert('Ошибка: пользователь не загружен. Перезагрузите страницу.');
+      return;
+    }
+
+    const botUsername = 'my_auction_admin_bot';
+    const appName = 'assist_plus';
+
+    const referralLink = `https://t.me/${botUsername}/${appName}?startapp=ref${user.tg_id}`;
+    const shareText = `Привет! Запусти мини-приложение "Ассист+" и получай бонусы!`;
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
+
+    console.log('[Friends] Opening share URL:', shareUrl);
+    console.log('[Friends] Referral link:', referralLink);
+
+    tg.openTelegramLink(shareUrl);
+  };
 
   if (!isClient) {
     return <div className="h-screen bg-white"></div>;
@@ -117,7 +150,6 @@ export default function FriendsPage() {
           Приглашай<br />друзей и получай<br />плюсы
         </h1>
 
-        {/* Красная кнопка с правилами - добавлена здесь */}
         <button
           onClick={() => setShowRules(true)}
           className="w-full max-w-sm h-16 mb-6 flex items-center justify-center bg-red-500 text-white text-lg font-medium rounded-2xl 
@@ -139,6 +171,7 @@ export default function FriendsPage() {
                   key={ref.id}
                   firstName={ref.first_name}
                   lastName={ref.last_name}
+                  photoUrl={ref.photo_url} 
                 />
               ))}
             </div>
@@ -150,34 +183,7 @@ export default function FriendsPage() {
 
       <footer className="w-full px-6 pb-6">
         <button
-          onClick={() => {
-            const tg = window.Telegram?.WebApp;
-            
-            if (!tg) {
-              console.error('Telegram WebApp недоступен');
-              alert('Ошибка: приложение должно запускаться в Telegram');
-              return;
-            }
-
-            const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
-            const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME;
-
-            if (!botUsername || !botName) {
-              tg.showAlert('Ошибка: конфигурация приложения');
-              return;
-            }
-
-            if (!user?.id) {
-              tg.showAlert('Ошибка: пользователь не загружен');
-              return;
-            }
-
-            const referralLink = `https://t.me/${botUsername}/${botName}?startapp=ref_${user.id}`;
-            const shareText = `Привет! Присоединяйся к "Ассист+" и получай бонусы.`;
-            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
-
-            tg.openTelegramLink(shareUrl);
-          }}
+          onClick={handleInviteFriend}
           className="w-full h-16 flex items-center justify-center bg-red-500 text-white text-lg gap-2 font-medium rounded-2xl 
                     transition-all shadow-[0_4px_0_0_rgba(0,0,0,0.3)] 
                     active:translate-y-1 active:shadow-[0_2px_0_0_rgba(0,0,0,0.3)]"
@@ -197,7 +203,6 @@ export default function FriendsPage() {
         </button>
       </footer>
 
-      {/* Модальное окно с правилами */}
       {showRules && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"

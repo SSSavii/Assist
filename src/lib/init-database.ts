@@ -22,7 +22,8 @@ db.exec(`
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     subscribed_to_channel INTEGER DEFAULT 0,
-    boost_count_before INTEGER DEFAULT 0
+    boost_count_before INTEGER DEFAULT 0,
+    photo_url TEXT
   )
 `);
 
