@@ -103,7 +103,8 @@ db.exec(`
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     subscribed_to_channel INTEGER DEFAULT 0,
-    boost_count_before INTEGER DEFAULT 0
+    boost_count_before INTEGER DEFAULT 0,
+    photo_url TEXT
   )
 `);
 db.exec(`
@@ -265,11 +266,16 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$telegram$2d$au
 ;
 ;
 const REFERRAL_BONUS = 500;
-const CHANNEL_ID = '-1002782276287'; // ID вашего канала
 async function POST(req) {
     try {
-        const { initData, startapp } = await req.json();
+        const body = await req.json();
+        const { initData, startapp } = body;
+        console.log('=== AUTH REQUEST ===');
+        console.log('initData exists:', !!initData);
+        console.log('initData length:', initData?.length || 0);
+        console.log('startapp:', startapp);
         if (!initData) {
+            console.error('❌ initData is missing');
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 error: 'initData is required'
             }, {
@@ -278,13 +284,18 @@ async function POST(req) {
         }
         const botToken = process.env.BOT_TOKEN;
         if (!botToken) {
+            console.error('❌ BOT_TOKEN not configured');
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 error: 'Server configuration error'
             }, {
                 status: 500
             });
         }
-        if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$telegram$2d$auth$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["validateTelegramHash"])(initData, botToken)) {
+        console.log('Validating hash...');
+        const isValid = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$telegram$2d$auth$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["validateTelegramHash"])(initData, botToken);
+        console.log('Hash valid:', isValid);
+        if (!isValid) {
+            console.error('❌ Invalid hash');
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 error: 'Invalid Telegram hash'
             }, {
@@ -292,13 +303,25 @@ async function POST(req) {
             });
         }
         const params = new URLSearchParams(initData);
-        const userData = JSON.parse(params.get('user') || '{}');
-        // ВАЖНОЕ ИСПРАВЛЕНИЕ: Используем переданный startapp или извлекаем из initData
-        let startParam = startapp; // Приоритет у переданного параметра
+        const userParam = params.get('user');
+        console.log('User param:', userParam);
+        if (!userParam) {
+            console.error('❌ No user in initData');
+            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                error: 'No user data in initData'
+            }, {
+                status: 400
+            });
+        }
+        const userData = JSON.parse(userParam);
+        console.log('=== USER DATA ===');
+        console.log('User ID:', userData.id);
+        console.log('Username:', userData.username);
+        console.log('First name:', userData.first_name);
+        console.log('Photo URL:', userData.photo_url);
+        let startParam = startapp;
         if (!startParam) {
-            // Пытаемся извлечь из initData разными способами
             startParam = params.get('startapp') || params.get('start_param') || params.get('start');
-            // Дополнительная попытка извлечь из объекта initDataUnsafe
             try {
                 const initDataObj = Object.fromEntries(params.entries());
                 if (initDataObj.startapp && !startParam) {
@@ -308,107 +331,73 @@ async function POST(req) {
                     startParam = initDataObj.start_param;
                 }
             } catch (e) {
-                console.log('Error parsing startapp from initData:', e);
+                console.log('Error parsing startapp:', e);
             }
         }
-        console.log('=== AUTH DEBUG ===');
-        console.log('User ID:', userData.id);
-        console.log('Start param received:', startapp);
-        console.log('Start param from initData:', startParam);
-        console.log('All initData params:', Object.fromEntries(params.entries()));
+        console.log('Start param:', startParam);
         if (!userData.id) {
+            console.error('❌ No user ID');
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 error: 'Invalid user data'
             }, {
                 status: 400
             });
         }
-        // Проверяем выполненные задачи пользователя
         const checkTasksStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
       SELECT t.task_key 
       FROM user_tasks ut 
       JOIN tasks t ON ut.task_id = t.id 
       WHERE ut.user_id = (SELECT id FROM users WHERE tg_id = ?)
     `);
-        // Находим или создаем пользователя
         const findUserStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
       SELECT * FROM users WHERE tg_id = ?
     `);
         let user = findUserStmt.get(userData.id);
-        // ОБРАБОТКА РЕФЕРАЛЬНОЙ ССЫЛКИ ДАЖЕ ДЛЯ СУЩЕСТВУЮЩИХ ПОЛЬЗОВАТЕЛЕЙ
         let referredById = null;
         if (startParam && startParam.startsWith('ref')) {
             const referrerIdStr = startParam.replace(/^ref_?/, '');
             const referrerTgId = parseInt(referrerIdStr, 10);
-            console.log('Referrer TG ID from param:', referrerTgId);
+            console.log('Referrer TG ID:', referrerTgId);
             console.log('Current user TG ID:', userData.id);
-            console.log('Is self-referral:', referrerTgId === userData.id);
             if (!isNaN(referrerTgId) && referrerTgId > 0 && referrerTgId !== userData.id) {
                 const referrerStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('SELECT id FROM users WHERE tg_id = ?');
                 const referrer = referrerStmt.get(referrerTgId);
-                console.log('Found referrer:', referrer);
                 if (referrer) {
                     referredById = referrer.id;
-                    // Награда реферу будет начислена при проверке задания invite_friend
-                    // только если приглашенный подпишется на канал
-                    if (user && user.referred_by_id === null) {
-                        console.log('🔗 Linking existing user to referrer:', referredById);
-                    } else if (!user) {
-                        console.log('🆕 New user will be created with referrer:', referredById);
-                    } else {
-                        console.log('ℹ️ User already has a referrer');
-                    }
+                    console.log('✅ Found referrer:', referredById);
                 } else {
-                    console.log('❌ Referrer not found in database');
+                    console.log('❌ Referrer not found');
                 }
             }
         }
         if (user) {
-            // ОБНОВЛЯЕМ СУЩЕСТВУЮЩЕГО ПОЛЬЗОВАТЕЛЯ - УСТАНАВЛИВАЕМ referred_by_id ЕСЛИ НУЖНО
             const updateStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
         UPDATE users 
-        SET username = ?, first_name = ?, last_name = ?, 
+        SET username = ?, first_name = ?, last_name = ?, photo_url = ?,
             last_login_at = CURRENT_TIMESTAMP,
-            referred_by_id = COALESCE(referred_by_id, ?) -- Устанавливаем если еще не установлен
+            referred_by_id = COALESCE(referred_by_id, ?)
         WHERE tg_id = ?
       `);
-            updateStmt.run(userData.username, userData.first_name, userData.last_name, referredById, userData.id);
+            updateStmt.run(userData.username, userData.first_name, userData.last_name, userData.photo_url || null, referredById, userData.id);
             user = findUserStmt.get(userData.id);
-            console.log('✅ Existing user updated, referred_by_id:', user?.referred_by_id);
+            console.log('✅ User updated');
         } else {
-            // Создаем нового пользователя с рефералом
             const insertStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare(`
-        INSERT INTO users (tg_id, username, first_name, last_name, referred_by_id, balance_crystals)
-        VALUES (?, ?, ?, ?, ?, 400)
+        INSERT INTO users (tg_id, username, first_name, last_name, photo_url, referred_by_id, balance_crystals)
+        VALUES (?, ?, ?, ?, ?, ?, 400)
       `);
-            console.log('Creating user with referred_by_id:', referredById);
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const result = insertStmt.run(userData.id, userData.username, userData.first_name, userData.last_name, referredById);
+            insertStmt.run(userData.id, userData.username, userData.first_name, userData.last_name, userData.photo_url || null, referredById);
             user = findUserStmt.get(userData.id);
-            console.log('🆕 New user created with ID:', user?.id, 'referred_by_id:', user?.referred_by_id);
+            console.log('✅ New user created');
         }
         if (!user) {
+            console.error('❌ User not found after create/update');
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 error: 'User not found'
             }, {
                 status: 404
             });
         }
-        // ПРОВЕРКА ПОДПИСКИ НА КАНАЛ
-        try {
-            const subscriptionStatus = await checkChannelSubscription(userData.id);
-            const isSubscribed = subscriptionStatus === true;
-            // Обновляем статус подписки в БД
-            const updateSubStmt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$init$2d$database$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].prepare('UPDATE users SET subscribed_to_channel = ? WHERE tg_id = ?');
-            updateSubStmt.run(isSubscribed ? 1 : 0, userData.id);
-            // Обновляем объект user
-            user.subscribed_to_channel = isSubscribed ? 1 : 0;
-            console.log('📢 Channel subscription status:', isSubscribed);
-        } catch (error) {
-            console.error('Subscription check error:', error);
-        // Продолжаем работу даже если проверка подписки не удалась
-        }
-        // Получаем выполненные задачи
         const completedTasks = checkTasksStmt.all(user.id);
         const completedTaskKeys = completedTasks.map((task)=>task.task_key);
         const response = {
@@ -423,59 +412,27 @@ async function POST(req) {
             cases_to_open: user.cases_to_open,
             created_at: user.created_at,
             last_login_at: user.last_login_at,
+            subscribed_to_channel: user.subscribed_to_channel === 1,
+            voted_for_channel: user.boost_count_before > 0,
             tasks_completed: {
                 subscribe: completedTaskKeys.includes('subscribe_channel'),
                 vote: completedTaskKeys.includes('vote_poll'),
                 invite: completedTaskKeys.includes('invite_friend')
             }
         };
-        console.log('=== FINAL USER DATA ===');
+        console.log('=== SUCCESS ===');
         console.log('User ID:', user.id);
-        console.log('Referred by:', user.referred_by_id);
+        console.log('TG ID:', user.tg_id);
         console.log('Balance:', user.balance_crystals);
-        console.log('Subscribed to channel:', user.subscribed_to_channel);
-        console.log('Tasks completed:', response.tasks_completed);
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json(response);
     } catch (error) {
-        console.error('Auth error:', error);
+        console.error('❌ Auth error:', error);
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-            error: 'Internal server error'
+            error: 'Internal server error',
+            details: String(error)
         }, {
             status: 500
         });
-    }
-}
-// Функция проверки подписки на канал
-async function checkChannelSubscription(userId) {
-    const botToken = process.env.BOT_TOKEN;
-    if (!botToken || !CHANNEL_ID) {
-        console.error('Bot token or channel ID not configured');
-        return false;
-    }
-    try {
-        const response = await fetch(`https://api.telegram.org/bot${botToken}/getChatMember`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                chat_id: CHANNEL_ID,
-                user_id: userId
-            })
-        });
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error('Telegram API error:', errorData);
-            return false;
-        }
-        const data = await response.json();
-        const status = data.result?.status;
-        // Проверяем статус членства
-        const isSubscribed = status === 'member' || status === 'administrator' || status === 'creator';
-        return isSubscribed;
-    } catch (error) {
-        console.error('Error checking subscription:', error);
-        return false;
     }
 }
 }}),

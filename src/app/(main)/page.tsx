@@ -3,6 +3,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const GlobalStyles = () => (
   <>
@@ -103,12 +104,14 @@ interface Task {
 }
 
 export default function HomePage() {
+  const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [tapsLeft, setTapsLeft] = useState(0);
   const [logoError, setLogoError] = useState(false);
   const [isBalancePressed, setIsBalancePressed] = useState(false);
+  const [isNavigationPressed, setIsNavigationPressed] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [deviceInfo, setDeviceInfo] = useState({
     isIOS: false,
@@ -366,6 +369,14 @@ export default function HomePage() {
     }
   };
 
+  const handleNavigationClick = () => {
+    const tg = window.Telegram?.WebApp;
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('light');
+    }
+    router.push('/navigation');
+  };
+
   const tasks: Task[] = [
     {
       id: 1,
@@ -552,7 +563,37 @@ export default function HomePage() {
                   </article>
                 ))}
               </div>
+
+              <div className="tasks-background-bottom">
+                <img
+                  className="tasks-bg-image-bottom"
+                  alt="Фоновое изображение снизу"
+                  src="/svg1642-j9o.svg"
+                />
+              </div>
             </div>
+          </section>
+
+          <section className="navigation-section">
+            <button
+              className={`navigation-button ${isNavigationPressed ? 'pressed' : ''}`}
+              onClick={handleNavigationClick}
+              onMouseDown={() => setIsNavigationPressed(true)}
+              onMouseUp={() => setIsNavigationPressed(false)}
+              onMouseLeave={() => setIsNavigationPressed(false)}
+              onTouchStart={() => setIsNavigationPressed(true)}
+              onTouchEnd={() => setIsNavigationPressed(false)}
+            >
+              <div className="navigation-text">
+                <div>Навигация</div>
+                <div>по каналу АССИСТ+</div>
+              </div>
+              <div className="navigation-arrow">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 13L13 3M13 3H3M13 3V13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </button>
           </section>
         </main>
 
@@ -829,6 +870,27 @@ export default function HomePage() {
             height: 253px;
             object-fit: cover;
           }
+
+          .tasks-background-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 253px;
+            overflow: hidden;
+            pointer-events: none;
+          }
+
+          .tasks-bg-image-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) rotate(180deg);
+            width: 100%;
+            max-width: 100vw;
+            height: 253px;
+            object-fit: cover;
+          }
           
           .tasks-header {
             display: flex;
@@ -990,6 +1052,63 @@ export default function HomePage() {
             pointer-events: none;
           }
 
+          .navigation-section {
+            width: 100%;
+            padding: 16px 16px 0;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            z-index: 1;
+          }
+
+          .navigation-button {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            gap: 10px;
+            isolation: isolate;
+            width: 100%;
+            max-width: 343px;
+            height: 80px;
+            background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s ease-in-out;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 4px 12px rgba(215, 37, 37, 0.3);
+            position: relative;
+          }
+
+          .navigation-button.pressed {
+            transform: scale(0.98);
+          }
+
+          .navigation-text {
+            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 500;
+            font-size: 18px;
+            color: #FFFFFF;
+            line-height: 1.2;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+          }
+
+          .navigation-arrow {
+            width: 16px;
+            height: 16px;
+            transform: rotate(-135deg);
+            flex: none;
+            order: 1;
+            flex-grow: 0;
+            z-index: 1;
+            margin: 0 auto;
+          }
+
           .loading-container, .error-container {
             display: flex;
             justify-content: center;
@@ -1013,6 +1132,7 @@ export default function HomePage() {
           @media (max-width: 375px) {
             .main-container {
               padding: 20px 0px 0px;
+              padding-bottom: 70px;
             }
             
             .task-card {
@@ -1026,10 +1146,19 @@ export default function HomePage() {
             .points-text {
               font-size: 18px;
             }
+
+            .navigation-button {
+              height: 70px;
+              padding: 16px;
+            }
+
+            .navigation-text {
+              font-size: 16px;
+            }
           }
 
           @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-            .logo-image, .plus-icon, .balance-crystal, .points-crystal, .tasks-bg-image {
+            .logo-image, .plus-icon, .balance-crystal, .points-crystal, .tasks-bg-image, .tasks-bg-image-bottom {
               image-rendering: -webkit-optimize-contrast;
               image-rendering: crisp-edges;
             }
