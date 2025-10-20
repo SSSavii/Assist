@@ -286,7 +286,7 @@ export default function ShopPage() {
         
         <button 
           onClick={handleSpin}
-          disabled={isSpinning || !user || user.cases_to_open <= 0 || !user.bot_started}
+          disabled={isSpinning || !user || user.cases_to_open <= 0}
           className="w-full h-14 flex items-center justify-center bg-gradient-to-r from-purple-600 to-blue-500 text-white text-lg font-bold rounded-xl 
           transition-all
           shadow-[0_4px_0_0_rgba(91,33,182,0.6)] 
