@@ -501,10 +501,15 @@ export default function HomePage() {
           <section className="tasks-section">
             <div className="tasks-container">
               <div className="tasks-background">
+                <img
+                  className="tasks-bg-image-top"
+                  alt="Фоновое изображение сверху"
+                  src="/svg1642-j9o.svg"
+                />
                 <div className="tasks-bg-color"></div>
                 <img
-                  className="tasks-bg-image"
-                  alt="Фоновое изображение"
+                  className="tasks-bg-image-bottom"
+                  alt="Фоновое изображение снизу"
                   src="/svg1642-j9o.svg"
                 />
               </div>
@@ -563,14 +568,6 @@ export default function HomePage() {
                   </article>
                 ))}
               </div>
-
-              <div className="tasks-background-bottom">
-                <img
-                  className="tasks-bg-image-bottom"
-                  alt="Фоновое изображение снизу"
-                  src="/svg1642-j9o.svg"
-                />
-              </div>
             </div>
           </section>
 
@@ -590,7 +587,7 @@ export default function HomePage() {
               </div>
               <div className="navigation-arrow">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M2 10L10 2M10 2L10 10M10 2L2 2" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M3 1L9 6L3 11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
             </button>
@@ -837,9 +834,9 @@ export default function HomePage() {
             flex-direction: column;
             align-items: center;
             gap: 16px;
-            padding: 28px 0px 180px;
+            padding: 28px 0px 28px;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
           }
           
           .tasks-background {
@@ -848,20 +845,13 @@ export default function HomePage() {
             left: 0;
             width: 100%;
             height: 100%;
-            bottom: 0;
             pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
           }
           
-          .tasks-bg-color {
-            position: absolute;
-            top: 73px;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #EAEAEA;
-          }
-          
-          .tasks-bg-image {
+          .tasks-bg-image-top {
             position: absolute;
             top: 0;
             left: 50%;
@@ -870,16 +860,17 @@ export default function HomePage() {
             max-width: 100vw;
             height: 253px;
             object-fit: cover;
+            z-index: 0;
           }
-
-          .tasks-background-bottom {
+          
+          .tasks-bg-color {
             position: absolute;
-            bottom: 0;
+            top: 73px;
+            bottom: 73px;
             left: 0;
             width: 100%;
-            height: 253px;
-            overflow: hidden;
-            pointer-events: none;
+            background-color: #EAEAEA;
+            z-index: 0;
           }
 
           .tasks-bg-image-bottom {
@@ -891,6 +882,7 @@ export default function HomePage() {
             max-width: 100vw;
             height: 253px;
             object-fit: cover;
+            z-index: 0;
           }
           
           .tasks-header {
@@ -1157,7 +1149,7 @@ export default function HomePage() {
           }
 
           @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-            .logo-image, .plus-icon, .balance-crystal, .points-crystal, .tasks-bg-image, .tasks-bg-image-bottom {
+            .logo-image, .plus-icon, .balance-crystal, .points-crystal, .tasks-bg-image-top, .tasks-bg-image-bottom {
               image-rendering: -webkit-optimize-contrast;
               image-rendering: crisp-edges;
             }
