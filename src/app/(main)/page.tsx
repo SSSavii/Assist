@@ -834,7 +834,7 @@ export default function HomePage() {
             flex-direction: column;
             align-items: center;
             gap: 16px;
-            padding: 28px 0px 180px;
+            padding: 28px 0px 100px;
             position: relative;
             overflow: visible;
           }
