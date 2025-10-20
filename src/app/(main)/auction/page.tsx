@@ -1,3 +1,4 @@
+// page.tsx (ShopPage)
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
@@ -8,28 +9,33 @@ type Prize = {
   name: string;
   type: 'rare' | 'common';
   canWin: boolean;
+  deliveryType: 'instant' | 'bot_message' | 'manual'; // Тип доставки приза
 };
 
 const ALL_PRIZES: Prize[] = [
   // Редкие призы (малый шанс)
-  { name: 'Онлайн-мини-разбор с Иваном', type: 'rare', canWin: true },
-  { name: 'Приоритетное место в мини-разборе у Ивана', type: 'rare', canWin: true },
-  { name: 'Участие в розыгрыше завтрака с Иваном', type: 'rare', canWin: false },
-  { name: 'Ответ Ивана голосом на ваш вопрос', type: 'rare', canWin: true },
-  { name: 'Звонок 1 на 1 с Антоном Орешкиным', type: 'rare', canWin: true },
+  { name: 'Онлайн-мини-разбор с Иваном', type: 'rare', canWin: true, deliveryType: 'manual' },
+  { name: 'Приоритетное место в мини-разборе у Ивана', type: 'rare', canWin: true, deliveryType: 'manual' },
+  { name: 'Участие в розыгрыше завтрака с Иваном', type: 'rare', canWin: false, deliveryType: 'manual' },
+  { name: 'Ответ Ивана голосом на ваш вопрос', type: 'rare', canWin: true, deliveryType: 'manual' },
+  { name: 'Звонок 1 на 1 с Антоном Орешкиным', type: 'rare', canWin: true, deliveryType: 'manual' },
 
   // Обычные призы (хороший шанс)
-  { name: '3 чек-листа', type: 'common', canWin: true },
-  { name: 'Участие в созвоне Антона Орешкина с БА', type: 'common', canWin: true },
-  { name: '1000 A+', type: 'common', canWin: true },
-  { name: 'Разбор вашего резюме', type: 'common', canWin: true }
+  { name: '3 чек-листа', type: 'common', canWin: true, deliveryType: 'bot_message' },
+  { name: 'Участие в созвоне Антона Орешкина с БА', type: 'common', canWin: true, deliveryType: 'manual' },
+  { name: '1000 A+', type: 'common', canWin: true, deliveryType: 'instant' },
+  { name: 'Разбор вашего резюме', type: 'common', canWin: true, deliveryType: 'manual' }
 ];
 
 interface UserProfile {
   id: number;
-  balance_crystals: number; // Changed from balance_pluses to match profile page
+  tg_id: number;
+  balance_crystals: number;
   cases_to_open: number;
+  bot_started?: boolean; // Флаг запущен ли бот
 }
+
+const CASE_COST = 1; // Стоимость одного кейса
 
 export default function ShopPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -69,13 +75,6 @@ export default function ShopPage() {
     .catch(err => {
       console.error("Shop page fetch error:", err);
       setError(err.message);
-      // Фиктивные данные для разработки
-      const mockUser: UserProfile = {
-        id: 1,
-        balance_crystals: 455, // Changed from balance_pluses
-        cases_to_open: 5
-      };
-      setUser(mockUser);
     })
     .finally(() => {
       setIsLoading(false);
@@ -91,34 +90,95 @@ export default function ShopPage() {
     return availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
   };
 
-  const saveWinningToDatabase = async (prize: Prize) => {
-    try {
-      const tg = window.Telegram?.WebApp;
-      if (!tg) return;
+  const handlePrizeDelivery = async (prize: Prize) => {
+    const tg = window.Telegram?.WebApp;
+    if (!tg) return;
 
-      const response = await fetch('/api/user/save-winning', {
+    try {
+      if (prize.deliveryType === 'instant') {
+        // Мгновенное начисление (например, плюсы)
+        const response = await fetch('/api/user/award-prize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            initData: tg.initData,
+            prizeName: prize.name,
+            prizeType: 'instant'
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (prize.name === '1000 A+') {
+            setUser(prev => prev ? {
+              ...prev,
+              balance_crystals: data.newBalance || (prev.balance_crystals + 1000)
+            } : null);
+          }
+        }
+      } else if (prize.deliveryType === 'bot_message') {
+        // Отправка через бота (чек-листы и т.д.)
+        await fetch('/api/bot/send-prize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            initData: tg.initData,
+            prizeName: prize.name,
+            messageType: 'checklist'
+          }),
+        });
+        
+        tg.showAlert(`Поздравляем! Вы выиграли: ${prize.name}\n\nПриз отправлен вам в бот!`);
+      } else if (prize.deliveryType === 'manual') {
+        // Ручная обработка (встречи, созвоны)
+        await fetch('/api/bot/send-prize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            initData: tg.initData,
+            prizeName: prize.name,
+            messageType: 'manual_contact'
+          }),
+        });
+        
+        tg.showAlert(`Поздравляем! Вы выиграли: ${prize.name}\n\nС вами свяжутся в ближайшее время!`);
+      }
+
+      // Сохраняем выигрыш в базу данных
+      await fetch('/api/user/save-winning', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           initData: tg.initData,
           prizeName: prize.name,
-          prizeType: prize.type
+          prizeType: prize.type,
+          deliveryType: prize.deliveryType
         }),
       });
 
-      if (!response.ok) {
-        console.error('Failed to save winning to database');
-      }
     } catch (error) {
-      console.error('Error saving winning:', error);
+      console.error('Error delivering prize:', error);
+      tg.showAlert('Произошла ошибка при начислении приза. Обратитесь в поддержку.');
     }
   };
 
   const handleSpin = async () => {
-    // TEMPORARY: Removed case cost check
-    // ORIGINAL CODE (uncomment to restore):
-    // if (isSpinning || hasSpunRef.current || !user || user.cases_to_open <= 0) return;
-    if (isSpinning || hasSpunRef.current || !user) return;
+    const tg = window.Telegram?.WebApp;
+
+    // Проверка запуска бота
+    if (!user?.bot_started) {
+      tg?.showAlert('Пожалуйста, сначала запустите бота для получения призов!');
+      setError('Необходимо запустить бота');
+      return;
+    }
+
+    // Проверка наличия кейсов
+    if (isSpinning || hasSpunRef.current || !user || user.cases_to_open <= 0) {
+      if (user && user.cases_to_open <= 0) {
+        tg?.showAlert('У вас недостаточно кейсов для прокрутки!');
+      }
+      return;
+    }
 
     setIsSpinning(true);
     setError('');
@@ -127,34 +187,41 @@ export default function ShopPage() {
     hasSpunRef.current = true;
 
     try {
-      window.Telegram?.WebApp?.HapticFeedback.impactOccurred('light');
+      tg?.HapticFeedback.impactOccurred('light');
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Уменьшаем количество кейсов
+      const response = await fetch('/api/user/use-case', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          initData: tg?.initData,
+          caseCost: CASE_COST
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Не удалось использовать кейс');
+      }
+
+      const data = await response.json();
+      
+      setUser(prev => prev ? { 
+        ...prev, 
+        cases_to_open: data.newCasesCount
+      } : null);
+
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       const prize = getRandomPrize();
       setWinningPrize(prize);
       setSpinKey(prev => prev + 1);
       
-      // TEMPORARY: Remove case cost reduction
-      // ORIGINAL CODE (uncomment to restore):
-      // setUser(prev => prev ? { 
-      //   ...prev, 
-      //   cases_to_open: prev.cases_to_open - 1 
-      // } : null);
-
-      // Add balance increase for 1000 pluses prize
-      if (prize.name === '1000 A+') {
-        setUser(prev => prev ? {
-          ...prev,
-          balance_crystals: prev.balance_crystals + 1000
-        } : null);
-      }
-      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
       setIsSpinning(false);
       hasSpunRef.current = false;
-      window.Telegram?.WebApp?.HapticFeedback.notificationOccurred('error');
+      tg?.HapticFeedback.notificationOccurred('error');
+      tg?.showAlert('Произошла ошибка. Попробуйте еще раз.');
     }
   };
 
@@ -162,8 +229,9 @@ export default function ShopPage() {
     if (winningPrize && !showPrizeAlert) {
       setShowPrizeAlert(true);
       window.Telegram?.WebApp?.HapticFeedback.notificationOccurred('success');
-      window.Telegram?.WebApp.showAlert(`Поздравляем! Вы выиграли: ${winningPrize.name}`);
-      saveWinningToDatabase(winningPrize);
+      
+      // Начисляем приз только после фактического выпадения
+      handlePrizeDelivery(winningPrize);
     }
     setIsSpinning(false);
     hasSpunRef.current = false;
@@ -197,6 +265,14 @@ export default function ShopPage() {
         </div>
       </div>
 
+      {/* Предупреждение о боте */}
+      {!user?.bot_started && (
+        <div className="w-full bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-5 rounded">
+          <p className="font-bold">Внимание!</p>
+          <p>Запустите бота для получения призов</p>
+        </div>
+      )}
+
       {/* Слот-машина */}
       <div className="w-full bg-white rounded-xl shadow-sm p-4 mb-5">
         <div className="h-64 mb-4">
@@ -210,27 +286,19 @@ export default function ShopPage() {
         
         <button 
           onClick={handleSpin}
-          // TEMPORARY: Removed cases check from disabled state
-          // ORIGINAL CODE (uncomment to restore):
-          // disabled={isSpinning || !user || user.cases_to_open <= 0}
-          disabled={isSpinning || !user}
+          disabled={isSpinning || !user || user.cases_to_open <= 0 || !user.bot_started}
           className="w-full h-14 flex items-center justify-center bg-gradient-to-r from-purple-600 to-blue-500 text-white text-lg font-bold rounded-xl 
           transition-all
           shadow-[0_4px_0_0_rgba(91,33,182,0.6)] 
           active:translate-y-1 active:shadow-[0_1px_0_0_rgba(91,33,182,0.6)]
-          disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0"
         >
-          {/* TEMPORARY: Removed case count */}
-          {/* ORIGINAL CODE (uncomment to restore): */}
-          {/* {isSpinning ? 'Крутится...' : `Крутить (${user?.cases_to_open || 0} шт.)`} */}
-          {isSpinning ? 'Крутится...' : 'Крутить'}
+          {isSpinning ? 'Крутится...' : `Крутить (${user?.cases_to_open || 0} шт.)`}
         </button>
         
-        {/* TEMPORARY: Remove case cost text */}
-        {/* ORIGINAL CODE (uncomment to restore): */}
-        {/* <div className="text-sm text-purple-600 font-medium mt-2">
-          Крутить стоит 1 кейс
-        </div> */}
+        <div className="text-sm text-purple-600 font-medium mt-2">
+          Крутить стоит {CASE_COST} кейс
+        </div>
       </div>
 
       {/* Товар - созвон */}
@@ -253,6 +321,12 @@ export default function ShopPage() {
           </div>
         </div>
       </div>
+
+      {error && (
+        <div className="w-full bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mt-5 rounded">
+          <p>{error}</p>
+        </div>
+      )}
     </div>
   );
 }

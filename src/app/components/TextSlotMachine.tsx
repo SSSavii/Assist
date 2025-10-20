@@ -1,3 +1,4 @@
+// TextSlotMachine.tsx
 'use client';
 
 import { useEffect, useState, useRef, useLayoutEffect } from 'react';
@@ -20,8 +21,8 @@ const shuffle = (array: Prize[]): Prize[] => {
 };
 
 const REEL_ITEM_WIDTH = 160;
-const ANIMATION_DURATION = 3000;
-const MIN_SPIN_DISTANCE = 20; // Минимальное количество элементов для прокрутки
+const ANIMATION_DURATION = 6000; // Увеличено для более плавной анимации
+const MIN_SPIN_DISTANCE = 40; // Увеличено минимальное количество элементов для прокрутки
 
 export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd }: HorizontalTextSlotMachineProps) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -38,8 +39,8 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             const width = containerRef.current.offsetWidth;
             setContainerWidth(width);
             
-            // Инициализируем начальные значения
-            const initialReel = Array.from({ length: 10 }, () => shuffle(prizes)).flat();
+            // Увеличиваем количество элементов для более длинной прокрутки
+            const initialReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
             setReelItems(initialReel);
             setIsInitialized(true);
         }
@@ -49,7 +50,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
         if (!isInitialized || !winningPrize || containerWidth === 0 || isSpinningRef.current) return;
         
         isSpinningRef.current = true;
-        const newReel = Array.from({ length: 10 }, () => shuffle(prizes)).flat();
+        const newReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
         
         // Находим индекс выигрышного приза
         const winningIndex = newReel.findIndex(item => item.name === winningPrize.name);
@@ -97,7 +98,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                 style={{
                     transform: transform,
                     transition: winningPrize 
-                        ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.1, 0.8, 0.1, 1)`
+                        ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.1, 0.25, 1)` // Более плавная анимация как в Яндекс.Маркете
                         : 'none',
                 }}
             >
