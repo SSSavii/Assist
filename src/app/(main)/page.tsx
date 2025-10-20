@@ -589,8 +589,8 @@ export default function HomePage() {
                 <div>по каналу АССИСТ+</div>
               </div>
               <div className="navigation-arrow">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 13L13 3M13 3H3M13 3V13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 10L10 2M10 2L10 10M10 2L2 2" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
             </button>
@@ -837,7 +837,7 @@ export default function HomePage() {
             flex-direction: column;
             align-items: center;
             gap: 16px;
-            padding: 28px 0px 12px;
+            padding: 28px 0px 180px;
             position: relative;
             overflow: hidden;
           }
@@ -849,6 +849,7 @@ export default function HomePage() {
             width: 100%;
             height: 100%;
             bottom: 0;
+            pointer-events: none;
           }
           
           .tasks-bg-color {
@@ -1054,7 +1055,7 @@ export default function HomePage() {
 
           .navigation-section {
             width: 100%;
-            padding: 16px 16px 0;
+            padding: 0 16px 16px;
             box-sizing: border-box;
             display: flex;
             justify-content: center;
@@ -1070,7 +1071,7 @@ export default function HomePage() {
             gap: 10px;
             isolation: isolate;
             width: 100%;
-            max-width: 343px;
+            max-width: calc(100vw - 32px);
             height: 80px;
             background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
             border-radius: 30px;
@@ -1099,14 +1100,12 @@ export default function HomePage() {
           }
 
           .navigation-arrow {
-            width: 16px;
-            height: 16px;
-            transform: rotate(-135deg);
-            flex: none;
-            order: 1;
-            flex-grow: 0;
-            z-index: 1;
-            margin: 0 auto;
+            width: 12px;
+            height: 12px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
 
           .loading-container, .error-container {
