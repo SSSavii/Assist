@@ -1,4 +1,3 @@
-// page.tsx (ShopPage)
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
@@ -165,12 +164,12 @@ export default function ShopPage() {
   const handleSpin = async () => {
     const tg = window.Telegram?.WebApp;
 
-    // Проверка запуска бота
-    if (!user?.bot_started) {
-      tg?.showAlert('Пожалуйста, сначала запустите бота для получения призов!');
-      setError('Необходимо запустить бота');
-      return;
-    }
+    // ВРЕМЕННО: Убрана проверка бота для тестирования
+    // if (!user?.bot_started) {
+    //   tg?.showAlert('Пожалуйста, сначала запустите бота для получения призов!');
+    //   setError('Необходимо запустить бота');
+    //   return;
+    // }
 
     // Проверка наличия кейсов
     if (isSpinning || hasSpunRef.current || !user || user.cases_to_open <= 0) {
@@ -265,7 +264,7 @@ export default function ShopPage() {
         </div>
       </div>
 
-      {/* Предупреждение о боте */}
+      {/* Предупреждение о боте - оставляем для визуала */}
       {!user?.bot_started && (
         <div className="w-full bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-5 rounded">
           <p className="font-bold">Внимание!</p>
