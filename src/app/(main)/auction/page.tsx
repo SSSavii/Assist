@@ -169,60 +169,60 @@ export default function ShopPage() {
   };
 
   const handleSpin = async () => {
-    const tg = window.Telegram?.WebApp;
+  const tg = window.Telegram?.WebApp;
 
-    // Проверка наличия кейсов
-    if (isSpinning || hasSpunRef.current || !user || user.cases_to_open <= 0) {
-      if (user && user.cases_to_open <= 0) {
-        tg?.showAlert('У вас недостаточно кейсов для прокрутки!');
-      }
-      return;
+  // Проверка наличия кейсов
+  if (isSpinning || hasSpunRef.current || !user || user.cases_to_open <= 0) {
+    if (user && user.cases_to_open <= 0) {
+      tg?.showAlert('У вас недостаточно кейсов для прокрутки!');
+    }
+    return;
+  }
+
+  setIsSpinning(true);
+  setError('');
+  setWinningPrize(null); // ВАЖНО: сбрасываем приз перед новым спином
+  hasSpunRef.current = true;
+  isProcessingPrizeRef.current = false;
+
+  try {
+    tg?.HapticFeedback.impactOccurred('light');
+
+    // Уменьшаем количество кейсов
+    const response = await fetch('/api/user/use-case', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        initData: tg?.initData,
+        caseCost: CASE_COST
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Не удалось использовать кейс');
     }
 
-    setIsSpinning(true);
-    setError('');
-    setWinningPrize(null);
-    hasSpunRef.current = true;
-    isProcessingPrizeRef.current = false;
+    const data = await response.json();
+    
+    setUser(prev => prev ? { 
+      ...prev, 
+      cases_to_open: data.newCasesCount
+    } : null);
 
-    try {
-      tg?.HapticFeedback.impactOccurred('light');
-
-      // Уменьшаем количество кейсов
-      const response = await fetch('/api/user/use-case', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          initData: tg?.initData,
-          caseCost: CASE_COST
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Не удалось использовать кейс');
-      }
-
-      const data = await response.json();
-      
-      setUser(prev => prev ? { 
-        ...prev, 
-        cases_to_open: data.newCasesCount
-      } : null);
-
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const prize = getRandomPrize();
-      setWinningPrize(prize);
-      setSpinKey(prev => prev + 1);
-      
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
-      setIsSpinning(false);
-      hasSpunRef.current = false;
-      tg?.HapticFeedback.notificationOccurred('error');
-      tg?.showAlert('Произошла ошибка. Попробуйте еще раз.');
-    }
-  };
+    await new Promise(resolve => setTimeout(resolve, 100)); // Небольшая задержка
+    
+    const prize = getRandomPrize();
+    setSpinKey(prev => prev + 1); // Сначала меняем ключ
+    setWinningPrize(prize); // Потом устанавливаем приз
+    
+  } catch (err) {
+    setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+    setIsSpinning(false);
+    hasSpunRef.current = false;
+    tg?.HapticFeedback.notificationOccurred('error');
+    tg?.showAlert('Произошла ошибка. Попробуйте еще раз.');
+  }
+};
 
   const handleSpinEnd = () => {
     if (winningPrize && !isProcessingPrizeRef.current) {

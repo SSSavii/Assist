@@ -31,7 +31,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     const [isAnimating, setIsAnimating] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
-    const animationRef = useRef<number | null>(null);
+    const lastWinningPrizeRef = useRef<Prize | null>(null);
 
     useLayoutEffect(() => {
         if (containerRef.current) {
@@ -45,9 +45,18 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     }, [prizes]);
 
     useEffect(() => {
-        if (!isInitialized || !winningPrize || containerWidth === 0) return;
+        // Проверяем что это новый приз (не повторный вызов)
+        if (!isInitialized || 
+            !winningPrize || 
+            containerWidth === 0 || 
+            lastWinningPrizeRef.current === winningPrize) {
+            return;
+        }
         
-        // Создаем новый барабан для каждого спина
+        // Запоминаем текущий приз
+        lastWinningPrizeRef.current = winningPrize;
+        
+        // Создаем новый барабан
         const newReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
         
         // Находим индекс выигрышного приза
@@ -64,45 +73,30 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             
             setReelItems(newReel);
             
-            // Сбрасываем позицию в начало без анимации
-            setIsAnimating(false);
-            setTransform('translateX(0px)');
+            // Вычисляем финальную позицию
+            const finalPosition = (containerWidth / 2) - (safeIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
             
-            // Через небольшую задержку запускаем анимацию к выигрышной позиции
-            const startTimeout = setTimeout(() => {
-                const finalPosition = (containerWidth / 2) - (safeIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
-                
-                if (animationRef.current) {
-                    cancelAnimationFrame(animationRef.current);
-                }
-                
-                animationRef.current = requestAnimationFrame(() => {
-                    setIsAnimating(true);
-                    setTransform(`translateX(${finalPosition}px)`);
-                });
+            // Запускаем анимацию сразу
+            setIsAnimating(true);
+            setTransform(`translateX(${finalPosition}px)`);
 
-                // Очищаем предыдущий таймер
-                if (timeoutRef.current) {
-                    clearTimeout(timeoutRef.current);
-                }
-                
-                // Устанавливаем таймер на завершение
-                timeoutRef.current = setTimeout(() => {
-                    setIsAnimating(false);
-                    onSpinEnd();
-                }, ANIMATION_DURATION);
-            }, 50);
-
-            return () => {
-                clearTimeout(startTimeout);
-                if (timeoutRef.current) {
-                    clearTimeout(timeoutRef.current);
-                }
-                if (animationRef.current) {
-                    cancelAnimationFrame(animationRef.current);
-                }
-            };
+            // Очищаем предыдущий таймер
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+            
+            // Устанавливаем таймер на завершение
+            timeoutRef.current = setTimeout(() => {
+                setIsAnimating(false);
+                onSpinEnd();
+            }, ANIMATION_DURATION);
         }
+
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
     }, [winningPrize, containerWidth, isInitialized, onSpinEnd, prizes]);
 
     return (
