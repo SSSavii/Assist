@@ -8,6 +8,7 @@ interface HorizontalTextSlotMachineProps {
     prizes: Prize[];
     winningPrize: Prize | null;
     onSpinEnd: () => void;
+    spinId: number; // Добавляем уникальный ID спина
 }
 
 const shuffle = (array: Prize[]): Prize[] => {
@@ -23,7 +24,7 @@ const REEL_ITEM_WIDTH = 160;
 const ANIMATION_DURATION = 6000;
 const MIN_SPIN_DISTANCE = 40;
 
-export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd }: HorizontalTextSlotMachineProps) {
+export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: HorizontalTextSlotMachineProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
     const [reelItems, setReelItems] = useState<Prize[]>([]);
@@ -31,7 +32,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     const [isAnimating, setIsAnimating] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
-    const lastWinningPrizeRef = useRef<Prize | null>(null);
+    const lastSpinIdRef = useRef<number>(-1);
 
     useLayoutEffect(() => {
         if (containerRef.current) {
@@ -45,16 +46,16 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     }, [prizes]);
 
     useEffect(() => {
-        // Проверяем что это новый приз (не повторный вызов)
+        // Проверяем что это новый спин (по ID)
         if (!isInitialized || 
             !winningPrize || 
             containerWidth === 0 || 
-            lastWinningPrizeRef.current === winningPrize) {
+            lastSpinIdRef.current === spinId) {
             return;
         }
         
-        // Запоминаем текущий приз
-        lastWinningPrizeRef.current = winningPrize;
+        // Запоминаем ID текущего спина
+        lastSpinIdRef.current = spinId;
         
         // Создаем новый барабан
         const newReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
@@ -97,7 +98,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                 clearTimeout(timeoutRef.current);
             }
         };
-    }, [winningPrize, containerWidth, isInitialized, onSpinEnd, prizes]);
+    }, [winningPrize, spinId, containerWidth, isInitialized, onSpinEnd, prizes]);
 
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-purple-300 rounded-lg bg-gradient-to-br from-purple-100 to-blue-100">

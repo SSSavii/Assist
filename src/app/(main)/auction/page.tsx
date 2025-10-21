@@ -280,6 +280,7 @@ export default function ShopPage() {
         <div className="h-64 mb-4">
           <HorizontalTextSlotMachine
             key={spinKey}
+            spinId={spinKey} // Передаем spinKey как spinId
             prizes={ALL_PRIZES.map(p => ({ name: p.name, icon: '' }))}
             winningPrize={winningPrize ? { name: winningPrize.name, icon: '' } : null}
             onSpinEnd={handleSpinEnd}
