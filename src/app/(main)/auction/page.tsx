@@ -8,7 +8,7 @@ type Prize = {
   name: string;
   type: 'rare' | 'common';
   canWin: boolean;
-  deliveryType: 'instant' | 'bot_message' | 'manual'; // Тип доставки приза
+  deliveryType: 'instant' | 'bot_message' | 'manual';
 };
 
 const ALL_PRIZES: Prize[] = [
@@ -31,10 +31,10 @@ interface UserProfile {
   tg_id: number;
   balance_crystals: number;
   cases_to_open: number;
-  bot_started?: boolean; // Флаг запущен ли бот
+  bot_started?: boolean;
 }
 
-const CASE_COST = 1; // Стоимость одного кейса
+const CASE_COST = 1;
 
 export default function ShopPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -43,8 +43,8 @@ export default function ShopPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [spinKey, setSpinKey] = useState(0);
-  const [showPrizeAlert, setShowPrizeAlert] = useState(false);
   const hasSpunRef = useRef(false);
+  const isProcessingPrizeRef = useRef(false);
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -91,7 +91,9 @@ export default function ShopPage() {
 
   const handlePrizeDelivery = async (prize: Prize) => {
     const tg = window.Telegram?.WebApp;
-    if (!tg) return;
+    if (!tg || isProcessingPrizeRef.current) return;
+
+    isProcessingPrizeRef.current = true;
 
     try {
       if (prize.deliveryType === 'instant') {
@@ -113,6 +115,9 @@ export default function ShopPage() {
               ...prev,
               balance_crystals: data.newBalance || (prev.balance_crystals + 1000)
             } : null);
+            
+            // Показываем уведомление для мгновенных призов
+            tg.showAlert(`🎉 Поздравляем! Вы выиграли: ${prize.name}\n\n✨ Плюсы начислены на ваш баланс!`);
           }
         }
       } else if (prize.deliveryType === 'bot_message') {
@@ -127,7 +132,7 @@ export default function ShopPage() {
           }),
         });
         
-        tg.showAlert(`Поздравляем! Вы выиграли: ${prize.name}\n\nПриз отправлен вам в бот!`);
+        tg.showAlert(`🎉 Поздравляем! Вы выиграли: ${prize.name}\n\n📬 Приз отправлен вам в бот!`);
       } else if (prize.deliveryType === 'manual') {
         // Ручная обработка (встречи, созвоны)
         await fetch('/api/bot/send-prize', {
@@ -140,7 +145,7 @@ export default function ShopPage() {
           }),
         });
         
-        tg.showAlert(`Поздравляем! Вы выиграли: ${prize.name}\n\nС вами свяжутся в ближайшее время!`);
+        tg.showAlert(`🎉 Поздравляем! Вы выиграли: ${prize.name}\n\n📞 С вами свяжутся в ближайшее время!`);
       }
 
       // Сохраняем выигрыш в базу данных
@@ -157,19 +162,14 @@ export default function ShopPage() {
 
     } catch (error) {
       console.error('Error delivering prize:', error);
-      tg.showAlert('Произошла ошибка при начислении приза. Обратитесь в поддержку.');
+      tg.showAlert('❌ Произошла ошибка при начислении приза. Обратитесь в поддержку.');
+    } finally {
+      isProcessingPrizeRef.current = false;
     }
   };
 
   const handleSpin = async () => {
     const tg = window.Telegram?.WebApp;
-
-    // ВРЕМЕННО: Убрана проверка бота для тестирования
-    // if (!user?.bot_started) {
-    //   tg?.showAlert('Пожалуйста, сначала запустите бота для получения призов!');
-    //   setError('Необходимо запустить бота');
-    //   return;
-    // }
 
     // Проверка наличия кейсов
     if (isSpinning || hasSpunRef.current || !user || user.cases_to_open <= 0) {
@@ -182,8 +182,8 @@ export default function ShopPage() {
     setIsSpinning(true);
     setError('');
     setWinningPrize(null);
-    setShowPrizeAlert(false);
     hasSpunRef.current = true;
+    isProcessingPrizeRef.current = false;
 
     try {
       tg?.HapticFeedback.impactOccurred('light');
@@ -225,15 +225,18 @@ export default function ShopPage() {
   };
 
   const handleSpinEnd = () => {
-    if (winningPrize && !showPrizeAlert) {
-      setShowPrizeAlert(true);
+    if (winningPrize && !isProcessingPrizeRef.current) {
       window.Telegram?.WebApp?.HapticFeedback.notificationOccurred('success');
       
       // Начисляем приз только после фактического выпадения
       handlePrizeDelivery(winningPrize);
     }
-    setIsSpinning(false);
-    hasSpunRef.current = false;
+    
+    // Сбрасываем состояние после окончания анимации
+    setTimeout(() => {
+      setIsSpinning(false);
+      hasSpunRef.current = false;
+    }, 500);
   };
 
   if (isLoading) {
