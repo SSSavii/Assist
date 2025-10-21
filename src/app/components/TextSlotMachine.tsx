@@ -1,4 +1,3 @@
-// TextSlotMachine.tsx
 'use client';
 
 import { useEffect, useState, useRef, useLayoutEffect } from 'react';
@@ -21,8 +20,8 @@ const shuffle = (array: Prize[]): Prize[] => {
 };
 
 const REEL_ITEM_WIDTH = 160;
-const ANIMATION_DURATION = 6000; // Увеличено для более плавной анимации
-const MIN_SPIN_DISTANCE = 40; // Увеличено минимальное количество элементов для прокрутки
+const ANIMATION_DURATION = 6000;
+const MIN_SPIN_DISTANCE = 40;
 
 export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd }: HorizontalTextSlotMachineProps) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -33,13 +32,14 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     const [isInitialized, setIsInitialized] = useState(false);
     const animationRef = useRef<number | null>(null);
     const isSpinningRef = useRef(false);
+    const hasAnimatedRef = useRef(false);
+    const currentPrizeRef = useRef<Prize | null>(null);
 
     useLayoutEffect(() => {
         if (containerRef.current) {
             const width = containerRef.current.offsetWidth;
             setContainerWidth(width);
             
-            // Увеличиваем количество элементов для более длинной прокрутки
             const initialReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
             setReelItems(initialReel);
             setIsInitialized(true);
@@ -47,9 +47,20 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     }, [prizes]);
 
     useEffect(() => {
-        if (!isInitialized || !winningPrize || containerWidth === 0 || isSpinningRef.current) return;
+        // Проверяем что это новый приз
+        if (!isInitialized || !winningPrize || containerWidth === 0) return;
         
+        // Если уже крутим этот же приз - не запускаем повторно
+        if (isSpinningRef.current || 
+            (currentPrizeRef.current && currentPrizeRef.current.name === winningPrize.name && hasAnimatedRef.current)) {
+            return;
+        }
+        
+        // Отмечаем что начали новую анимацию
         isSpinningRef.current = true;
+        hasAnimatedRef.current = false;
+        currentPrizeRef.current = winningPrize;
+        
         const newReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
         
         // Находим индекс выигрышного приза
@@ -61,7 +72,6 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                 ? winningIndex + MIN_SPIN_DISTANCE 
                 : winningIndex;
                 
-            // Убедимся, что индекс не превышает длину массива
             const safeIndex = targetIndex % newReel.length;
             newReel[safeIndex] = winningPrize;
             
@@ -74,20 +84,31 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                 cancelAnimationFrame(animationRef.current);
             }
             
+            // Запускаем анимацию
             animationRef.current = requestAnimationFrame(() => {
                 setTransform(`translateX(${finalPosition}px)`);
             });
 
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            // Очищаем предыдущий таймер
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+            
+            // Устанавливаем таймер на завершение
             timeoutRef.current = setTimeout(() => {
-                onSpinEnd();
+                hasAnimatedRef.current = true;
                 isSpinningRef.current = false;
+                onSpinEnd();
             }, ANIMATION_DURATION);
         }
 
         return () => {
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-            if (animationRef.current) cancelAnimationFrame(animationRef.current);
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+            if (animationRef.current) {
+                cancelAnimationFrame(animationRef.current);
+            }
         };
     }, [winningPrize, containerWidth, isInitialized, onSpinEnd, prizes]);
 
@@ -97,8 +118,8 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                 className="absolute top-0 left-0 h-full flex"
                 style={{
                     transform: transform,
-                    transition: winningPrize 
-                        ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.1, 0.25, 1)` // Более плавная анимация как в Яндекс.Маркете
+                    transition: winningPrize && !hasAnimatedRef.current
+                        ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.1, 0.25, 1)`
                         : 'none',
                 }}
             >

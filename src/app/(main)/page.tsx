@@ -183,78 +183,81 @@ export default function HomePage() {
   }, []);
 
   const handleEarnCrystals = () => {
-    const tg = window.Telegram?.WebApp;
-    if (!user || !tg?.initData || tapsLeft <= 0) return;
-    if (tapsLeft <= 0) {
-      tg.showAlert('Плюсы на сегодня закончились! Возвращайся завтра.');
-      return;
+  const tg = window.Telegram?.WebApp;
+  if (!user || !tg?.initData) return;
+  
+  if (tapsLeft <= 0) {
+    tg.showAlert('Плюсы на сегодня закончились! Возвращайся завтра.');
+    return;
+  }
+  
+  if (tg.HapticFeedback) {
+    tg.HapticFeedback.impactOccurred('light');
+  }
+  
+  setTapsLeft(prev => prev - 1);
+  setUser(prevUser => {
+      if (!prevUser) return null;
+      return {
+          ...prevUser,
+          balance_crystals: prevUser.balance_crystals + 1,
+          daily_taps_count: prevUser.daily_taps_count + 1
+      };
+  });
+
+  fetch('/api/tap', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initData: tg.initData }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.error) {
+      setUser(prevUser => {
+          if (!prevUser) return null;
+          const newBalance = (prevUser.balance_crystals || 0) - 1;
+          const newTaps = (prevUser.daily_taps_count || 0) - 1;
+          return {
+              ...prevUser,
+              balance_crystals: newBalance < 0 ? 0 : newBalance,
+              daily_taps_count: newTaps < 0 ? 0 : newTaps
+          };
+      });
+      
+      if (typeof data.tapsLeft === 'number') {
+          setTapsLeft(data.tapsLeft);
+      } else {
+          setTapsLeft(prev => prev + 1);
+      }
+      
+      if (data.error === 'Daily tap limit reached') {
+          tg.showAlert('Плюсы на сегодня закончились! Возвращайся завтра.');
+      } else {
+          tg.showAlert(data.error || 'Произошла ошибка');
+      }
+    } else {
+      if (typeof data.newBalance === 'number') {
+          setUser(prev => prev ? { ...prev, balance_crystals: data.newBalance } : null);
+      }
+      if (typeof data.tapsLeft === 'number') {
+          setTapsLeft(data.tapsLeft);
+      }
     }
-    
-    if (tg.HapticFeedback) {
-      tg.HapticFeedback.impactOccurred('light');
-    }
-    
-    setTapsLeft(prev => prev - 1);
+  })
+  .catch(err => {
+    console.error('Tap fetch error:', err);
+    setTapsLeft(prev => prev + 1);
     setUser(prevUser => {
         if (!prevUser) return null;
         return {
             ...prevUser,
-            balance_crystals: prevUser.balance_crystals + 1,
-            daily_taps_count: prevUser.daily_taps_count + 1
+            balance_crystals: prevUser.balance_crystals - 1,
+            daily_taps_count: prevUser.daily_taps_count - 1
         };
     });
-
-    fetch('/api/tap', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData: tg.initData }),
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.error) {
-        setUser(prevUser => {
-            if (!prevUser) return null;
-            const newBalance = (prevUser.balance_crystals || 0) - 1;
-            const newTaps = (prevUser.daily_taps_count || 0) - 1;
-            return {
-                ...prevUser,
-                balance_crystals: newBalance < 0 ? 0 : newBalance,
-                daily_taps_count: newTaps < 0 ? 0 : newTaps
-            };
-        });
-        
-        if (typeof data.tapsLeft === 'number') {
-            setTapsLeft(data.tapsLeft);
-        } else {
-            setTapsLeft(prev => prev + 1);
-        }
-        
-        if (data.error === 'Daily tap limit reached') {
-            tg.showAlert('Плюсы на сегодня закончились! Возвращайся завтра.');
-        }
-      } else {
-        if (typeof data.newBalance === 'number') {
-            setUser(prev => prev ? { ...prev, balance_crystals: data.newBalance } : null);
-        }
-        if (typeof data.tapsLeft === 'number') {
-            setTapsLeft(data.tapsLeft);
-        }
-      }
-    })
-    .catch(err => {
-      console.error('Tap fetch error:', err);
-      setTapsLeft(prev => prev + 1);
-      setUser(prevUser => {
-          if (!prevUser) return null;
-          return {
-              ...prevUser,
-              balance_crystals: prevUser.balance_crystals - 1,
-              daily_taps_count: prevUser.daily_taps_count - 1
-          };
-      });
-      tg.showAlert('Произошла ошибка сети. Попробуйте еще раз.');
-    });
-  };
+    tg.showAlert('Произошла ошибка сети. Попробуйте еще раз.');
+  });
+};
   
   const handleInviteFriend = () => {
     const tg = window.Telegram?.WebApp;
