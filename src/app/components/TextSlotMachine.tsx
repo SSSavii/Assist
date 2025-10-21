@@ -28,12 +28,10 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     const [containerWidth, setContainerWidth] = useState(0);
     const [reelItems, setReelItems] = useState<Prize[]>([]);
     const [transform, setTransform] = useState('translateX(0px)');
+    const [isAnimating, setIsAnimating] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     const animationRef = useRef<number | null>(null);
-    const isSpinningRef = useRef(false);
-    const hasAnimatedRef = useRef(false);
-    const currentPrizeRef = useRef<Prize | null>(null);
 
     useLayoutEffect(() => {
         if (containerRef.current) {
@@ -47,20 +45,9 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     }, [prizes]);
 
     useEffect(() => {
-        // Проверяем что это новый приз
         if (!isInitialized || !winningPrize || containerWidth === 0) return;
         
-        // Если уже крутим этот же приз - не запускаем повторно
-        if (isSpinningRef.current || 
-            (currentPrizeRef.current && currentPrizeRef.current.name === winningPrize.name && hasAnimatedRef.current)) {
-            return;
-        }
-        
-        // Отмечаем что начали новую анимацию
-        isSpinningRef.current = true;
-        hasAnimatedRef.current = false;
-        currentPrizeRef.current = winningPrize;
-        
+        // Создаем новый барабан для каждого спина
         const newReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
         
         // Находим индекс выигрышного приза
@@ -77,39 +64,45 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             
             setReelItems(newReel);
             
-            // Горизонтальное позиционирование
-            const finalPosition = (containerWidth / 2) - (safeIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
+            // Сбрасываем позицию в начало без анимации
+            setIsAnimating(false);
+            setTransform('translateX(0px)');
             
-            if (animationRef.current) {
-                cancelAnimationFrame(animationRef.current);
-            }
-            
-            // Запускаем анимацию
-            animationRef.current = requestAnimationFrame(() => {
-                setTransform(`translateX(${finalPosition}px)`);
-            });
+            // Через небольшую задержку запускаем анимацию к выигрышной позиции
+            const startTimeout = setTimeout(() => {
+                const finalPosition = (containerWidth / 2) - (safeIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
+                
+                if (animationRef.current) {
+                    cancelAnimationFrame(animationRef.current);
+                }
+                
+                animationRef.current = requestAnimationFrame(() => {
+                    setIsAnimating(true);
+                    setTransform(`translateX(${finalPosition}px)`);
+                });
 
-            // Очищаем предыдущий таймер
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
-            
-            // Устанавливаем таймер на завершение
-            timeoutRef.current = setTimeout(() => {
-                hasAnimatedRef.current = true;
-                isSpinningRef.current = false;
-                onSpinEnd();
-            }, ANIMATION_DURATION);
+                // Очищаем предыдущий таймер
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current);
+                }
+                
+                // Устанавливаем таймер на завершение
+                timeoutRef.current = setTimeout(() => {
+                    setIsAnimating(false);
+                    onSpinEnd();
+                }, ANIMATION_DURATION);
+            }, 50);
+
+            return () => {
+                clearTimeout(startTimeout);
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current);
+                }
+                if (animationRef.current) {
+                    cancelAnimationFrame(animationRef.current);
+                }
+            };
         }
-
-        return () => {
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
-            if (animationRef.current) {
-                cancelAnimationFrame(animationRef.current);
-            }
-        };
     }, [winningPrize, containerWidth, isInitialized, onSpinEnd, prizes]);
 
     return (
@@ -118,7 +111,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                 className="absolute top-0 left-0 h-full flex"
                 style={{
                     transform: transform,
-                    transition: winningPrize && !hasAnimatedRef.current
+                    transition: isAnimating
                         ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.1, 0.25, 1)`
                         : 'none',
                 }}
