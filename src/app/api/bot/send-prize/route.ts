@@ -1,11 +1,27 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { validateTelegramHash } from '@/lib/telegram-auth';
+import db from '@/lib/init-database';
+
+// Импортируем функции из бота
+let sendPrizeToUser: any;
+let notifyAdminsAboutWinning: any;
+
+// Динамический импорт функций бота
+const initBotFunctions = async () => {
+  if (!sendPrizeToUser) {
+    const botModule = await import('@bot/index.js');
+    sendPrizeToUser = botModule.sendPrizeToUser;
+    notifyAdminsAboutWinning = botModule.notifyAdminsAboutWinning;
+  }
+};
 
 export async function POST(req: NextRequest) {
   console.log(`\n--- [${new Date().toISOString()}] Received /api/bot/send-prize request ---`);
   
   try {
+    await initBotFunctions();
+    
     const { initData, prizeName, messageType } = await req.json();
     
     if (!initData) {
@@ -36,47 +52,31 @@ export async function POST(req: NextRequest) {
 
     console.log(`[INFO] Sending prize "${prizeName}" to user ${tgUserId} via bot`);
 
-    let messageText = '';
-    let fileUrl = '';
+    // Получаем информацию о пользователе из БД
+    const userStmt = db.prepare('SELECT id, first_name, last_name, username FROM users WHERE tg_id = ?');
+    const user = userStmt.get(tgUserId) as { id: number; first_name: string; last_name?: string; username?: string } | undefined;
 
-    if (messageType === 'checklist') {
-      messageText = `🎉 Поздравляем! Вы выиграли: ${prizeName}\n\nВаши чек-листы прикреплены к этому сообщению.`;
-      // TODO: Добавьте логику для прикрепления файлов чек-листов
-      fileUrl = 'https://example.com/checklists.pdf'; // Замените на реальный URL
-    } else if (messageType === 'manual_contact') {
-      messageText = `🎉 Поздравляем! Вы выиграли: ${prizeName}\n\n✨ С вами свяжутся в ближайшее время для организации вашего приза!`;
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Отправка сообщения через Telegram Bot API
-    const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-    
-    const response = await fetch(telegramApiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        chat_id: tgUserId,
-        text: messageText,
-        parse_mode: 'HTML'
-      }),
-    });
+    const userName = `${user.first_name}${user.last_name ? ' ' + user.last_name : ''}`;
+    const userUsername = user.username || '';
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('[ERROR] Failed to send message via Telegram:', errorData);
-      
-      // Проверка, запущен ли бот пользователем
-      if (errorData.description?.includes('bot was blocked') || 
-          errorData.description?.includes('user is deactivated') ||
-          errorData.description?.includes('chat not found')) {
-        return NextResponse.json({ 
-          error: 'Пожалуйста, сначала запустите бота!',
-          botNotStarted: true 
-        }, { status: 400 });
-      }
-      
-      throw new Error('Failed to send Telegram message');
+    // Отправляем приз пользователю
+    const result = await sendPrizeToUser(tgUserId, prizeName, messageType);
+    
+    if (result && result.error === 'bot_not_started') {
+      return NextResponse.json({ 
+        error: 'Пожалуйста, сначала запустите бота!',
+        botNotStarted: true 
+      }, { status: 400 });
+    }
+
+    // Уведомляем админов о выигрыше (кроме мгновенных призов)
+    if (messageType !== 'instant') {
+      const prizeType = prizeName.includes('Иван') || prizeName.includes('Антон') ? 'rare' : 'common';
+      await notifyAdminsAboutWinning(tgUserId, userName, userUsername, prizeName, prizeType);
     }
 
     console.log(`[SUCCESS] Prize message sent successfully to user ${tgUserId}`);

@@ -1,74 +1,77 @@
-import { execa } from 'execa';
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
 import TelegramBot from 'node-telegram-bot-api';
-import axios from 'axios';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import db from '../src/lib/init-database.ts';
 
 const {
   BOT_TOKEN,
   TELEGRAM_ADMIN_IDS,
-  ADMIN_API_SECRET_KEY,
-  NEXT_PUBLIC_API_URL = 'http://localhost:3000',
-  //NEXT_PUBLIC_API_URL = 'http://192.168.1.2:3001',
 } = process.env;
 
-if (!BOT_TOKEN || !TELEGRAM_ADMIN_IDS || !ADMIN_API_SECRET_KEY) {
+if (!BOT_TOKEN || !TELEGRAM_ADMIN_IDS) {
   console.error('FATAL: Переменные окружения не настроены. Exiting.');
   process.exit(1);
 }
 
 const adminIds = TELEGRAM_ADMIN_IDS.split(',').map(id => parseInt(id.trim(), 10));
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
-const API_BASE_URL = `${NEXT_PUBLIC_API_URL}/api/admin`;
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-import db from '../src/lib/init-database.ts';
-
-const UPLOAD_DIR = path.join(__dirname, '..', 'public', 'uploads', 'lots');
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
 
 console.log(`✅ Бот запущен. Админы: [${adminIds.join(', ')}].`);
 
-async function apiCall(endpoint, method = 'POST', body = null) {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const options = {
-    method,
-    headers: { 'Content-Type': 'application/json', 'X-Admin-Secret-Key': ADMIN_API_SECRET_KEY },
-    body: body ? JSON.stringify(body) : null,
-  };
-  const response = await fetch(url, options);
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Не удалось прочитать ошибку API' }));
-    throw new Error(errorData.error || `API ошибка со статусом ${response.status}`);
-  }
-  return response.json();
-}
-
-async function downloadPhoto(file_id, savePath) {
-  const fileInfo = await bot.getFile(file_id);
-  const fileUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${fileInfo.file_path}`;
-  const writer = fs.createWriteStream(savePath);
-  const response = await axios({ url: fileUrl, method: 'GET', responseType: 'stream' });
-  response.data.pipe(writer);
-  return new Promise((resolve, reject) => { writer.on('finish', resolve); writer.on('error', reject); });
-}
-
 const checkAdmin = (msg) => {
   if (!msg.from || !adminIds.includes(msg.from.id)) {
-    if (msg.from) bot.sendMessage(msg.from.id, "⛔️ У вас нет прав для использования этого бота.");
     return false;
   }
   return true;
 };
 
+// Функция для уведомления админов о выигрыше
+export async function notifyAdminsAboutWinning(userId, userName, userUsername, prizeName, prizeType) {
+  try {
+    const message = `🎁 *Новый выигрыш!*\n\n` +
+                   `👤 *Пользователь:* ${userName}\n` +
+                   `📱 *Username:* ${userUsername ? '@' + userUsername : 'не указан'}\n` +
+                   `🎯 *Приз:* ${prizeName}\n` +
+                   `📦 *Тип:* ${prizeType === 'rare' ? 'Редкий' : 'Обычный'}\n\n` +
+                   `💬 *ID пользователя:* \`${userId}\``;
+
+    for (const adminId of adminIds) {
+      try {
+        await bot.sendMessage(adminId, message, { parse_mode: 'Markdown' });
+      } catch (error) {
+        console.error(`[ADMIN NOTIFY] Не удалось отправить админу ${adminId}:`, error.message);
+      }
+    }
+  } catch (error) {
+    console.error('[ADMIN NOTIFY] Ошибка при уведомлении админов:', error);
+  }
+}
+
+// Функция для отправки приза пользователю
+export async function sendPrizeToUser(userId, prizeName, messageType) {
+  try {
+    let messageText = '';
+    
+    if (messageType === 'checklist') {
+      messageText = `🎉 Поздравляем! Вы выиграли: *${prizeName}*\n\n📚 Ваши чек-листы будут отправлены в ближайшее время.`;
+    } else if (messageType === 'manual_contact') {
+      messageText = `🎉 Поздравляем! Вы выиграли: *${prizeName}*\n\n✨ С вами свяжутся в ближайшее время для организации вашего приза!`;
+    }
+
+    await bot.sendMessage(userId, messageText, { parse_mode: 'Markdown' });
+    return true;
+  } catch (error) {
+    console.error(`[SEND PRIZE] Ошибка отправки приза пользователю ${userId}:`, error);
+    if (error.response?.body?.error_code === 403) {
+      return { error: 'bot_not_started' };
+    }
+    throw error;
+  }
+}
+
+// Проверка и завершение аукционов
 async function checkAndFinishAuctions() {
   try {
     const now = new Date().toISOString();
@@ -113,137 +116,317 @@ async function checkAndFinishAuctions() {
   }
 }
 
-setInterval(checkAndFinishAuctions, 60000);
-console.log('✅ Фоновая задача проверки аукционов запущена.');
-
-const waitingForPhoto = {};
-
-bot.onText(/\/start|\/help/, (msg) => {
-  if (!checkAdmin(msg)) return;
-  const helpText = `*👋 Админ-панель "Ассист+"*\n\n*Создание лота (2 шага):*\n1. \`/addlot <Название>;<Цена>;<Часы>;<Описание>;<Город>;<Возраст>\`\n2. Отправьте картинку.\n\n*Редактирование картинки (2 шага):*\n1. \`/editphoto <ID лота>\`\n2. Отправьте новую картинку.\n\n*Просмотр:*\n\`/listlots\`\n\n*Редактирование полей:*\n\`/editlot <ID> <поле> <новое значение>\`\n\n*Удаление:*\n\`/deletelot <ID>\``;
-  bot.sendMessage(msg.chat.id, helpText, { parse_mode: 'Markdown' });
-});
-
-bot.onText(/\/addlot (.+)/s, async (msg, match) => {
-  if (!checkAdmin(msg)) return;
-  const chatId = msg.chat.id;
+// Проверка и сброс ежемесячных рефералов
+async function checkAndResetMonthlyReferrals() {
   try {
-    const parts = match[1].split(';').map(p => p.trim());
-    if (parts.length !== 6) throw new Error("Неверный формат. Нужно 6 параметров.");
-    const [title, start_price_str, duration_hours_str, description, city, age_str] = parts;
-    const lotData = { title, description, city, start_price: parseInt(start_price_str), duration_hours: parseInt(duration_hours_str), age: parseInt(age_str) };
-    if (isNaN(lotData.start_price) || isNaN(lotData.duration_hours) || isNaN(lotData.age)) throw new Error("Цена, часы, возраст должны быть числами.");
-    waitingForPhoto[chatId] = { type: 'add', lotData };
-    await bot.sendMessage(chatId, `⏳ Данные приняты. Теперь отправьте картинку для лота "${title}".`);
-  } catch (error) {
-    await bot.sendMessage(chatId, `❌ *Ошибка:*\n${error.message}`, { parse_mode: 'Markdown' });
-  }
-});
-
-bot.onText(/\/editphoto (\d+)/, async (msg, match) => {
-  if (!checkAdmin(msg)) return;
-  const chatId = msg.chat.id;
-  try {
-    const lotId = parseInt(match[1], 10);
-    if (isNaN(lotId)) throw new Error("Некорректный ID лота.");
-    waitingForPhoto[chatId] = { type: 'edit', lotId };
-    await bot.sendMessage(chatId, `⏳ Готов изменить фото для лота *${lotId}*. Отправьте новую картинку.`, { parse_mode: 'Markdown' });
-  } catch (error) {
-     await bot.sendMessage(chatId, `❌ *Ошибка:*\n${error.message}`, { parse_mode: 'Markdown' });
-  }
-});
-
-bot.on('photo', async (msg) => {
-  if (!checkAdmin(msg)) return;
-  const chatId = msg.chat.id;
-  const state = waitingForPhoto[chatId];
-  if (!state) return;
-  delete waitingForPhoto[chatId];
-  try {
-    await bot.sendMessage(chatId, `⏳ Получил картинку, обрабатываю...`);
-    const photo = msg.photo[msg.photo.length - 1];
-    if (state.type === 'add') {
-      const { lotData } = state;
-      const result = await apiCall('/lots', 'POST', lotData);
-      const lotId = result.lotId;
-      const photoPath = path.join(UPLOAD_DIR, `${lotId}.jpg`);
-      await downloadPhoto(photo.file_id, photoPath);
-      const photoUrl = `/uploads/lots/${lotId}.jpg`;
-      await apiCall(`/lots/${lotId}`, 'PATCH', { photoUrl });
-      await bot.sendMessage(chatId, `✅ Успешно! Лот *${lotId}* ("${lotData.title}") создан с картинкой.`, { parse_mode: 'Markdown' });
-    } else if (state.type === 'edit') {
-      const { lotId } = state;
-      const photoPath = path.join(UPLOAD_DIR, `${lotId}.jpg`);
-      await downloadPhoto(photo.file_id, photoPath);
-      const photoUrl = `/uploads/lots/${lotId}.jpg?v=${Date.now()}`;
-      await apiCall(`/lots/${lotId}`, 'PATCH', { photoUrl });
-      await bot.sendMessage(chatId, `✅ Успешно! Картинка для лота *${lotId}* обновлена.`, { parse_mode: 'Markdown' });
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    
+    const checkResetStmt = db.prepare(`
+      SELECT id, tg_id, first_name, last_name, username, current_month_referrals, last_referral_reset
+      FROM users
+      WHERE current_month_referrals > 0 
+      AND (last_referral_reset IS NULL OR last_referral_reset < ?)
+    `);
+    
+    const usersToReset = checkResetStmt.all(`${currentMonth}-01`);
+    
+    if (usersToReset.length > 0) {
+      console.log(`[LOTTERY] Сброс месячных рефералов для ${usersToReset.length} пользователей`);
+      
+      const resetStmt = db.prepare(`
+        UPDATE users 
+        SET current_month_referrals = 0, last_referral_reset = ?
+        WHERE id = ?
+      `);
+      
+      const resetTransaction = db.transaction((users) => {
+        for (const user of users) {
+          resetStmt.run(currentMonth, user.id);
+        }
+      });
+      
+      resetTransaction(usersToReset);
     }
-    await execa('pm2', ['reload', 'tap-app']);
   } catch (error) {
-    await bot.sendMessage(chatId, `❌ *Фатальная ошибка:*\n${error.message || "Неизвестная ошибка"}`, { parse_mode: 'Markdown' });
+    console.error('[LOTTERY] Ошибка при сбросе месячных рефералов:', error);
+  }
+}
+
+// Запуск фоновых задач
+setInterval(checkAndFinishAuctions, 60000); // Каждую минуту
+setInterval(checkAndResetMonthlyReferrals, 3600000); // Каждый час
+console.log('✅ Фоновые задачи запущены.');
+
+// ===== КОМАНДЫ БОТА =====
+
+// Команда /start - доступна всем
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  const username = msg.from.username || '';
+  const firstName = msg.from.first_name || 'Пользователь';
+  const lastName = msg.from.last_name || '';
+  
+  try {
+    // Регистрируем пользователя в БД
+    const checkUser = db.prepare('SELECT id, bot_started FROM users WHERE tg_id = ?');
+    const existingUser = checkUser.get(userId);
+    
+    if (existingUser) {
+      if (!existingUser.bot_started) {
+        const updateStmt = db.prepare('UPDATE users SET bot_started = 1 WHERE tg_id = ?');
+        updateStmt.run(userId);
+        console.log(`[BOT START] Пользователь ${userId} активировал бота`);
+      }
+    } else {
+      const insertStmt = db.prepare(`
+        INSERT INTO users (tg_id, username, first_name, last_name, bot_started)
+        VALUES (?, ?, ?, ?, 1)
+      `);
+      insertStmt.run(userId, username, firstName, lastName);
+      console.log(`[BOT START] Новый пользователь ${userId} зарегистрирован`);
+    }
+    
+    const welcomeText = `👋 *Добро пожаловать в бота "Ассист+"!*\n\n` +
+                       `Я буду отправлять вам уведомления о:\n` +
+                       `🎁 Выигрышах в рулетке\n` +
+                       `🎉 Розыгрышах призов\n` +
+                       `📢 Важных событиях\n\n` +
+                       `Теперь вы можете участвовать в розыгрышах и получать призы!`;
+    
+    bot.sendMessage(chatId, welcomeText, { parse_mode: 'Markdown' });
+  } catch (error) {
+    console.error('[BOT START] Ошибка при регистрации пользователя:', error);
+    bot.sendMessage(chatId, '❌ Произошла ошибка. Попробуйте позже.');
   }
 });
 
-bot.onText(/\/listlots/, async (msg) => {
-  if (!checkAdmin(msg)) return;
+// Команда /help
+bot.onText(/\/help/, (msg) => {
   const chatId = msg.chat.id;
+  const isAdmin = checkAdmin(msg);
+  
+  let helpText = `*📖 Помощь - Бот "Ассист+"*\n\n` +
+                 `Доступные команды:\n` +
+                 `/start - Активировать бота\n` +
+                 `/help - Показать эту справку\n`;
+  
+  if (isAdmin) {
+    helpText += `\n*👑 Команды администратора:*\n` +
+                `/admin - Панель управления\n` +
+                `/lottery - Управление розыгрышами\n` +
+                `/participants <10|20|30> - Список участников\n` +
+                `/draw <10|20|30> - Провести розыгрыш`;
+  }
+  
+  bot.sendMessage(chatId, helpText, { parse_mode: 'Markdown' });
+});
+
+// Команда /admin - только для админов
+bot.onText(/\/admin/, async (msg) => {
+  if (!checkAdmin(msg)) {
+    bot.sendMessage(msg.chat.id, "⛔️ У вас нет прав для использования этой команды.");
+    return;
+  }
+  
+  const chatId = msg.chat.id;
+  
   try {
-    await bot.sendMessage(chatId, '⏳ Запрашиваю список лотов...');
-    const lots = await apiCall('/lots', 'GET');
-    if (lots.length === 0) {
-      await bot.sendMessage(chatId, "Лотов в базе данных пока нет.");
+    const statsStmt = db.prepare(`
+      SELECT 
+        COUNT(*) as total_users,
+        SUM(CASE WHEN bot_started = 1 THEN 1 ELSE 0 END) as active_users,
+        SUM(CASE WHEN current_month_referrals >= 10 THEN 1 ELSE 0 END) as lottery_10,
+        SUM(CASE WHEN current_month_referrals >= 20 THEN 1 ELSE 0 END) as lottery_20,
+        SUM(CASE WHEN current_month_referrals >= 30 THEN 1 ELSE 0 END) as lottery_30
+      FROM users
+    `);
+    
+    const stats = statsStmt.get();
+    
+    const message = `*👑 Админ-панель*\n\n` +
+                   `📊 *Статистика:*\n` +
+                   `Всего пользователей: ${stats.total_users}\n` +
+                   `Активировали бота: ${stats.active_users}\n\n` +
+                   `🎰 *Участники розыгрышей:*\n` +
+                   `10+ рефералов: ${stats.lottery_10} чел.\n` +
+                   `20+ рефералов: ${stats.lottery_20} чел.\n` +
+                   `30+ рефералов: ${stats.lottery_30} чел.\n\n` +
+                   `*Команды:*\n` +
+                   `/lottery - Управление розыгрышами\n` +
+                   `/participants <уровень> - Список участников (10/20/30)\n` +
+                   `/draw <уровень> - Провести розыгрыш`;
+    
+    bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+  } catch (error) {
+    console.error('[ADMIN] Ошибка:', error);
+    bot.sendMessage(chatId, '❌ Ошибка при получении статистики');
+  }
+});
+
+// Команда /participants - список участников розыгрыша
+bot.onText(/\/participants (\d+)/, async (msg, match) => {
+  if (!checkAdmin(msg)) {
+    bot.sendMessage(msg.chat.id, "⛔️ У вас нет прав для использования этой команды.");
+    return;
+  }
+  
+  const chatId = msg.chat.id;
+  const level = parseInt(match[1]);
+  
+  if (![10, 20, 30].includes(level)) {
+    bot.sendMessage(chatId, '❌ Уровень должен быть 10, 20 или 30');
+    return;
+  }
+  
+  try {
+    const participantsStmt = db.prepare(`
+      SELECT tg_id, first_name, last_name, username, current_month_referrals, referral_count_subscribed
+      FROM users
+      WHERE current_month_referrals >= ?
+      ORDER BY current_month_referrals DESC
+    `);
+    
+    const participants = participantsStmt.all(level);
+    
+    if (participants.length === 0) {
+      bot.sendMessage(chatId, `Участников с ${level}+ рефералами пока нет.`);
       return;
     }
-    const MAX_LENGTH = 4000;
-    let reply = "🗂 *Список всех лотов:*\n\n";
-    for (const lot of lots) {
-      const lotString = `*ID: ${lot.id}* (${lot.status}) - _${lot.title}_\n`;
-      if (reply.length + lotString.length > MAX_LENGTH) {
-        await bot.sendMessage(chatId, reply, { parse_mode: 'Markdown' });
-        reply = "";
-      }
-      reply += lotString;
-    }
-    if (reply.length > 0) {
-      await bot.sendMessage(chatId, reply, { parse_mode: 'Markdown' });
-    }
+    
+    let message = `*🎰 Участники розыгрыша (${level}+ рефералов):*\n\n`;
+    
+    participants.forEach((p, index) => {
+      const name = `${p.first_name}${p.last_name ? ' ' + p.last_name : ''}`;
+      const username = p.username ? `@${p.username}` : 'нет username';
+      message += `${index + 1}. ${name} (${username})\n`;
+      message += `   Рефералов: ${p.current_month_referrals} (подписались: ${p.referral_count_subscribed})\n\n`;
+    });
+    
+    bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
   } catch (error) {
-    await bot.sendMessage(chatId, `❌ *Ошибка при загрузке списка:*\n${error.message}`, { parse_mode: 'Markdown' });
+    console.error('[PARTICIPANTS] Ошибка:', error);
+    bot.sendMessage(chatId, '❌ Ошибка при получении списка участников');
   }
 });
 
-bot.onText(/\/editlot (\d+) (\w+) (.+)/s, async (msg, match) => {
-  if (!checkAdmin(msg)) return;
+// Команда /lottery - управление розыгрышами
+bot.onText(/\/lottery/, async (msg) => {
+  if (!checkAdmin(msg)) {
+    bot.sendMessage(msg.chat.id, "⛔️ У вас нет прав для использования этой команды.");
+    return;
+  }
+  
   const chatId = msg.chat.id;
+  
+  const message = `*🎰 Управление розыгрышами*\n\n` +
+                 `Розыгрыши проводятся ежемесячно для пользователей, пригласивших:\n` +
+                 `• 10+ друзей (1-й уровень)\n` +
+                 `• 20+ друзей (2-й уровень)\n` +
+                 `• 30+ друзей (3-й уровень)\n\n` +
+                 `*Команды:*\n` +
+                 `/participants <10|20|30> - Список участников\n` +
+                 `/draw <10|20|30> - Провести розыгрыш\n` +
+                 `/reset_month - Сбросить месячные счетчики`;
+  
+  bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+});
+
+// Команда /draw - провести розыгрыш
+bot.onText(/\/draw (\d+)/, async (msg, match) => {
+  if (!checkAdmin(msg)) {
+    bot.sendMessage(msg.chat.id, "⛔️ У вас нет прав для использования этой команды.");
+    return;
+  }
+  
+  const chatId = msg.chat.id;
+  const level = parseInt(match[1]);
+  
+  if (![10, 20, 30].includes(level)) {
+    bot.sendMessage(chatId, '❌ Уровень должен быть 10, 20 или 30');
+    return;
+  }
+  
   try {
-    const [, lotId, field, value_encoded] = match;
-    let value = decodeURIComponent(value_encoded.trim());
-    const allowedFields = ['title', 'description', 'city', 'age', 'start_price', 'status'];
-    if (!allowedFields.includes(field)) {
-      throw new Error(`Недопустимое поле. Для фото используйте /editphoto.`);
+    const participantsStmt = db.prepare(`
+      SELECT tg_id, first_name, last_name, username, current_month_referrals
+      FROM users
+      WHERE current_month_referrals >= ?
+    `);
+    
+    const participants = participantsStmt.all(level);
+    
+    if (participants.length === 0) {
+      bot.sendMessage(chatId, `❌ Нет участников с ${level}+ рефералами`);
+      return;
     }
-    if (['age', 'start_price'].includes(field)) {
-      value = parseInt(value, 10);
-      if(isNaN(value)) throw new Error("Значение для этого поля должно быть числом.");
+    
+    // Случайный выбор победителя
+    const winner = participants[Math.floor(Math.random() * participants.length)];
+    const winnerName = `${winner.first_name}${winner.last_name ? ' ' + winner.last_name : ''}`;
+    const winnerUsername = winner.username ? `@${winner.username}` : 'нет username';
+    
+    // Уведомление админам
+    const adminMessage = `🎉 *Розыгрыш завершен!*\n\n` +
+                        `Уровень: ${level}+ рефералов\n` +
+                        `Участников: ${participants.length}\n\n` +
+                        `🏆 *Победитель:*\n` +
+                        `${winnerName} (${winnerUsername})\n` +
+                        `ID: \`${winner.tg_id}\`\n` +
+                        `Рефералов: ${winner.current_month_referrals}`;
+    
+    bot.sendMessage(chatId, adminMessage, { parse_mode: 'Markdown' });
+    
+    // Уведомление победителю
+    try {
+      await bot.sendMessage(
+        winner.tg_id,
+        `🎉🎉🎉 *ПОЗДРАВЛЯЕМ!* 🎉🎉🎉\n\n` +
+        `Вы выиграли в розыгрыше среди пользователей с ${level}+ приглашениями!\n\n` +
+        `С вами свяжутся для вручения приза!`,
+        { parse_mode: 'Markdown' }
+      );
+    } catch (error) {
+      bot.sendMessage(chatId, `⚠️ Не удалось отправить сообщение победителю`);
     }
-    await bot.sendMessage(chatId, `⏳ Редактирую поле \`${field}\` для лота *${lotId}*...`, { parse_mode: 'Markdown' });
-    await apiCall(`/lots/${lotId}`, 'PATCH', { [field]: value });
-    await bot.sendMessage(chatId, `✅ Успешно! Лот *${lotId}* обновлен.`, { parse_mode: 'Markdown' });
+    
   } catch (error) {
-    await bot.sendMessage(chatId, `❌ *Ошибка при редактировании:*\n${error.message}`, { parse_mode: 'Markdown' });
+    console.error('[DRAW] Ошибка:', error);
+    bot.sendMessage(chatId, '❌ Ошибка при проведении розыгрыша');
   }
 });
 
-bot.onText(/\/deletelot (\d+)/, async (msg, match) => {
-  if (!checkAdmin(msg)) return;
+// Команда /reset_month - сброс месячных счетчиков вручную
+bot.onText(/\/reset_month/, async (msg) => {
+  if (!checkAdmin(msg)) {
+    bot.sendMessage(msg.chat.id, "⛔️ У вас нет прав для использования этой команды.");
+    return;
+  }
+  
   const chatId = msg.chat.id;
+  
   try {
-    const lotId = match[1];
-    await bot.sendMessage(chatId, `⏳ Отменяю лот *${lotId}*...`, { parse_mode: 'Markdown' });
-    await apiCall(`/lots/${lotId}`, 'DELETE');
-    await bot.sendMessage(chatId, `✅ Успешно! Лот *${lotId}* был отменен.`, { parse_mode: 'Markdown' });
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    
+    const resetStmt = db.prepare(`
+      UPDATE users 
+      SET current_month_referrals = 0, last_referral_reset = ?
+      WHERE current_month_referrals > 0
+    `);
+    
+    const result = resetStmt.run(currentMonth);
+    
+    bot.sendMessage(
+      chatId, 
+      `✅ Месячные счетчики сброшены для ${result.changes} пользователей`,
+      { parse_mode: 'Markdown' }
+    );
   } catch (error) {
-    await bot.sendMessage(chatId, `❌ *Ошибка при отмене:*\n${error.message}`, { parse_mode: 'Markdown' });
+    console.error('[RESET MONTH] Ошибка:', error);
+    bot.sendMessage(chatId, '❌ Ошибка при сбросе счетчиков');
   }
 });
+
+export default bot;
