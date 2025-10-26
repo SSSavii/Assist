@@ -266,12 +266,12 @@ export default function NavigationPage() {
             padding: 0px 16px;
             gap: 32px;
             width: 100%;
-            max-width: 375px;
             flex: none;
             order: 0;
             align-self: stretch;
             flex-grow: 0;
             z-index: 0;
+            box-sizing: border-box;
           }
 
           /* Верх навигации */
@@ -305,7 +305,7 @@ export default function NavigationPage() {
 
           /* Навигация */
           .page-title {
-            margin: 0 auto;
+            margin: 0;
             width: auto;
             height: 21px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -326,7 +326,7 @@ export default function NavigationPage() {
 
           /* назад */
           .back-button {
-            margin: 0 auto;
+            margin: 0;
             width: 53px;
             height: 21px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -338,6 +338,7 @@ export default function NavigationPage() {
             text-edge: cap;
             display: flex;
             align-items: flex-end;
+            justify-content: flex-end;
             letter-spacing: -0.03em;
             color: #EA0000;
             flex: none;
@@ -409,14 +410,11 @@ export default function NavigationPage() {
             align-items: flex-end;
             padding: 0px 0px 12px 16px;
             isolation: isolate;
-            width: 167.5px;
             height: 120px;
             background: #F1F1F1;
             border-radius: 16px;
-            flex: none;
-            order: 0;
-            align-self: stretch;
-            flex-grow: 1;
+            flex: 1;
+            min-width: 0;
             position: relative;
             overflow: hidden;
             cursor: pointer;
@@ -434,9 +432,8 @@ export default function NavigationPage() {
             font-style: normal;
             font-weight: 500;
             font-size: 16px;
-            line-height: 100%;
-            display: flex;
-            align-items: flex-end;
+            line-height: 16px;
+            display: block;
             letter-spacing: -0.05em;
             color: #000000;
             flex: none;
@@ -446,6 +443,7 @@ export default function NavigationPage() {
             max-width: calc(100% - 16px);
             word-wrap: break-word;
             text-align: left;
+            white-space: pre-wrap;
           }
 
           .loading-container {
@@ -477,12 +475,8 @@ export default function NavigationPage() {
               width: 250px;
             }
 
-            .cards-row {
-              width: 100%;
-            }
-
             .navigation-card {
-              width: calc(50% - 4px);
+              min-width: calc(50% - 4px);
             }
           }
 
