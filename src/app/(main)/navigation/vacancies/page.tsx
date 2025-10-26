@@ -162,30 +162,26 @@ export default function VacanciesPage() {
               {/* карточки */}
               <div className="cards-list">
                 {vacancies.map((item) => (
-                  <div
+                  <button
                     key={item.id}
-                    className={item.isBot ? "bot-button-wrapper" : ""}
+                    className={item.isBot ? "bot-card" : "mini-card"}
+                    onClick={() => handleItemClick(item.link)}
                   >
-                    <button
-                      className={item.isBot ? "bot-card" : "mini-card"}
-                      onClick={() => handleItemClick(item.link)}
-                    >
-                      <span className={item.isBot ? "bot-card-text" : "card-text"}>
-                        {item.title}
-                      </span>
-                      <div className="card-arrow">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M3 1L9 6L3 11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                      {item.isBot && (
-                        <>
-                          <div className="glow-top"></div>
-                          <div className="glow-bottom"></div>
-                        </>
-                      )}
-                    </button>
-                  </div>
+                    <span className={item.isBot ? "bot-card-text" : "card-text"}>
+                      {item.title}
+                    </span>
+                    <div className="card-arrow">
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 1L9 6L3 11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    {item.isBot && (
+                      <>
+                        <div className="glow-top"></div>
+                        <div className="glow-bottom"></div>
+                      </>
+                    )}
+                  </button>
                 ))}
               </div>
             </section>
@@ -339,20 +335,7 @@ export default function VacanciesPage() {
             flex-direction: column;
             align-items: flex-start;
             padding: 0px;
-            gap: 8px;
-            width: 100%;
-            flex: none;
-            order: 0;
-            align-self: stretch;
-            flex-grow: 0;
-          }
-
-          /* Бот кнопка wrapper */
-          .bot-button-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 0px 0px 16px;
+            gap: 24px;
             width: 100%;
             flex: none;
             order: 0;
