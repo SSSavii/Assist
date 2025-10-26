@@ -129,17 +129,17 @@ export default function CasesPage() {
       items: [
         {
           id: 1,
-          title: "Екатерина Возилкина, Maru Studio",
+          title: "Екатерина Возилкина,\nMaru Studio",
           link: "https://t.me/assist_plus_channel/123" // Замените на реальные ссылки
         },
         {
           id: 2,
-          title: "Анна Петрова, Digital Agency",
+          title: "Полина Жижина,\nSelSovet",
           link: "https://t.me/assist_plus_channel/124"
         },
         {
           id: 3,
-          title: "Мария Смирнова, Tech Solutions",
+          title: "Матвей Глаголев,\nБА Игоря Лихонина",
           link: "https://t.me/assist_plus_channel/125"
         }
       ]
@@ -150,7 +150,7 @@ export default function CasesPage() {
       items: [
         {
           id: 1,
-          title: "Иван Иванов, StartUp Inc",
+          title: "",
           link: "https://t.me/assist_plus_channel/126"
         }
       ]
@@ -194,10 +194,11 @@ export default function CasesPage() {
                         className="mini-card"
                         onClick={() => handleItemClick(item.link)}
                       >
-                        <span className="card-text">{item.title}</span>
+                        {item.title && <span className="card-text">{item.title}</span>}
                         <div className="card-arrow">
-                          <div className="arrow-line-1"></div>
-                          <div className="arrow-line-2"></div>
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 1L9 6L3 11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
                         </div>
                       </button>
                     ))}
@@ -253,19 +254,8 @@ export default function CasesPage() {
           .background-plus img {
             width: 100%;
             height: 100%;
-            opacity: 0.1;
-          }
-
-          .background-plus::before {
-            content: '';
-            position: absolute;
-            width: 207px;
-            height: 207px;
-            right: 0px;
-            bottom: -5px;
-            background: #F6F6F6;
-            border-radius: 10px;
-            transform: matrix(-1, 0, 0, 1, 0, 0);
+            opacity: 0.15;
+            filter: grayscale(100%);
           }
 
           /* контейнер */
@@ -299,9 +289,9 @@ export default function CasesPage() {
             flex-grow: 0;
           }
 
-          /* Навигация (заголовок) */
+          /* Заголовок */
           .page-title {
-            margin: 0 auto;
+            margin: 0;
             width: auto;
             height: 21px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -322,7 +312,7 @@ export default function CasesPage() {
 
           /* назад */
           .back-button {
-            margin: 0 auto;
+            margin: 0;
             width: 53px;
             height: 21px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -334,7 +324,7 @@ export default function CasesPage() {
             text-edge: cap;
             display: flex;
             align-items: flex-end;
-            text-align: right;
+            justify-content: flex-end;
             letter-spacing: -0.03em;
             color: #EA0000;
             flex: none;
@@ -365,7 +355,7 @@ export default function CasesPage() {
             flex-grow: 0;
           }
 
-          /* Категория (например "Бизнес-ассистенты") */
+          /* Категория */
           .category-section {
             display: flex;
             flex-direction: column;
@@ -420,6 +410,7 @@ export default function CasesPage() {
             display: flex;
             flex-direction: row;
             align-items: center;
+            justify-content: space-between;
             padding: 16px;
             gap: 16px;
             width: 100%;
@@ -452,41 +443,17 @@ export default function CasesPage() {
             color: #FFFFFF;
             flex: 1;
             text-align: left;
+            white-space: pre-line;
           }
 
-          /* Group 22 (стрелка) */
+          /* Стрелка */
           .card-arrow {
-            width: 16px;
-            height: 16px;
-            transform: rotate(-135deg);
-            flex: none;
-            order: 1;
-            flex-grow: 0;
-            position: relative;
-          }
-
-          /* Line 1 (Stroke) */
-          .arrow-line-1 {
-            position: absolute;
-            width: 13.47px;
-            height: 2.53px;
-            left: 0;
-            top: 0;
-            background: #FFFFFF;
-            transform: rotate(-135deg);
-            transform-origin: left top;
-          }
-
-          /* Line 2 (Stroke) */
-          .arrow-line-2 {
-            position: absolute;
-            width: 16px;
-            height: 2.53px;
-            left: 0;
-            top: 9.52px;
-            background: #FFFFFF;
-            transform: rotate(135deg);
-            transform-origin: left top;
+            width: 12px;
+            height: 12px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
 
           .loading-container {
