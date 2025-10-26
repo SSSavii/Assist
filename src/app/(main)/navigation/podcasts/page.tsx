@@ -119,12 +119,12 @@ export default function PodcastsPage() {
   const podcasts: PodcastItem[] = [
     {
       id: 1,
-      title: "Последние выпуски подкастов",
+      title: "Подкаст 1",
       link: "https://t.me/+6flpcSdc4sg5OTAy" // Замените на реальную ссылку
     },
     {
       id: 2,
-      title: "Архив подкастов",
+      title: "Подкаст 2",
       link: "https://t.me/+6flpcSdc4sg5OTAy"
     }
   ];
@@ -140,7 +140,9 @@ export default function PodcastsPage() {
         <main className="podcasts-container">
           {/* Плюс на фоне */}
           <div className="background-plus">
-            <img src="/svg4122-denw.svg" alt="" />
+            <svg width="187" height="207" viewBox="0 0 187 207" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M69 55.4706C69 62.9427 62.9427 69 55.4706 69L13.5294 69C6.05732 69 8.7051e-06 75.0573 8.05267e-06 82.5294L4.39054e-06 124.471C3.73811e-06 131.943 6.05732 138 13.5294 138L55.4706 138C62.9427 138 69 144.057 69 151.529L69 193.471C69 200.943 75.0573 207 82.5294 207L124.471 207C131.943 207 138 200.943 138 193.471L138 151.529C138 144.057 144.057 138 151.529 138L193.471 138C200.943 138 207 131.943 207 124.471L207 82.5294C207 75.0573 200.943 69 193.471 69L151.529 69C144.057 69 138 62.9427 138 55.4706L138 13.5294C138 6.05732 131.943 -6.56976e-06 124.471 -7.22379e-06L82.5294 -1.08949e-05C75.0573 -1.15489e-05 69 6.05731 69 13.5294L69 55.4706Z" fill="#F6F6F6"/>
+            </svg>
           </div>
 
           {/* Контейнер */}
@@ -165,8 +167,9 @@ export default function PodcastsPage() {
                   >
                     <span className="card-text">{item.title}</span>
                     <div className="card-arrow">
-                      <div className="arrow-line-1"></div>
-                      <div className="arrow-line-2"></div>
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 1L9 6L3 11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
                     </div>
                   </button>
                 ))}
@@ -215,24 +218,7 @@ export default function PodcastsPage() {
             order: 0;
             flex-grow: 0;
             z-index: 0;
-          }
-
-          .background-plus img {
-            width: 100%;
-            height: 100%;
-            opacity: 0.1;
-          }
-
-          .background-plus::before {
-            content: '';
-            position: absolute;
-            width: 207px;
-            height: 207px;
-            right: 0px;
-            bottom: -5px;
-            background: #F6F6F6;
-            border-radius: 10px;
-            transform: matrix(-1, 0, 0, 1, 0, 0);
+            opacity: 0.5;
           }
 
           /* контейнер */
@@ -243,12 +229,12 @@ export default function PodcastsPage() {
             padding: 0px 16px;
             gap: 32px;
             width: 100%;
-            max-width: 375px;
             flex: none;
             order: 1;
             align-self: stretch;
             flex-grow: 0;
             z-index: 1;
+            box-sizing: border-box;
           }
 
           /* Верх */
@@ -266,9 +252,9 @@ export default function PodcastsPage() {
             flex-grow: 0;
           }
 
-          /* Навигация (заголовок) */
+          /* Заголовок */
           .page-title {
-            margin: 0 auto;
+            margin: 0;
             width: auto;
             height: 21px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -289,8 +275,8 @@ export default function PodcastsPage() {
 
           /* назад */
           .back-button {
-            margin: 0 auto;
-            width: 53px;
+            margin: 0;
+            width: auto;
             height: 21px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-style: normal;
@@ -301,6 +287,7 @@ export default function PodcastsPage() {
             text-edge: cap;
             display: flex;
             align-items: flex-end;
+            justify-content: flex-end;
             text-align: right;
             letter-spacing: -0.03em;
             color: #EA0000;
@@ -351,6 +338,7 @@ export default function PodcastsPage() {
             display: flex;
             flex-direction: row;
             align-items: center;
+            justify-content: space-between;
             padding: 16px;
             gap: 16px;
             width: 100%;
@@ -364,6 +352,7 @@ export default function PodcastsPage() {
             cursor: pointer;
             transition: transform 0.1s ease-in-out;
             -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
           }
 
           .mini-card:active {
@@ -382,42 +371,17 @@ export default function PodcastsPage() {
             color: #FFFFFF;
             flex: 1;
             text-align: left;
+            white-space: pre-line;
           }
 
-          /* Group 22 (стрелка) */
+          /* Стрелка */
           .card-arrow {
-            width: 16px;
-            height: 16px;
-            transform: rotate(-135deg);
-            flex: none;
-            order: 1;
-            flex-grow: 0;
-            position: relative;
+            width: 12px;
+            height: 12px;
             flex-shrink: 0;
-          }
-
-          /* Line 1 (Stroke) */
-          .arrow-line-1 {
-            position: absolute;
-            width: 13.47px;
-            height: 2.53px;
-            left: 0;
-            top: 0;
-            background: #FFFFFF;
-            transform: rotate(-135deg);
-            transform-origin: left top;
-          }
-
-          /* Line 2 (Stroke) */
-          .arrow-line-2 {
-            position: absolute;
-            width: 16px;
-            height: 2.53px;
-            left: 0;
-            top: 9.52px;
-            background: #FFFFFF;
-            transform: rotate(135deg);
-            transform-origin: left top;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
 
           .loading-container {
