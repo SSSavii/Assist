@@ -78,8 +78,7 @@ interface NavigationCard {
   id: number;
   title: string;
   image: string;
-  imageStyle?: React.CSSProperties;
-  route: string; // Изменили с link на route
+  route: string;
 }
 
 export default function NavigationPage() {
@@ -117,106 +116,63 @@ export default function NavigationPage() {
     router.push(card.route);
   };
 
+  const handleBackClick = () => {
+    const tg = window.Telegram?.WebApp;
+    
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('light');
+    }
+    
+    router.push('/');
+  };
+
   const navigationCards: NavigationCard[] = [
     {
       id: 1,
       title: "Кейсы",
       image: "/images/cases.png",
-      imageStyle: {
-        width: '220.87px',
-        height: '124.24px',
-        right: '-53.37px',
-        top: 'calc(50% - 124.24px/2 + 2.12px)'
-      },
       route: "/navigation/cases"
     },
     {
       id: 2,
       title: "Подборки",
       image: "/images/selections.png",
-      imageStyle: {
-        width: '256px',
-        height: '144px',
-        right: '-102px',
-        top: 'calc(50% - 144px/2 - 12px)'
-      },
       route: "/navigation/selections"
     },
     {
       id: 3,
       title: "Мероприятия",
       image: "/images/events.png",
-      imageStyle: {
-        width: '177px',
-        height: '100px',
-        right: '-53.5px',
-        top: 'calc(50% - 100px/2 - 14px)'
-      },
       route: "/navigation/events"
     },
     {
       id: 4,
       title: "Записи онлайн встреч",
       image: "/images/online-meetings.png",
-      imageStyle: {
-        width: '220px',
-        height: '124px',
-        right: '-74px',
-        top: 'calc(50% - 124px/2 - 20px)',
-        transform: 'rotate(4.01deg)'
-      },
       route: "/navigation/online-meetings"
     },
     {
       id: 5,
       title: "Оффлайн мероприятия",
       image: "/images/offline-events.png",
-      imageStyle: {
-        width: '213.43px',
-        height: '120.06px',
-        right: '-69.93px',
-        top: 'calc(50% - 120.06px/2 - 24.97px)',
-        transform: 'rotate(-12.78deg)'
-      },
       route: "/navigation/offline-events"
     },
     {
       id: 6,
       title: "Гайды и лайфхаки",
       image: "/images/guides.png",
-      imageStyle: {
-        width: '253.59px',
-        height: '142.65px',
-        right: '-93.74px',
-        top: 'calc(50% - 142.65px/2 - 13.34px)',
-        transform: 'matrix(-0.97, 0.23, 0.23, 0.97, 0, 0)'
-      },
       route: "/navigation/guides"
     },
     {
       id: 7,
       title: "Вакансии",
       image: "/images/vacancies.png",
-      imageStyle: {
-        width: '223.48px',
-        height: '125.71px',
-        right: '-58.98px',
-        top: 'calc(50% - 125.71px/2 - 2.15px)',
-        transform: 'rotate(5.89deg)'
-      },
       route: "/navigation/vacancies"
     },
     {
       id: 8,
       title: "Подкасты",
       image: "/images/podcasts.png",
-      imageStyle: {
-        height: '157.03px',
-        left: '-10.66%',
-        right: '-56%',
-        top: 'calc(50% - 157.03px/2 - 27.17px)',
-        transform: 'rotate(-12.34deg)'
-      },
       route: "/navigation/podcasts"
     }
   ];
@@ -230,32 +186,48 @@ export default function NavigationPage() {
       <GlobalStyles />
       <div className="navigation-wrapper">
         <main className="navigation-container">
-          <header className="page-header">
-            <h1 className="page-title">Навигация</h1>
-            <p className="page-subtitle">по каналу АССИСТ+</p>
-          </header>
-
-          <section className="cards-grid">
-            {[0, 1, 2, 3].map((rowIndex) => (
-              <div key={rowIndex} className="cards-row">
-                {navigationCards.slice(rowIndex * 2, rowIndex * 2 + 2).map((card) => (
-                  <article
-                    key={card.id}
-                    className="navigation-card"
-                    onClick={() => handleCardClick(card)}
-                  >
-                    <div className="card-title">{card.title}</div>
-                    <img
-                      className="card-image"
-                      alt={card.title}
-                      src={card.image}
-                      style={card.imageStyle}
-                    />
-                  </article>
-                ))}
+          {/* контейнер */}
+          <div className="content-container">
+            {/* Верх навигации */}
+            <header className="navigation-header">
+              {/* Верх */}
+              <div className="header-top">
+                <h1 className="page-title">Навигация</h1>
+                <button className="back-button" onClick={handleBackClick}>
+                  назад
+                </button>
               </div>
-            ))}
-          </section>
+
+              {/* Подзаголовок */}
+              <p className="page-subtitle">
+                Изучай все самые важные <br />
+                и полезные материалы АССИСТ+
+              </p>
+            </header>
+
+            {/* карточки */}
+            <section className="cards-grid">
+              {[0, 1, 2, 3].map((rowIndex) => (
+                <div key={rowIndex} className="cards-row">
+                  {navigationCards.slice(rowIndex * 2, rowIndex * 2 + 2).map((card) => (
+                    <button
+                      key={card.id}
+                      className="navigation-card"
+                      onClick={() => handleCardClick(card)}
+                      style={{
+                        backgroundImage: `url(${card.image})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat'
+                      }}
+                    >
+                      <span className="card-title">{card.title}</span>
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </section>
+          </div>
         </main>
 
         <style jsx>{`
@@ -271,6 +243,7 @@ export default function NavigationPage() {
             -webkit-overflow-scrolling: touch;
           }
 
+          /* навигация */
           .navigation-container {
             display: flex;
             flex-direction: column;
@@ -285,51 +258,136 @@ export default function NavigationPage() {
             box-sizing: border-box;
           }
 
-          .page-header {
+          /* контейнер */
+          .content-container {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            padding: 0 16px;
+            align-items: flex-start;
+            padding: 0px 16px;
+            gap: 32px;
             width: 100%;
-            margin-bottom: 24px;
+            max-width: 375px;
+            flex: none;
+            order: 0;
+            align-self: stretch;
+            flex-grow: 0;
+            z-index: 0;
           }
 
+          /* Верх навигации */
+          .navigation-header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0px;
+            gap: 16px;
+            width: 100%;
+            flex: none;
+            order: 0;
+            align-self: stretch;
+            flex-grow: 0;
+          }
+
+          /* Верх */
+          .header-top {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0px;
+            width: 100%;
+            height: 21px;
+            flex: none;
+            order: 0;
+            align-self: stretch;
+            flex-grow: 0;
+          }
+
+          /* Навигация */
           .page-title {
+            margin: 0 auto;
+            width: auto;
+            height: 21px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-weight: 700;
+            font-style: normal;
+            font-weight: 500;
             font-size: 32px;
-            text-align: center;
+            line-height: 110%;
+            leading-trim: both;
+            text-edge: cap;
+            display: flex;
+            align-items: flex-end;
+            letter-spacing: -0.03em;
             color: #000000;
-            line-height: 1.2;
-            letter-spacing: -0.96px;
-            margin: 0;
+            flex: none;
+            order: 0;
+            flex-grow: 0;
           }
 
-          .page-subtitle {
+          /* назад */
+          .back-button {
+            margin: 0 auto;
+            width: 53px;
+            height: 21px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-style: normal;
+            font-weight: 500;
+            font-size: 20px;
+            line-height: 110%;
+            leading-trim: both;
+            text-edge: cap;
+            display: flex;
+            align-items: flex-end;
+            letter-spacing: -0.03em;
+            color: #EA0000;
+            flex: none;
+            order: 1;
+            flex-grow: 0;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+          }
+
+          .back-button:active {
+            opacity: 0.7;
+          }
+
+          /* Изучай все самые важные и полезные материалы АССИСТ+ */
+          .page-subtitle {
+            width: 270px;
+            height: 60px;
+            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-style: normal;
             font-weight: 400;
-            font-size: 16px;
-            text-align: center;
-            color: #666666;
-            line-height: 1.4;
+            font-size: 20px;
+            line-height: 100%;
+            display: flex;
+            align-items: flex-end;
+            letter-spacing: -0.02em;
+            color: #000000;
+            flex: none;
+            order: 1;
+            flex-grow: 0;
             margin: 0;
           }
 
+          /* карточки */
           .cards-grid {
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 0px;
             gap: 8px;
-            width: 343px;
-            height: 504px;
+            width: 100%;
             flex: none;
             order: 1;
             align-self: stretch;
             flex-grow: 0;
           }
 
+          /* строка */
           .cards-row {
             display: flex;
             flex-direction: row;
@@ -337,13 +395,14 @@ export default function NavigationPage() {
             align-items: center;
             padding: 0px;
             gap: 8px;
-            width: 343px;
+            width: 100%;
             height: 120px;
             flex: none;
             align-self: stretch;
             flex-grow: 0;
           }
 
+          /* Карточка */
           .navigation-card {
             display: flex;
             flex-direction: row;
@@ -363,6 +422,7 @@ export default function NavigationPage() {
             cursor: pointer;
             transition: transform 0.1s ease-in-out;
             -webkit-tap-highlight-color: transparent;
+            border: none;
           }
 
           .navigation-card:active {
@@ -385,16 +445,7 @@ export default function NavigationPage() {
             z-index: 0;
             max-width: calc(100% - 16px);
             word-wrap: break-word;
-          }
-
-          .card-image {
-            position: absolute;
-            object-fit: cover;
-            flex: none;
-            order: 1;
-            flex-grow: 0;
-            z-index: 1;
-            pointer-events: none;
+            text-align: left;
           }
 
           .loading-container {
@@ -417,12 +468,13 @@ export default function NavigationPage() {
               font-size: 28px;
             }
 
-            .page-subtitle {
-              font-size: 14px;
+            .back-button {
+              font-size: 18px;
             }
 
-            .cards-grid {
-              width: calc(100vw - 32px);
+            .page-subtitle {
+              font-size: 18px;
+              width: 250px;
             }
 
             .cards-row {
