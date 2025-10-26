@@ -220,9 +220,8 @@ export default function NavigationPage() {
                         backgroundPosition: 'center',
                         backgroundRepeat: 'no-repeat'
                       }}
-                    >
-                      <span className="card-title">{card.title}</span>
-                    </button>
+                      aria-label={card.title}
+                    />
                   ))}
                 </div>
               ))}
@@ -405,11 +404,6 @@ export default function NavigationPage() {
 
           /* Карточка */
           .navigation-card {
-            display: flex;
-            flex-direction: row;
-            align-items: flex-end;
-            padding: 0px 0px 12px 16px;
-            isolation: isolate;
             height: 120px;
             background: #F1F1F1;
             border-radius: 16px;
@@ -421,29 +415,11 @@ export default function NavigationPage() {
             transition: transform 0.1s ease-in-out;
             -webkit-tap-highlight-color: transparent;
             border: none;
+            padding: 0;
           }
 
           .navigation-card:active {
             transform: scale(0.98);
-          }
-
-          .card-title {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 500;
-            font-size: 16px;
-            line-height: 16px;
-            display: block;
-            letter-spacing: -0.05em;
-            color: #000000;
-            flex: none;
-            order: 0;
-            flex-grow: 0;
-            z-index: 0;
-            max-width: calc(100% - 16px);
-            word-wrap: break-word;
-            text-align: left;
-            white-space: pre-wrap;
           }
 
           .loading-container {
