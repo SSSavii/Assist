@@ -168,7 +168,9 @@ export default function CasesPage() {
         <main className="cases-container">
           {/* Плюс на фоне */}
           <div className="background-plus">
-            <img src="/svg4122-denw.svg" alt="" />
+            <svg width="187" height="207" viewBox="0 0 187 207" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M69 55.4706C69 62.9427 62.9427 69 55.4706 69L13.5294 69C6.05732 69 8.7051e-06 75.0573 8.05267e-06 82.5294L4.39054e-06 124.471C3.73811e-06 131.943 6.05732 138 13.5294 138L55.4706 138C62.9427 138 69 144.057 69 151.529L69 193.471C69 200.943 75.0573 207 82.5294 207L124.471 207C131.943 207 138 200.943 138 193.471L138 151.529C138 144.057 144.057 138 151.529 138L193.471 138C200.943 138 207 131.943 207 124.471L207 82.5294C207 75.0573 200.943 69 193.471 69L151.529 69C144.057 69 138 62.9427 138 55.4706L138 13.5294C138 6.05732 131.943 -6.56976e-06 124.471 -7.22379e-06L82.5294 -1.08949e-05C75.0573 -1.15489e-05 69 6.05731 69 13.5294L69 55.4706Z" fill="#F6F6F6"/>
+            </svg>
           </div>
 
           {/* Контейнер */}
@@ -249,13 +251,7 @@ export default function CasesPage() {
             order: 0;
             flex-grow: 0;
             z-index: 0;
-          }
-
-          .background-plus img {
-            width: 100%;
-            height: 100%;
-            opacity: 0.15;
-            filter: grayscale(100%);
+            opacity: 0.5;
           }
 
           /* контейнер */
@@ -266,12 +262,12 @@ export default function CasesPage() {
             padding: 0px 16px;
             gap: 32px;
             width: 100%;
-            max-width: 375px;
             flex: none;
             order: 1;
             align-self: stretch;
             flex-grow: 0;
             z-index: 1;
+            box-sizing: border-box;
           }
 
           /* Верх */
@@ -313,7 +309,7 @@ export default function CasesPage() {
           /* назад */
           .back-button {
             margin: 0;
-            width: 53px;
+            width: auto;
             height: 21px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-style: normal;
@@ -325,6 +321,7 @@ export default function CasesPage() {
             display: flex;
             align-items: flex-end;
             justify-content: flex-end;
+            text-align: right;
             letter-spacing: -0.03em;
             color: #EA0000;
             flex: none;
@@ -369,6 +366,7 @@ export default function CasesPage() {
             order: 0;
             align-self: stretch;
             flex-grow: 0;
+            box-sizing: border-box;
           }
 
           .category-title {
@@ -425,6 +423,7 @@ export default function CasesPage() {
             transition: transform 0.1s ease-in-out;
             -webkit-tap-highlight-color: transparent;
             min-height: 54px;
+            box-sizing: border-box;
           }
 
           .mini-card:active {
