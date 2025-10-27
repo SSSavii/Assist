@@ -98,7 +98,7 @@ interface DailyLimit {
   maxLimit: number;
 }
 
-const CASE_COST = 500; // Стоимость в А+
+const CASE_COST = 500;
 const PREMIUM_ITEM_COST = 10000;
 
 export default function ShopPage() {
@@ -113,7 +113,6 @@ export default function ShopPage() {
   const isProcessingPrizeRef = useRef(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Инициализация Telegram WebApp
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -123,7 +122,6 @@ export default function ShopPage() {
     }
   }, []);
 
-  // Скролл в начало
   useEffect(() => {
     if (wrapperRef.current) {
       wrapperRef.current.scrollTop = 0;
@@ -142,7 +140,6 @@ export default function ShopPage() {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  // Загрузка данных пользователя и лимитов
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (!tg) {
@@ -269,15 +266,13 @@ export default function ShopPage() {
 
     if (isSpinning || hasSpunRef.current || !user) return;
 
-    // Проверка баланса
     if (user.balance_crystals < CASE_COST) {
       tg?.showAlert(`У вас недостаточно плюсов! Требуется: ${CASE_COST} А+`);
       return;
     }
 
-    // Проверка дневного лимита
     if (dailyLimit && dailyLimit.remaining <= 0) {
-      tg?.showAlert(`Вы достигли дневного лимита открытий кейсов!\nОсталось попыток сегодня: 0/${dailyLimit.maxLimit}`);
+      tg?.showAlert(`Вы достигли дневного лимита открытий кейсов!\nПопробуйте завтра.`);
       return;
     }
 
@@ -290,7 +285,6 @@ export default function ShopPage() {
     try {
       tg?.HapticFeedback.impactOccurred('light');
 
-      // Списываем А+
       const spendResponse = await fetch('/api/user/spend-crystals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -307,7 +301,6 @@ export default function ShopPage() {
 
       const spendData = await spendResponse.json();
 
-      // Используем попытку из дневного лимита
       const limitResponse = await fetch('/api/user/daily-limit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -373,6 +366,16 @@ export default function ShopPage() {
     tg?.showAlert('Функция покупки премиум товаров будет доступна в ближайшее время!');
   };
 
+  const handleOpenBot = () => {
+    const tg = window.Telegram?.WebApp;
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('light');
+    }
+    
+    const botUsername = 'my_auction_admin_bot';
+    tg?.openTelegramLink(`https://t.me/${botUsername}`);
+  };
+
   if (isLoading) {
     return <div className="loading-container">Загрузка...</div>;
   }
@@ -388,7 +391,6 @@ export default function ShopPage() {
       <GlobalStyles />
       <div className="shop-wrapper" ref={wrapperRef}>
         <main className="shop-container">
-          {/* Контейнер */}
           <div className="content-container">
             {/* Текст */}
             <div className="text-section">
@@ -400,30 +402,29 @@ export default function ShopPage() {
 
             {/* Предупреждение - если бот не запущен */}
             {!user?.bot_started && (
-              <div className="warning-card">
+              <button className="warning-card" onClick={handleOpenBot}>
                 <div className="warning-title">Внимание!</div>
                 <div className="warning-text">Запустите бота для получения призов</div>
-              </div>
+              </button>
             )}
 
             {/* Инфа */}
             <div className="info-row">
               <div className="info-card">
-                <div className="info-value">{user?.cases_to_open || 0}</div>
-                <div className="info-label">Доступно<br />кейсов</div>
+                <div className="info-value">{dailyLimit?.remaining || 0}/{dailyLimit?.maxLimit || 5}</div>
+                <div className="info-label">Осталось<br />открытий</div>
               </div>
 
               <div className="info-card">
-                <div className="info-value">{dailyLimit?.remaining || 0}/{dailyLimit?.maxLimit || 5}</div>
-                <div className="info-label">Открытий<br />сегодня</div>
+                <div className="info-value">{user?.balance_crystals?.toLocaleString('ru-RU') || 0}</div>
+                <div className="info-label">Текущий<br />баланс</div>
               </div>
             </div>
 
             {/* Контейнер крутилки */}
-            <div className="spinner-container">
+            <div className="spinner-wrapper">
               <div className="spinner-background">
-                {/* Крутилка */}
-                <div className="spinner">
+                <div className="spinner-box">
                   <HorizontalTextSlotMachine
                     key={spinKey}
                     spinId={spinKey}
@@ -433,7 +434,6 @@ export default function ShopPage() {
                   />
                 </div>
 
-                {/* Кнопка крутилки */}
                 <button 
                   onClick={handleSpin}
                   disabled={!canSpin}
@@ -442,26 +442,22 @@ export default function ShopPage() {
                   Крутить
                 </button>
               </div>
-
-              {/* Стоимость под кнопкой */}
-              <div className="cost-label">{CASE_COST} А+ за открытие</div>
             </div>
+
+            {/* Стоимость */}
+            <div className="cost-info">{CASE_COST} А+ за открытие</div>
 
             {/* Контейнер товары */}
             <div className="products-container">
-              {/* Премиум товары */}
               <div className="premium-section">
                 <h2 className="premium-title">Премиум товар</h2>
 
-                {/* Товар */}
                 <div className="product-item">
-                  {/* Текст */}
                   <div className="product-text">
                     <div className="product-name">Созвон с кумиром</div>
                     <div className="product-description">30 минут личного общения</div>
                   </div>
 
-                  {/* Купить */}
                   <div className="product-buy">
                     <button 
                       onClick={handleBuyPremium}
@@ -471,7 +467,6 @@ export default function ShopPage() {
                       Купить
                     </button>
 
-                    {/* + очки */}
                     <div className="price-row">
                       <span className="price-value">{PREMIUM_ITEM_COST.toLocaleString('ru-RU')}</span>
                       <div className="crystal-icon">
@@ -501,7 +496,6 @@ export default function ShopPage() {
             scroll-behavior: auto;
           }
 
-          /* Магазин */
           .shop-container {
             display: flex;
             flex-direction: column;
@@ -516,7 +510,6 @@ export default function ShopPage() {
             box-sizing: border-box;
           }
 
-          /* Контейнер */
           .content-container {
             display: flex;
             flex-direction: column;
@@ -532,7 +525,6 @@ export default function ShopPage() {
             box-sizing: border-box;
           }
 
-          /* Текст */
           .text-section {
             display: flex;
             flex-direction: column;
@@ -541,7 +533,6 @@ export default function ShopPage() {
             padding: 0px 0px 24px;
             gap: 16px;
             width: 100%;
-            max-width: 343px;
             flex: none;
             order: 0;
             align-self: stretch;
@@ -555,14 +546,9 @@ export default function ShopPage() {
             font-weight: 500;
             font-size: 32px;
             line-height: 110%;
-            leading-trim: both;
-            text-edge: cap;
             text-align: center;
             letter-spacing: -0.03em;
             color: #000000;
-            flex: none;
-            order: 0;
-            flex-grow: 0;
           }
 
           .page-subtitle {
@@ -574,12 +560,8 @@ export default function ShopPage() {
             line-height: 100%;
             letter-spacing: -0.02em;
             color: #000000;
-            flex: none;
-            order: 1;
-            flex-grow: 0;
           }
 
-          /* Предупреждение */
           .warning-card {
             display: flex;
             flex-direction: column;
@@ -587,7 +569,6 @@ export default function ShopPage() {
             padding: 16px;
             gap: 4px;
             width: 100%;
-            max-width: 343px;
             background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
             border-radius: 16px;
             flex: none;
@@ -595,6 +576,14 @@ export default function ShopPage() {
             align-self: stretch;
             flex-grow: 0;
             box-sizing: border-box;
+            border: none;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: opacity 0.2s;
+          }
+
+          .warning-card:active {
+            opacity: 0.8;
           }
 
           .warning-title {
@@ -606,9 +595,6 @@ export default function ShopPage() {
             text-align: center;
             letter-spacing: -0.03em;
             color: #FFFFFF;
-            flex: none;
-            order: 0;
-            flex-grow: 0;
           }
 
           .warning-text {
@@ -621,12 +607,8 @@ export default function ShopPage() {
             letter-spacing: -0.05em;
             text-decoration-line: underline;
             color: #FFFFFF;
-            flex: none;
-            order: 1;
-            flex-grow: 0;
           }
 
-          /* Инфа */
           .info-row {
             display: flex;
             flex-direction: row;
@@ -635,7 +617,6 @@ export default function ShopPage() {
             padding: 0px;
             gap: 8px;
             width: 100%;
-            max-width: 343px;
             height: 100px;
             flex: none;
             order: 3;
@@ -662,13 +643,8 @@ export default function ShopPage() {
             font-weight: 500;
             font-size: 32px;
             line-height: 110%;
-            leading-trim: both;
-            text-edge: cap;
             letter-spacing: -0.03em;
             color: #EA0000;
-            flex: none;
-            order: 0;
-            flex-grow: 0;
           }
 
           .info-label {
@@ -677,31 +653,23 @@ export default function ShopPage() {
             font-weight: 500;
             font-size: 16px;
             line-height: 100%;
-            leading-trim: both;
-            text-edge: cap;
             letter-spacing: -0.03em;
             color: #000000;
-            flex: none;
-            order: 1;
-            flex-grow: 0;
           }
 
-          /* Контейнер крутилки */
-          .spinner-container {
+          .spinner-wrapper {
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 0px 0px 24px;
             width: 100%;
-            max-width: 343px;
             flex: none;
             order: 4;
             align-self: stretch;
             flex-grow: 0;
           }
 
-          /* Фон крутилки */
           .spinner-background {
             display: flex;
             flex-direction: column;
@@ -715,15 +683,7 @@ export default function ShopPage() {
             box-sizing: border-box;
           }
 
-          /* Крутилка */
-          .spinner {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 24px 0px;
-            gap: 10px;
-            isolation: isolate;
+          .spinner-box {
             width: 100%;
             min-height: 200px;
             background: #FFFFFF;
@@ -731,17 +691,16 @@ export default function ShopPage() {
             border-radius: 8px;
             position: relative;
             overflow: hidden;
-            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
 
-          /* Кнопка крутилки */
           .spin-button {
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 8px 32px;
-            gap: 10px;
             width: 137px;
             height: 50px;
             background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
@@ -750,7 +709,6 @@ export default function ShopPage() {
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
             font-weight: 500;
             font-size: 20px;
             line-height: 100%;
@@ -768,33 +726,29 @@ export default function ShopPage() {
             cursor: not-allowed;
           }
 
-          .cost-label {
-            margin-top: 8px;
+          .cost-info {
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 14px;
             color: #666666;
+            text-align: center;
+            width: 100%;
           }
 
-          /* Контейнер товары */
           .products-container {
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
             padding: 0px 0px 12px;
             gap: 10px;
             width: 100%;
-            max-width: 343px;
             flex: none;
             order: 5;
             align-self: stretch;
             flex-grow: 0;
           }
 
-          /* Премиум товары */
           .premium-section {
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
             padding: 24px 16px;
             gap: 16px;
             width: 100%;
@@ -806,40 +760,30 @@ export default function ShopPage() {
           .premium-title {
             margin: 0;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
             font-weight: 500;
             font-size: 24px;
             line-height: 100%;
-            leading-trim: both;
-            text-edge: cap;
             letter-spacing: -0.03em;
             color: #000000;
           }
 
-          /* Товар */
           .product-item {
             display: flex;
             flex-direction: row;
-            align-items: flex-start;
             padding: 4px 0px;
             gap: 16px;
             width: 100%;
-            box-sizing: border-box;
           }
 
-          /* Текст */
           .product-text {
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            padding: 0px;
             gap: 4px;
             flex: 1;
           }
 
           .product-name {
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
             font-weight: 500;
             font-size: 16px;
             line-height: 100%;
@@ -849,7 +793,6 @@ export default function ShopPage() {
 
           .product-description {
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
             font-weight: 300;
             font-size: 16px;
             line-height: 110%;
@@ -857,22 +800,15 @@ export default function ShopPage() {
             color: #000000;
           }
 
-          /* Купить */
           .product-buy {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            padding: 0px;
             gap: 8px;
           }
 
           .buy-button {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
             padding: 8px 32px;
-            gap: 10px;
             height: 32px;
             background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
             border-radius: 30px;
@@ -880,11 +816,9 @@ export default function ShopPage() {
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
             font-weight: 500;
             font-size: 16px;
             line-height: 100%;
-            text-align: center;
             letter-spacing: -0.05em;
             color: #FFFFFF;
             transition: opacity 0.2s;
@@ -899,22 +833,17 @@ export default function ShopPage() {
             cursor: not-allowed;
           }
 
-          /* + очки */
           .price-row {
             display: flex;
-            flex-direction: row;
             align-items: center;
-            padding: 0px;
             gap: 10px;
           }
 
           .price-value {
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
             font-weight: 500;
             font-size: 20px;
             line-height: 100%;
-            text-align: center;
             letter-spacing: -0.03em;
             color: #000000;
           }
@@ -930,7 +859,6 @@ export default function ShopPage() {
             justify-content: center;
             align-items: center;
             height: 100vh;
-            height: -webkit-fill-available;
             background-color: #FFFFFF;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             color: #666666;
