@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 const GlobalStyles = () => (
@@ -74,10 +75,10 @@ type UserProfile = {
 };
 
 export default function FriendsPage() {
+  const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showRules, setShowRules] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0 });
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -201,7 +202,7 @@ export default function FriendsPage() {
     if (tg?.HapticFeedback) {
       tg.HapticFeedback.impactOccurred('light');
     }
-    setShowRules(true);
+    router.push('/friends/condition');
   };
 
   if (loading) {
@@ -290,26 +291,6 @@ export default function FriendsPage() {
           </div>
         </main>
 
-        {/* Модальное окно с правилами */}
-        {showRules && (
-          <div className="modal-overlay" onClick={() => setShowRules(false)}>
-            <div
-              className="modal-content"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 className="modal-title">Условия участия в розыгрышах</h3>
-              <ul className="modal-list">
-                <li>• 10 приглашений — возможность попасть на онлайн мини-разбор с Иваном Абрамовым. Разбор проводится еженедельно.</li>
-                <li>• 20 приглашений — приоритетное место на мини-разборе, что гарантирует 100% участие в ближайшей сессии.</li>
-                <li>• 30 приглашений — участие в ежемесячном розыгрыше завтрака с Иваном Абрамовым в Сколково.</li>
-              </ul>
-              <button className="modal-close" onClick={() => setShowRules(false)}>
-                Понятно
-              </button>
-            </div>
-          </div>
-        )}
-
         <style jsx>{`
           .friends-wrapper {
             position: relative;
@@ -361,7 +342,7 @@ export default function FriendsPage() {
             width: 100%;
             position: relative;
             height: 300px;
-            margin-bottom: -10px;
+            margin-bottom: -100px;
             z-index: 0;
           }
 
@@ -676,68 +657,6 @@ export default function FriendsPage() {
             pointer-events: none;
           }
 
-          /* Модальное окно */
-          .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            padding: 16px;
-          }
-
-          .modal-content {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            max-width: 400px;
-            width: 100%;
-            box-sizing: border-box;
-          }
-
-          .modal-title {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-size: 20px;
-            font-weight: 500;
-            color: #000000;
-            margin: 0 0 16px 0;
-          }
-
-          .modal-list {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-size: 14px;
-            color: #666666;
-            line-height: 1.5;
-            margin: 0 0 16px 0;
-            padding-left: 0;
-            list-style: none;
-          }
-
-          .modal-list li {
-            margin-bottom: 12px;
-          }
-
-          .modal-close {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            transition: opacity 0.2s;
-          }
-
-          .modal-close:active {
-            opacity: 0.8;
-          }
-
           .loading-container {
             display: flex;
             justify-content: center;
@@ -773,7 +692,7 @@ export default function FriendsPage() {
             }
 
             .header-section {
-              margin-bottom: -20px;
+              margin-bottom: -80px;
             }
 
             .info-label,
