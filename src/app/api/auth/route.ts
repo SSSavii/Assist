@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/init-database';
 import { validateTelegramHash } from '@/lib/telegram-auth';
 
-const REFERRAL_BONUS = 500;
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const CHANNEL_ID = '-1002782276287';
+const REFERRAL_REWARD = 500;
 
 interface UserFromDB {
   id: number;
@@ -22,10 +23,10 @@ interface UserFromDB {
   subscribed_to_channel: number;
   boost_count_before: number;
   photo_url: string | null;
-  bot_started: number; // ДОБАВИТЬ
-  referral_count: number; // ДОБАВИТЬ
-  referral_count_subscribed: number; // ДОБАВИТЬ
-  current_month_referrals: number; // ДОБАВИТЬ
+  bot_started: number;
+  referral_count: number;
+  referral_count_subscribed: number;
+  current_month_referrals: number;
 }
 
 interface AuthResponse {
@@ -42,15 +43,46 @@ interface AuthResponse {
   last_login_at: string;
   subscribed_to_channel?: boolean;
   voted_for_channel?: boolean;
-  bot_started?: boolean; // ДОБАВИТЬ
-  referral_count?: number; // ДОБАВИТЬ
-  referral_count_subscribed?: number; // ДОБАВИТЬ
-  current_month_referrals?: number; // ДОБАВИТЬ
+  bot_started?: boolean;
+  referral_count?: number;
+  referral_count_subscribed?: number;
+  current_month_referrals?: number;
   tasks_completed: {
     subscribe: boolean;
     vote: boolean;
     invite: boolean;
   };
+}
+
+async function checkChannelSubscription(userId: number) {
+  if (!BOT_TOKEN || !CHANNEL_ID) {
+    console.warn('Bot token or channel ID not configured for subscription check');
+    return null;
+  }
+
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChatMember`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: CHANNEL_ID,
+        user_id: userId
+      })
+    });
+
+    if (!response.ok) {
+      console.error('Telegram API error:', response.statusText);
+      return null;
+    }
+
+    const data = await response.json();
+    return data.result;
+  } catch (error) {
+    console.error('Error checking subscription:', error);
+    return null;
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -179,63 +211,99 @@ export async function POST(req: NextRequest) {
       user = findUserStmt.get(userData.id) as UserFromDB;
       console.log('✅ User updated');
     } else {
-  const insertStmt = db.prepare(`
-    INSERT INTO users (tg_id, username, first_name, last_name, photo_url, referred_by_id, balance_crystals)
-    VALUES (?, ?, ?, ?, ?, ?, 400)
-  `);
-  
-  insertStmt.run(
-    userData.id,
-    userData.username,
-    userData.first_name,
-    userData.last_name,
-    userData.photo_url || null,
-    referredById
-  );
-
-  user = findUserStmt.get(userData.id) as UserFromDB;
-  
-  if (!user) {
-    console.error('❌ Failed to create user');
-    return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
-  }
-  
-  console.log('✅ New user created');
-  
-  // ДОБАВЛЕНО: Обновление счётчиков реферала у пригласившего
-  if (referredById) {
-    try {
-      const transaction = db.transaction(() => {
-        // Увеличиваем общий счётчик рефералов
-        const updateReferrerStmt = db.prepare(`
-          UPDATE users 
-          SET referral_count = referral_count + 1,
-              current_month_referrals = current_month_referrals + 1
-          WHERE id = ?
-        `);
-        updateReferrerStmt.run(referredById);
-        
-        // Создаём запись в referral_rewards
-        const insertRewardStmt = db.prepare(`
-          INSERT OR IGNORE INTO referral_rewards (user_id, referred_user_id, is_subscribed, reward_given)
-          VALUES (?, ?, 0, 0)
-        `);
-        insertRewardStmt.run(referredById, user!.id); // используем ! потому что мы проверили выше
-      });
+      const insertStmt = db.prepare(`
+        INSERT INTO users (tg_id, username, first_name, last_name, photo_url, referred_by_id, balance_crystals)
+        VALUES (?, ?, ?, ?, ?, ?, 400)
+      `);
       
-      transaction();
-      console.log('✅ Referral counters updated for user', referredById);
-    } catch (error) {
-      console.error('❌ Error updating referral counters:', error);
-    }
-  }
-}
+      insertStmt.run(
+        userData.id,
+        userData.username,
+        userData.first_name,
+        userData.last_name,
+        userData.photo_url || null,
+        referredById
+      );
 
-// Эта проверка уже есть ниже, но переместим её сюда для ясности
-if (!user) {
-  console.error('❌ User not found after create/update');
-  return NextResponse.json({ error: 'User not found' }, { status: 404 });
-}
+      user = findUserStmt.get(userData.id) as UserFromDB;
+      
+      if (!user) {
+        console.error('❌ Failed to create user');
+        return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
+      }
+      
+      console.log('✅ New user created');
+      
+      // ОБНОВЛЕНО: Обновление счётчиков и проверка подписки
+      if (referredById) {
+        try {
+          // Проверяем подписку нового пользователя на канал
+          const chatMember = await checkChannelSubscription(userData.id);
+          const isSubscribed = chatMember?.status === 'member' || 
+                              chatMember?.status === 'administrator' || 
+                              chatMember?.status === 'creator';
+          
+          console.log(`[REFERRAL] New user ${userData.id} subscription status: ${isSubscribed ? 'subscribed' : 'not subscribed'}`);
+          
+          const transaction = db.transaction(() => {
+            // Увеличиваем общий счётчик рефералов
+            const updateReferrerStmt = db.prepare(`
+              UPDATE users 
+              SET referral_count = referral_count + 1,
+                  current_month_referrals = current_month_referrals + 1,
+                  referral_count_subscribed = referral_count_subscribed + CASE WHEN ? THEN 1 ELSE 0 END,
+                  balance_crystals = balance_crystals + CASE WHEN ? THEN ? ELSE 0 END
+              WHERE id = ?
+            `);
+            updateReferrerStmt.run(isSubscribed ? 1 : 0, isSubscribed ? 1 : 0, REFERRAL_REWARD, referredById);
+            
+            // Обновляем подписку у нового пользователя
+            if (isSubscribed) {
+              const updateNewUserStmt = db.prepare(`
+                UPDATE users SET subscribed_to_channel = 1 WHERE id = ?
+              `);
+              updateNewUserStmt.run(user!.id);
+            }
+            
+            // Создаём запись в referral_rewards
+            const insertRewardStmt = db.prepare(`
+              INSERT OR IGNORE INTO referral_rewards (
+                user_id, 
+                referred_user_id, 
+                is_subscribed, 
+                reward_given,
+                subscribed_at,
+                rewarded_at
+              )
+              VALUES (?, ?, ?, ?, ?, ?)
+            `);
+            insertRewardStmt.run(
+              referredById, 
+              user!.id, 
+              isSubscribed ? 1 : 0,
+              isSubscribed ? 1 : 0,
+              isSubscribed ? new Date().toISOString() : null,
+              isSubscribed ? new Date().toISOString() : null
+            );
+          });
+          
+          transaction();
+          
+          if (isSubscribed) {
+            console.log(`✅ Referral reward ${REFERRAL_REWARD} crystals given to user ${referredById} for subscribed referral ${user.id}`);
+          } else {
+            console.log(`✅ Referral counters updated for user ${referredById}, but no reward (referral not subscribed yet)`);
+          }
+        } catch (error) {
+          console.error('❌ Error updating referral counters:', error);
+        }
+      }
+    }
+
+    if (!user) {
+      console.error('❌ User not found after create/update');
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
     const completedTasks = checkTasksStmt.all(user.id) as { task_key: string }[];
     const completedTaskKeys = completedTasks.map(task => task.task_key);
@@ -254,10 +322,10 @@ if (!user) {
       last_login_at: user.last_login_at,
       subscribed_to_channel: user.subscribed_to_channel === 1,
       voted_for_channel: user.boost_count_before > 0,
-      bot_started: (user as any).bot_started === 1, // ДОБАВИТЬ
-      referral_count: (user as any).referral_count || 0, // ДОБАВИТЬ
-      referral_count_subscribed: (user as any).referral_count_subscribed || 0, // ДОБАВИТЬ
-      current_month_referrals: (user as any).current_month_referrals || 0, // ДОБАВИТЬ
+      bot_started: user.bot_started === 1,
+      referral_count: user.referral_count || 0,
+      referral_count_subscribed: user.referral_count_subscribed || 0,
+      current_month_referrals: user.current_month_referrals || 0,
       tasks_completed: {
         subscribe: completedTaskKeys.includes('subscribe_channel'),
         vote: completedTaskKeys.includes('vote_poll'),

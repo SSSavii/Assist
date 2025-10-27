@@ -5,6 +5,7 @@ import { validateTelegramHash } from '@/lib/telegram-auth';
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const CHANNEL_ID = '-1002782276287';
+const REFERRAL_REWARD = 500;
 
 interface TaskRewards {
   subscribe: number;
@@ -91,29 +92,46 @@ export async function POST(req: NextRequest) {
             );
             updateSubStmt.run(user.id);
             
-            // ДОБАВЛЕНО: Если пользователь был приглашён, обновляем счётчики у пригласившего
+            // Если пользователь был приглашён, обновляем счётчики у пригласившего
             if (user.referred_by_id) {
               try {
-                const transaction = db.transaction(() => {
-                  // Увеличиваем счётчик подписавшихся рефералов
-                  const updateReferrerStmt = db.prepare(`
-                    UPDATE users 
-                    SET referral_count_subscribed = referral_count_subscribed + 1
-                    WHERE id = ?
-                  `);
-                  updateReferrerStmt.run(user.referred_by_id);
-                  
-                  // Обновляем запись в referral_rewards
-                  const updateRewardStmt = db.prepare(`
-                    UPDATE referral_rewards 
-                    SET is_subscribed = 1, subscribed_at = CURRENT_TIMESTAMP
-                    WHERE user_id = ? AND referred_user_id = ?
-                  `);
-                  updateRewardStmt.run(user.referred_by_id, user.id);
-                });
+                // Проверяем не была ли уже выдана награда
+                const checkRewardStmt = db.prepare(`
+                  SELECT reward_given, is_subscribed 
+                  FROM referral_rewards 
+                  WHERE user_id = ? AND referred_user_id = ?
+                `);
+                const existingReward = checkRewardStmt.get(user.referred_by_id, user.id) as any;
                 
-                transaction();
-                console.log('✅ Referrer subscription counter updated for user', user.referred_by_id);
+                // Только если запись существует и награда еще не выдана
+                if (existingReward && !existingReward.is_subscribed) {
+                  const transaction = db.transaction(() => {
+                    // Увеличиваем счётчик подписавшихся рефералов и начисляем награду
+                    const updateReferrerStmt = db.prepare(`
+                      UPDATE users 
+                      SET referral_count_subscribed = referral_count_subscribed + 1,
+                          balance_crystals = balance_crystals + ?
+                      WHERE id = ?
+                    `);
+                    updateReferrerStmt.run(REFERRAL_REWARD, user.referred_by_id);
+                    
+                    // Обновляем запись в referral_rewards
+                    const updateRewardStmt = db.prepare(`
+                      UPDATE referral_rewards 
+                      SET is_subscribed = 1, 
+                          reward_given = 1,
+                          subscribed_at = CURRENT_TIMESTAMP,
+                          rewarded_at = CURRENT_TIMESTAMP
+                      WHERE user_id = ? AND referred_user_id = ?
+                    `);
+                    updateRewardStmt.run(user.referred_by_id, user.id);
+                  });
+                  
+                  transaction();
+                  console.log(`✅ Referrer ${user.referred_by_id} rewarded ${REFERRAL_REWARD} crystals for referral ${user.id} subscription`);
+                } else {
+                  console.log(`ℹ️ Reward already given or no referral record for user ${user.id}`);
+                }
               } catch (error) {
                 console.error('❌ Error updating referrer counters:', error);
               }
