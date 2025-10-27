@@ -109,23 +109,23 @@ export default function ConditionsPage() {
   }, [router]);
 
   // Скролл в начало
-  useEffect(() => {
-    if (wrapperRef.current) {
-      wrapperRef.current.scrollTop = 0;
-    }
-    
-    const timeoutId = setTimeout(() => {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'instant'
-      });
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-    }, 10);
+useEffect(() => {
+  if (wrapperRef.current) {
+    wrapperRef.current.scrollTop = 0;
+  }
+  
+  const timeoutId = setTimeout(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'instant'
+    });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, 10);
 
-    return () => clearTimeout(timeoutId);
-  }, []);
+  return () => clearTimeout(timeoutId);
+}, []);
 
   // Загрузка данных пользователя
   useEffect(() => {
