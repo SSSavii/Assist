@@ -87,7 +87,6 @@ export default function ConditionsPage() {
   const [loading, setLoading] = useState(true);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Инициализация Telegram WebApp
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -100,6 +99,7 @@ export default function ConditionsPage() {
         router.push('/friends');
       });
     }
+    setLoading(false);
 
     return () => {
       if (tg) {
@@ -108,52 +108,26 @@ export default function ConditionsPage() {
     };
   }, [router]);
 
-    // Скролл в начало - более агрессивный подход
-    useEffect(() => {
-    // Немедленный скролл
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    
+  // Отдельный useEffect для скролла - ТОЧНО КАК В РАБОЧИХ ФАЙЛАХ
+  useEffect(() => {
+    // Скроллим wrapper
     if (wrapperRef.current) {
-        wrapperRef.current.scrollTop = 0;
+      wrapperRef.current.scrollTop = 0;
     }
     
-    // Повторный скролл с небольшой задержкой
-    const timeoutId1 = setTimeout(() => {
-        window.scrollTo({
+    // Скроллим window с задержкой
+    const timeoutId = setTimeout(() => {
+      window.scrollTo({
         top: 0,
         left: 0,
         behavior: 'instant'
-        });
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-        
-        if (wrapperRef.current) {
-        wrapperRef.current.scrollTop = 0;
-        }
-    }, 0);
+      });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 10);
 
-    // Еще один скролл с большей задержкой
-    const timeoutId2 = setTimeout(() => {
-        window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'instant'
-        });
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-        
-        if (wrapperRef.current) {
-        wrapperRef.current.scrollTop = 0;
-        }
-    }, 100);
-
-    return () => {
-        clearTimeout(timeoutId1);
-        clearTimeout(timeoutId2);
-    };
-    }, []);
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   // Загрузка данных пользователя
   useEffect(() => {
@@ -303,7 +277,6 @@ export default function ConditionsPage() {
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             scroll-behavior: auto;
-            padding-bottom: 0;
           }
 
           /* Друзья */
