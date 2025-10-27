@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 const GlobalStyles = () => (
@@ -74,6 +74,7 @@ interface PodcastItem {
 export default function PodcastsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -88,7 +89,6 @@ export default function PodcastsPage() {
       });
     }
     setLoading(false);
-    window.scrollTo(0, 0);
 
     return () => {
       if (tg) {
@@ -96,6 +96,27 @@ export default function PodcastsPage() {
       }
     };
   }, [router]);
+
+  // Отдельный useEffect для скролла
+  useEffect(() => {
+    // Скроллим wrapper
+    if (wrapperRef.current) {
+      wrapperRef.current.scrollTop = 0;
+    }
+    
+    // Скроллим window с задержкой
+    const timeoutId = setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant'
+      });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 10);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   const handleItemClick = (link: string) => {
     const tg = window.Telegram?.WebApp;
@@ -121,7 +142,7 @@ export default function PodcastsPage() {
     {
       id: 1,
       title: "Подкаст 1",
-      link: "https://t.me/+6flpcSdc4sg5OTAy" // Замените на реальную ссылку
+      link: "https://t.me/+6flpcSdc4sg5OTAy"
     },
     {
       id: 2,
@@ -137,7 +158,7 @@ export default function PodcastsPage() {
   return (
     <>
       <GlobalStyles />
-      <div className="podcasts-wrapper">
+      <div className="podcasts-wrapper" ref={wrapperRef}>
         <main className="podcasts-container">
           {/* Плюс на фоне */}
           <div className="background-plus">
@@ -190,6 +211,7 @@ export default function PodcastsPage() {
             overflow-x: hidden;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            scroll-behavior: auto;
           }
 
           /* подкасты */

@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 const GlobalStyles = () => (
@@ -80,6 +80,7 @@ interface Category {
 export default function GuidesPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -94,7 +95,6 @@ export default function GuidesPage() {
       });
     }
     setLoading(false);
-    window.scrollTo(0, 0);
 
     return () => {
       if (tg) {
@@ -102,6 +102,27 @@ export default function GuidesPage() {
       }
     };
   }, [router]);
+
+  // Отдельный useEffect для скролла
+  useEffect(() => {
+    // Скроллим wrapper
+    if (wrapperRef.current) {
+      wrapperRef.current.scrollTop = 0;
+    }
+    
+    // Скроллим window с задержкой
+    const timeoutId = setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant'
+      });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 10);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   const handleItemClick = (link: string) => {
     const tg = window.Telegram?.WebApp;
@@ -131,7 +152,7 @@ export default function GuidesPage() {
         {
           id: 1,
           title: "Нейросеть Heygen\nдля переозвучки и создания\nцифрового аватара",
-          link: "https://t.me/+6flpcSdc4sg5OTAy" // Замените на реальные ссылки
+          link: "https://t.me/+6flpcSdc4sg5OTAy"
         },
         {
           id: 2,
@@ -165,7 +186,7 @@ export default function GuidesPage() {
   return (
     <>
       <GlobalStyles />
-      <div className="guides-wrapper">
+      <div className="guides-wrapper" ref={wrapperRef}>
         <main className="guides-container">
           {/* Плюс на фоне */}
           <div className="background-plus">
@@ -223,6 +244,7 @@ export default function GuidesPage() {
             overflow-x: hidden;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            scroll-behavior: auto;
           }
 
           /* гайды */

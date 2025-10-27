@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 const GlobalStyles = () => (
@@ -75,6 +75,7 @@ interface VacancyItem {
 export default function VacanciesPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -89,7 +90,6 @@ export default function VacanciesPage() {
       });
     }
     setLoading(false);
-    window.scrollTo(0, 0);
 
     return () => {
       if (tg) {
@@ -97,6 +97,27 @@ export default function VacanciesPage() {
       }
     };
   }, [router]);
+
+  // Отдельный useEffect для скролла
+  useEffect(() => {
+    // Скроллим wrapper
+    if (wrapperRef.current) {
+      wrapperRef.current.scrollTop = 0;
+    }
+    
+    // Скроллим window с задержкой
+    const timeoutId = setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant'
+      });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 10);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   const handleItemClick = (link: string) => {
     const tg = window.Telegram?.WebApp;
@@ -122,7 +143,7 @@ export default function VacanciesPage() {
     {
       id: 1,
       title: "Наш бот\nдля подбора вакансий",
-      link: "https://t.me/your_vacancy_bot", // Замените на ссылку вашего бота
+      link: "https://t.me/your_vacancy_bot",
       isBot: true
     },
     {
@@ -139,7 +160,7 @@ export default function VacanciesPage() {
   return (
     <>
       <GlobalStyles />
-      <div className="vacancies-wrapper">
+      <div className="vacancies-wrapper" ref={wrapperRef}>
         <main className="vacancies-container">
           {/* Плюс на фоне */}
           <div className="background-plus">
@@ -200,6 +221,7 @@ export default function VacanciesPage() {
             overflow-x: hidden;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            scroll-behavior: auto;
           }
 
           /* вакансии */
