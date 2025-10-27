@@ -101,7 +101,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     }, [winningPrize, spinId, containerWidth, isInitialized, onSpinEnd, prizes]);
 
     return (
-        <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-purple-300 rounded-lg bg-gradient-to-br from-purple-100 to-blue-100">
+        <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-red-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
             <div
                 className="absolute top-0 left-0 h-full flex"
                 style={{
@@ -127,7 +127,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             </div>
             <div className="absolute top-0 left-0 h-full w-1/3 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
             <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
-            <div className="absolute top-1/2 left-1/2 w-0.5 h-4/5 bg-purple-500/80 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full" />
+            <div className="absolute top-1/2 left-1/2 w-0.5 h-4/5 bg-red-600 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full" />
         </div>
     );
 }
