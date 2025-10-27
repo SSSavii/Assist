@@ -98,6 +98,7 @@ export default function NavigationPage() {
       });
     }
     setLoading(false);
+    window.scrollTo(0, 0);
 
     return () => {
       if (tg) {

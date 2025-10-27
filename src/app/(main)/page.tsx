@@ -143,6 +143,7 @@ export default function HomePage() {
       tg.ready();
       tg.expand();
       tg.disableVerticalSwipes();
+      tg.BackButton.hide();
       
       const startappParam = tg.initDataUnsafe?.start_param;
       
@@ -180,6 +181,7 @@ export default function HomePage() {
       setError("Пожалуйста, откройте приложение в Telegram.");
       setLoading(false);
     }
+    window.scrollTo(0, 0);
   }, []);
 
   const handleEarnCrystals = () => {

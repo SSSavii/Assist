@@ -94,6 +94,7 @@ export default function GuidesPage() {
       });
     }
     setLoading(false);
+    window.scrollTo(0, 0);
 
     return () => {
       if (tg) {

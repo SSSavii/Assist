@@ -95,6 +95,8 @@ export default function CasesPage() {
     }
     setLoading(false);
 
+    window.scrollTo(0, 0);
+
     return () => {
       if (tg) {
         tg.BackButton.hide();

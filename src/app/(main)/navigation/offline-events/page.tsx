@@ -88,6 +88,7 @@ export default function OfflineEventsPage() {
       });
     }
     setLoading(false);
+    window.scrollTo(0, 0);
 
     return () => {
       if (tg) {
