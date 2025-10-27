@@ -361,7 +361,7 @@ export default function FriendsPage() {
             width: 100%;
             position: relative;
             height: 300px;
-            margin-bottom: -100px;
+            margin-bottom: -60px;
             z-index: 0;
           }
 
