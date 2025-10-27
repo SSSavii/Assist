@@ -226,18 +226,19 @@ export default function FriendsPage() {
         <main className="friends-container">
           {/* Контейнер */}
           <div className="content-container">
-            {/* Верхняя карточка с изображением */}
+            {/* Верхняя карточка с изображением - уменьшена и прозрачна */}
             <div className="header-image-wrapper">
               <Image 
                 src="/images/friends-header.png" 
                 alt="Приглашай друзей" 
                 width={343} 
-                height={300}
+                height={120}
                 priority
                 style={{
                   width: '100%',
                   height: 'auto',
                   display: 'block',
+                  opacity: 0.6
                 }}
               />
             </div>
@@ -325,7 +326,7 @@ export default function FriendsPage() {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 56px 0px 100px;
+            padding: 30px 0px 80px;
             gap: 10px;
             isolation: isolate;
             position: relative;
@@ -341,7 +342,7 @@ export default function FriendsPage() {
             flex-direction: column;
             align-items: flex-start;
             padding: 0px 16px;
-            gap: 10px;
+            gap: 12px;
             width: 100%;
             flex: none;
             order: 0;
@@ -351,7 +352,7 @@ export default function FriendsPage() {
             box-sizing: border-box;
           }
 
-          /* Верхняя карточка с изображением */
+          /* Верхняя карточка с изображением - уменьшена */
           .header-image-wrapper {
             display: flex;
             flex-direction: column;
@@ -360,11 +361,14 @@ export default function FriendsPage() {
             gap: 10px;
             isolation: isolate;
             width: 100%;
+            height: 120px;
             flex: none;
             order: 0;
             align-self: stretch;
             flex-grow: 0;
             position: relative;
+            overflow: hidden;
+            border-radius: 15px;
           }
 
           /* Кнопка условия (кликабельная) */
@@ -373,10 +377,10 @@ export default function FriendsPage() {
             flex-direction: column;
             justify-content: center;
             align-items: flex-start;
-            padding: 24px 16px;
+            padding: 20px 16px;
             gap: 8px;
             width: 100%;
-            height: 98px;
+            height: 90px;
             background: #F1F1F1;
             border-radius: 15px;
             flex: none;
@@ -471,7 +475,7 @@ export default function FriendsPage() {
             padding: 0px;
             gap: 8px;
             width: 100%;
-            height: 103px;
+            height: 95px;
             flex: none;
             order: 2;
             align-self: stretch;
@@ -483,10 +487,10 @@ export default function FriendsPage() {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            padding: 24px 0px 16px 16px;
-            gap: 12px;
+            padding: 20px 0px 16px 16px;
+            gap: 10px;
             width: 167.5px;
-            height: 103px;
+            height: 95px;
             background: #F1F1F1;
             border-radius: 16px;
             flex: none;
@@ -541,7 +545,7 @@ export default function FriendsPage() {
             padding: 10px 15px;
             gap: 10px;
             width: 100%;
-            height: 60px;
+            height: 56px;
             background: #F1F1F1;
             border-radius: 15px;
             flex: none;
@@ -577,7 +581,7 @@ export default function FriendsPage() {
             gap: 8px;
             isolation: isolate;
             width: 100%;
-            height: 69px;
+            height: 65px;
             background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
             border-radius: 15px;
             flex: none;
@@ -756,7 +760,7 @@ export default function FriendsPage() {
 
           @media (max-width: 375px) {
             .friends-container {
-              padding: 48px 0px 100px;
+              padding: 20px 0px 60px;
             }
 
             .info-label,
