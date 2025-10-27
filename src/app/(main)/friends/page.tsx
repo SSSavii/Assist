@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 const GlobalStyles = () => (
   <>
@@ -74,7 +74,6 @@ type UserProfile = {
 };
 
 export default function FriendsPage() {
-  const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -197,14 +196,6 @@ export default function FriendsPage() {
     tg.openTelegramLink(shareUrl);
   };
 
-  const handleNavigate = (path: string) => {
-    const tg = window.Telegram?.WebApp;
-    if (tg?.HapticFeedback) {
-      tg.HapticFeedback.impactOccurred('light');
-    }
-    router.push(path);
-  };
-
   const handleRulesClick = () => {
     const tg = window.Telegram?.WebApp;
     if (tg?.HapticFeedback) {
@@ -238,6 +229,22 @@ export default function FriendsPage() {
             {/* Верх */}
             <div className="header-section">
               <h1 className="page-title">Приглашай друзей и получай плюсы</h1>
+              
+              {/* Изображение */}
+              <div className="header-image">
+                <Image 
+                  src="/images/friends-header.png" 
+                  alt="Друзья" 
+                  width={580} 
+                  height={320}
+                  priority
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    transform: 'rotate(13.77deg)',
+                  }}
+                />
+              </div>
             </div>
 
             {/* Кнопка условия (первая) */}
@@ -247,7 +254,7 @@ export default function FriendsPage() {
                 <span className="info-value">{user?.referral_count || 0}</span>
               </div>
               <p className="info-subtitle">
-                {user?.referral_count === 0 
+                {(user?.referral_count || 0) === 0
                   ? 'Пока никто не присоединился' 
                   : 'Нажмите, чтобы узнать условия розыгрышей'}
               </p>
@@ -258,13 +265,13 @@ export default function FriendsPage() {
               {/* Таймер */}
               <div className="stat-card">
                 <div className="stat-value">{timeLeft.days}д {timeLeft.hours}ч</div>
-                <div className="stat-label">До конца месяца</div>
+                <div className="stat-label">Осталось времени<br />до конца розыгрыша</div>
               </div>
 
               {/* Приглашения за месяц */}
               <div className="stat-card">
                 <div className="stat-value">{user?.current_month_referrals || 0}</div>
-                <div className="stat-label">Приглашено в этом месяце</div>
+                <div className="stat-label">Вы пригласили<br />в этом розыгрыше</div>
               </div>
             </div>
 
@@ -283,48 +290,13 @@ export default function FriendsPage() {
           </div>
         </main>
 
-        {/* Меню */}
-        <nav className="bottom-menu">
-          <button className="menu-item" onClick={() => handleNavigate('/')}>
-            <svg className="menu-icon" width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 9L14 2L25 9V20C25 20.5304 24.7893 21.0391 24.4142 21.4142C24.0391 21.7893 23.5304 22 23 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="#868686" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M10 22V12H18V22" stroke="#868686" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span className="menu-label">Главная</span>
-          </button>
-
-          <button className="menu-item" onClick={() => handleNavigate('/shop')}>
-            <svg className="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 2L3 6V20C3 20.5304 3.21071 21.0391 3.58579 21.4142C3.96086 21.7893 4.46957 22 5 22H19C19.5304 22 20.0391 21.7893 20.4142 21.4142C20.7893 21.0391 21 20.5304 21 20V6L18 2H6Z" stroke="#868686" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M3 6H21" stroke="#868686" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M16 10C16 11.0609 15.5786 12.0783 14.8284 12.8284C14.0783 13.5786 13.0609 14 12 14C10.9391 14 9.92172 13.5786 9.17157 12.8284C8.42143 12.0783 8 11.0609 8 10" stroke="#868686" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span className="menu-label">Магазин</span>
-          </button>
-
-          <button className="menu-item active">
-            <svg className="menu-icon" width="26" height="24" viewBox="0 0 26 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M18 21V19C18 17.9391 17.5786 16.9217 16.8284 16.1716C16.0783 15.4214 15.0609 15 14 15H6C4.93913 15 3.92172 15.4214 3.17157 16.1716C2.42143 16.9217 2 17.9391 2 19V21" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="10" cy="7" r="4" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M17 3.13C17.8604 3.35031 18.623 3.85071 19.1676 4.55232C19.7122 5.25392 20.0078 6.11683 20.0078 7.005C20.0078 7.89318 19.7122 8.75608 19.1676 9.45769C18.623 10.1593 17.8604 10.6597 17 10.88" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span className="menu-label">Друзья</span>
-          </button>
-
-          <button className="menu-item" onClick={() => handleNavigate('/profile')}>
-            <svg className="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="#868686" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="12" cy="7" r="4" stroke="#868686" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span className="menu-label">Профиль</span>
-          </button>
-        </nav>
-
         {/* Модальное окно с правилами */}
         {showRules && (
           <div className="modal-overlay" onClick={() => setShowRules(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="modal-content"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="modal-title">Условия участия в розыгрышах</h3>
               <ul className="modal-list">
                 <li>• 10 приглашений — возможность попасть на онлайн мини-разбор с Иваном Абрамовым. Разбор проводится еженедельно.</li>
@@ -350,7 +322,7 @@ export default function FriendsPage() {
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             scroll-behavior: auto;
-            padding-bottom: 80px;
+            padding-bottom: 0;
           }
 
           /* Друзья */
@@ -393,6 +365,7 @@ export default function FriendsPage() {
             gap: 10px;
             isolation: isolate;
             width: 100%;
+            height: 300px;
             flex: none;
             order: 0;
             align-self: stretch;
@@ -404,6 +377,7 @@ export default function FriendsPage() {
           .page-title {
             margin: 0;
             width: 284px;
+            height: 56px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-style: normal;
             font-weight: 500;
@@ -421,6 +395,20 @@ export default function FriendsPage() {
             z-index: 0;
           }
 
+          /* Изображение */
+          .header-image {
+            position: absolute;
+            width: 579.75px;
+            height: 320.11px;
+            left: calc(50% - 579.75px/2 - 8.63px);
+            top: 0px;
+            flex: none;
+            order: 2;
+            flex-grow: 0;
+            z-index: 2;
+            overflow: visible;
+          }
+
           /* Кнопка условия (кликабельная) */
           .info-card {
             display: flex;
@@ -430,6 +418,7 @@ export default function FriendsPage() {
             padding: 24px 16px;
             gap: 8px;
             width: 100%;
+            height: 98px;
             background: #F1F1F1;
             border-radius: 15px;
             flex: none;
@@ -452,14 +441,17 @@ export default function FriendsPage() {
             flex-direction: row;
             align-items: flex-start;
             padding: 0px;
-            gap: 0px;
-            width: 100%;
+            gap: 3px;
+            width: 188px;
+            height: 24px;
             flex: none;
             order: 0;
             flex-grow: 0;
           }
 
           .info-label {
+            width: 170px;
+            height: 24px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-style: normal;
             font-weight: 500;
@@ -476,6 +468,9 @@ export default function FriendsPage() {
           }
 
           .info-value {
+            width: auto;
+            min-width: 15px;
+            height: 24px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-style: normal;
             font-weight: 500;
@@ -493,6 +488,8 @@ export default function FriendsPage() {
 
           .info-subtitle {
             margin: 0;
+            width: 220px;
+            height: 18px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-style: normal;
             font-weight: 300;
@@ -500,6 +497,7 @@ export default function FriendsPage() {
             line-height: 110%;
             display: flex;
             align-items: flex-end;
+            text-align: center;
             letter-spacing: -0.02em;
             color: #000000;
             flex: none;
@@ -515,6 +513,7 @@ export default function FriendsPage() {
             padding: 0px;
             gap: 8px;
             width: 100%;
+            height: 103px;
             flex: none;
             order: 2;
             align-self: stretch;
@@ -528,13 +527,19 @@ export default function FriendsPage() {
             align-items: flex-start;
             padding: 24px 0px 16px 16px;
             gap: 12px;
-            flex: 1;
+            width: 167.5px;
+            height: 103px;
             background: #F1F1F1;
             border-radius: 16px;
+            flex: none;
+            order: 0;
+            flex-grow: 1;
             box-sizing: border-box;
           }
 
           .stat-value {
+            width: auto;
+            height: 21px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-style: normal;
             font-weight: 500;
@@ -552,6 +557,9 @@ export default function FriendsPage() {
           }
 
           .stat-label {
+            width: auto;
+            max-width: 136px;
+            height: 30px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-style: normal;
             font-weight: 400;
@@ -632,6 +640,8 @@ export default function FriendsPage() {
           }
 
           .invite-text {
+            width: 215px;
+            height: 20px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-style: normal;
             font-weight: 500;
@@ -647,6 +657,8 @@ export default function FriendsPage() {
           }
 
           .invite-bonus {
+            width: 203px;
+            height: 21px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-style: normal;
             font-weight: 400;
@@ -691,79 +703,6 @@ export default function FriendsPage() {
             flex-grow: 0;
             z-index: 3;
             pointer-events: none;
-          }
-
-          /* Меню */
-          .bottom-menu {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 25px;
-            gap: 20px;
-            position: fixed;
-            height: 80px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(14, 14, 14, 0.9);
-            backdrop-filter: blur(2.5px);
-            border-radius: 15px 15px 0px 0px;
-            z-index: 1000;
-            box-sizing: border-box;
-          }
-
-          .menu-item {
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            align-items: center;
-            padding: 0px 0px 5px;
-            gap: 10px;
-            margin: 0 auto;
-            width: 66px;
-            height: 50px;
-            flex: none;
-            align-self: stretch;
-            flex-grow: 0;
-            background: none;
-            border: none;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-          }
-
-          .menu-icon {
-            flex: none;
-            order: 0;
-            flex-grow: 0;
-          }
-
-          .menu-label {
-            width: 66px;
-            height: 9px;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 500;
-            font-size: 14px;
-            line-height: 81%;
-            leading-trim: both;
-            text-edge: cap;
-            text-align: center;
-            letter-spacing: -0.03em;
-            color: #868686;
-            flex: none;
-            order: 1;
-            align-self: stretch;
-            flex-grow: 0;
-          }
-
-          .menu-item.active .menu-label {
-            color: #FFFFFF;
-          }
-
-          .menu-item.active .menu-icon path,
-          .menu-item.active .menu-icon circle {
-            stroke: #FFFFFF;
           }
 
           /* Модальное окно */
