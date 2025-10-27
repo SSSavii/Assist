@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import HorizontalTextSlotMachine from '@/app/components/TextSlotMachine';
 
 const GlobalStyles = () => (
   <>
@@ -98,8 +99,6 @@ interface DailyLimit {
 }
 
 const CASE_COST = 500;
-const PREMIUM_ITEM_COST = 10000;
-const ANIMATION_DURATION = 6000;
 
 export default function ShopPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -108,51 +107,29 @@ export default function ShopPage() {
   const [winningPrize, setWinningPrize] = useState<Prize | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [scrollPosition, setScrollPosition] = useState(0);
-  const slotRef = useRef<HTMLDivElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-      tg.disableVerticalSwipes();
-    }
-  }, []);
-
-  useEffect(() => {
-    if (wrapperRef.current) {
-      wrapperRef.current.scrollTop = 0;
-    }
-    
-    const timeoutId = setTimeout(() => {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'instant'
-      });
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-    }, 10);
-
-    return () => clearTimeout(timeoutId);
-  }, []);
+  const [spinKey, setSpinKey] = useState(0);
+  const hasSpunRef = useRef(false);
+  const isProcessingPrizeRef = useRef(false);
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (!tg) {
-      setError("Telegram WebApp не найден");
+      setError("Telegram WebApp не найден. Откройте приложение в Telegram.");
       setIsLoading(false);
       return;
     }
+
+    tg.ready();
 
     Promise.all([
       fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ initData: tg.initData }),
-      }).then(res => res.json()),
+      }).then(response => {
+        if (!response.ok) throw new Error('Не удалось загрузить данные пользователя');
+        return response.json();
+      }),
       
       fetch('/api/user/daily-limit', {
         method: 'POST',
@@ -161,10 +138,15 @@ export default function ShopPage() {
           initData: tg.initData,
           action: 'check'
         }),
-      }).then(res => res.json())
+      }).then(response => {
+        if (!response.ok) throw new Error('Не удалось загрузить лимиты');
+        return response.json();
+      })
     ])
     .then(([userData, limitData]) => {
-      if (userData.error) throw new Error(userData.error);
+      if (userData && userData.error) {
+        throw new Error(userData.error);
+      }
       setUser(userData);
       setDailyLimit(limitData);
     })
@@ -188,7 +170,9 @@ export default function ShopPage() {
 
   const handlePrizeDelivery = async (prize: Prize) => {
     const tg = window.Telegram?.WebApp;
-    if (!tg) return;
+    if (!tg || isProcessingPrizeRef.current) return;
+
+    isProcessingPrizeRef.current = true;
 
     try {
       if (prize.deliveryType === 'instant') {
@@ -253,13 +237,15 @@ export default function ShopPage() {
     } catch (error) {
       console.error('Error delivering prize:', error);
       tg.showAlert('❌ Произошла ошибка при начислении приза. Обратитесь в поддержку.');
+    } finally {
+      isProcessingPrizeRef.current = false;
     }
   };
 
   const handleSpin = async () => {
     const tg = window.Telegram?.WebApp;
 
-    if (isSpinning || !user) return;
+    if (isSpinning || hasSpunRef.current || !user) return;
 
     if (user.balance_crystals < CASE_COST) {
       tg?.showAlert(`У вас недостаточно плюсов! Требуется: ${CASE_COST} А+`);
@@ -267,13 +253,15 @@ export default function ShopPage() {
     }
 
     if (dailyLimit && dailyLimit.remaining <= 0) {
-      tg?.showAlert(`Вы достигли дневного лимита открытий кейсов!\nПопробуйте завтра.`);
+      tg?.showAlert(`Вы достигли дневного лимита открытий кейсов!\nОсталось попыток сегодня: 0/${dailyLimit.maxLimit}`);
       return;
     }
 
     setIsSpinning(true);
     setError('');
     setWinningPrize(null);
+    hasSpunRef.current = true;
+    isProcessingPrizeRef.current = false;
 
     try {
       tg?.HapticFeedback.impactOccurred('light');
@@ -320,48 +308,31 @@ export default function ShopPage() {
         maxLimit: dailyLimit?.maxLimit || 5
       });
 
-      // Выбираем приз
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const prize = getRandomPrize();
+      setSpinKey(prev => prev + 1);
       setWinningPrize(prize);
-
-      // Анимация прокрутки
-      const prizeIndex = ALL_PRIZES.findIndex(p => p.name === prize.name);
-      const cardWidth = 144; // 120px + 24px gap
-      const extraSpins = 5;
-      const finalPosition = (prizeIndex + extraSpins * ALL_PRIZES.length) * cardWidth;
-
-      if (slotRef.current) {
-        slotRef.current.scrollTo({
-          left: finalPosition,
-          behavior: 'smooth'
-        });
-      }
-
-      // Через 3 секунды останавливаем и показываем результат
-      setTimeout(() => {
-        tg?.HapticFeedback.notificationOccurred('success');
-        handlePrizeDelivery(prize);
-        setIsSpinning(false);
-      }, ANIMATION_DURATION);
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
       setIsSpinning(false);
+      hasSpunRef.current = false;
       tg?.HapticFeedback.notificationOccurred('error');
       tg?.showAlert(err instanceof Error ? err.message : 'Произошла ошибка. Попробуйте еще раз.');
     }
   };
 
-  const handleBuyPremium = async () => {
-    const tg = window.Telegram?.WebApp;
-    
-    if (!user || user.balance_crystals < PREMIUM_ITEM_COST) {
-      tg?.showAlert(`Недостаточно плюсов!\nТребуется: ${PREMIUM_ITEM_COST.toLocaleString('ru-RU')} А+`);
-      return;
+  const handleSpinEnd = () => {
+    if (winningPrize && !isProcessingPrizeRef.current) {
+      window.Telegram?.WebApp?.HapticFeedback.notificationOccurred('success');
+      handlePrizeDelivery(winningPrize);
     }
-
-    tg?.HapticFeedback.impactOccurred('medium');
-    tg?.showAlert('Функция покупки премиум товаров будет доступна в ближайшее время!');
+    
+    setTimeout(() => {
+      setIsSpinning(false);
+      hasSpunRef.current = false;
+    }, 500);
   };
 
   const handleOpenBot = () => {
@@ -369,605 +340,120 @@ export default function ShopPage() {
     if (tg?.HapticFeedback) {
       tg.HapticFeedback.impactOccurred('light');
     }
-    
     const botUsername = 'my_auction_admin_bot';
     tg?.openTelegramLink(`https://t.me/${botUsername}`);
   };
 
   if (isLoading) {
-    return <div className="loading-container">Загрузка...</div>;
+    return <div className="fixed inset-0 flex items-center justify-center bg-white"><p>Загрузка...</p></div>;
   }
 
-  const canSpin = user && 
-                  user.balance_crystals >= CASE_COST && 
-                  dailyLimit && 
-                  dailyLimit.remaining > 0 && 
-                  !isSpinning;
+  // Вычисляем disabled для кнопки крутилки
+  const isSpinDisabled = isSpinning || 
+                         !user || 
+                         (user?.balance_crystals ?? 0) < CASE_COST || 
+                         (dailyLimit?.remaining ?? 0) <= 0;
 
-  // Создаём массив призов для прокрутки (повторяем несколько раз для эффекта)
-  const extendedPrizes = [...ALL_PRIZES, ...ALL_PRIZES, ...ALL_PRIZES, ...ALL_PRIZES, ...ALL_PRIZES, ...ALL_PRIZES];
+  // Вычисляем disabled для кнопки покупки
+  const isBuyDisabled = !user || (user?.balance_crystals ?? 0) < 10000;
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen font-sans items-center px-4 pt-6 pb-4 text-center text-black bg-gray-50">
       <GlobalStyles />
-      <div className="shop-wrapper" ref={wrapperRef}>
-        <main className="shop-container">
-          <div className="content-container">
-            {/* Текст */}
-            <div className="text-section">
-              <h1 className="page-title">Магазин</h1>
-              <p className="page-subtitle">
-                Обменивай свои плюсы<br />на интересные товары
-              </p>
-            </div>
-
-            {/* Предупреждение */}
-            {!user?.bot_started && (
-              <button className="warning-card" onClick={handleOpenBot}>
-                <div className="warning-title">Внимание!</div>
-                <div className="warning-text">Запустите бота для получения призов</div>
-              </button>
-            )}
-
-            {/* Инфа */}
-            <div className="info-row">
-              <div className="info-card">
-                <div className="info-value">{dailyLimit?.remaining || 0}/{dailyLimit?.maxLimit || 5}</div>
-                <div className="info-label">Осталось<br />открытий</div>
-              </div>
-
-              <div className="info-card">
-                <div className="info-value">{user?.balance_crystals?.toLocaleString('ru-RU') || 0}</div>
-                <div className="info-label">Текущий<br />баланс</div>
-              </div>
-            </div>
-
-            {/* Контейнер крутилки */}
-            <div className="spinner-container">
-              {/* Фон крутилки */}
-              <div className="spinner-background">
-                {/* Крутилка */}
-                <div className="spinner-box">
-                  {/* Карточки крутилки */}
-                  <div className="prize-cards" ref={slotRef}>
-                    {extendedPrizes.map((prize, index) => (
-                      <div key={index} className="prize-card">
-                        <div className="prize-name">{prize.name}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Линия посередине */}
-                  <div className="center-line"></div>
-                </div>
-
-                {/* Кнопка крутилки */}
-                <button 
-                  onClick={handleSpin}
-                  disabled={!canSpin}
-                  className="spin-button"
-                >
-                  Крутить
-                </button>
-              </div>
-            </div>
-
-            {/* Стоимость */}
-            <div className="cost-info">{CASE_COST} А+ за открытие</div>
-
-            {/* Контейнер товары */}
-            <div className="products-container">
-              <div className="premium-section">
-                <h2 className="premium-title">Премиум товар</h2>
-
-                <div className="product-item">
-                  <div className="product-text">
-                    <div className="product-name">Созвон с кумиром</div>
-                    <div className="product-description">30 минут личного общения</div>
-                  </div>
-
-                  <div className="product-buy">
-                    <button 
-                      onClick={handleBuyPremium}
-                      disabled={!user || user.balance_crystals < PREMIUM_ITEM_COST}
-                      className="buy-button"
-                    >
-                      Купить
-                    </button>
-
-                    <div className="price-row">
-                      <span className="price-value">{PREMIUM_ITEM_COST.toLocaleString('ru-RU')}</span>
-                      <div className="crystal-icon">
-                        <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <circle cx="12.5" cy="12.5" r="12.5" fill="#EA0000"/>
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
-
-        <style jsx>{`
-          .shop-wrapper {
-            position: relative;
-            min-height: 100vh;
-            min-height: -webkit-fill-available;
-            background-color: #FFFFFF;
-            width: 100%;
-            max-width: 100vw;
-            overflow-x: hidden;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            scroll-behavior: auto;
-          }
-
-          .shop-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 56px 0px 100px;
-            gap: 10px;
-            isolation: isolate;
-            position: relative;
-            width: 100%;
-            min-height: 812px;
-            background: #FFFFFF;
-            box-sizing: border-box;
-          }
-
-          .content-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 0px 16px;
-            gap: 8px;
-            width: 100%;
-            flex: none;
-            order: 0;
-            align-self: stretch;
-            flex-grow: 0;
-            z-index: 0;
-            box-sizing: border-box;
-          }
-
-          .text-section {
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            align-items: flex-start;
-            padding: 0px 0px 24px;
-            gap: 16px;
-            width: 100%;
-            flex: none;
-            order: 0;
-            align-self: stretch;
-            flex-grow: 0;
-          }
-
-          .page-title {
-            margin: 0;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 500;
-            font-size: 32px;
-            line-height: 110%;
-            text-align: center;
-            letter-spacing: -0.03em;
-            color: #000000;
-          }
-
-          .page-subtitle {
-            margin: 0;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 400;
-            font-size: 20px;
-            line-height: 100%;
-            letter-spacing: -0.02em;
-            color: #000000;
-          }
-
-          .warning-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 16px;
-            gap: 4px;
-            width: 100%;
-            background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
-            border-radius: 16px;
-            flex: none;
-            order: 2;
-            align-self: stretch;
-            flex-grow: 0;
-            box-sizing: border-box;
-            border: none;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            transition: opacity 0.2s;
-          }
-
-          .warning-card:active {
-            opacity: 0.8;
-          }
-
-          .warning-title {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 500;
-            font-size: 24px;
-            line-height: 100%;
-            text-align: center;
-            letter-spacing: -0.03em;
-            color: #FFFFFF;
-          }
-
-          .warning-text {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 500;
-            font-size: 16px;
-            line-height: 100%;
-            text-align: center;
-            letter-spacing: -0.05em;
-            text-decoration-line: underline;
-            color: #FFFFFF;
-          }
-
-          .info-row {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            padding: 0px;
-            gap: 8px;
-            width: 100%;
-            height: 100px;
-            flex: none;
-            order: 3;
-            align-self: stretch;
-            flex-grow: 0;
-          }
-
-          .info-card {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 24px 0px 0px 16px;
-            gap: 12px;
-            flex: 1;
-            height: 100px;
-            background: #F1F1F1;
-            border-radius: 16px;
-            box-sizing: border-box;
-          }
-
-          .info-value {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 500;
-            font-size: 32px;
-            line-height: 110%;
-            letter-spacing: -0.03em;
-            color: #EA0000;
-          }
-
-          .info-label {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 500;
-            font-size: 16px;
-            line-height: 100%;
-            letter-spacing: -0.03em;
-            color: #000000;
-          }
-
-          /* Контейнер крутилки */
-          .spinner-container {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 0px 0px 24px;
-            width: 100%;
-            flex: none;
-            order: 4;
-            align-self: stretch;
-            flex-grow: 0;
-          }
-
-          /* Фон крутилки */
-          .spinner-background {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 16px;
-            gap: 16px;
-            width: 100%;
-            background: #F1F1F1;
-            border-radius: 16px;
-            box-sizing: border-box;
-          }
-
-          /* Крутилка */
-          .spinner-box {
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 24px 0px;
-            gap: 10px;
-            isolation: isolate;
-            width: 100%;
-            height: 200px;
-            background: #FFFFFF;
-            border: 1px solid rgba(234, 0, 0, 0.8);
-            border-radius: 8px;
-            position: relative;
-            overflow: hidden;
-          }
-
-          /* Карточки крутилки */
-          .prize-cards {
-            display: flex;
-            flex-direction: row;
-            align-items: flex-start;
-            padding: 0px 16px;
-            gap: 24px;
-            width: 100%;
-            height: 152px;
-            overflow-x: scroll;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            position: relative;
-            z-index: 0;
-          }
-
-          .prize-cards::-webkit-scrollbar {
-            display: none;
-          }
-
-          /* Приз */
-          .prize-card {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-            gap: 10px;
-            min-width: 120px;
-            width: 120px;
-            height: 152px;
-            background: #F1F1F1;
-            box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.25);
-            border-radius: 16px;
-            flex-shrink: 0;
-          }
-
-          .prize-name {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 400;
-            font-size: 14px;
-            line-height: 110%;
-            text-align: center;
-            letter-spacing: -0.02em;
-            color: #000000;
-          }
-
-          /* Line 3 - вертикальная линия посередине */
-          .center-line {
-            position: absolute;
-            width: 176px;
-            height: 0px;
-            left: calc(50% - 176px/2 + 88.5px);
-            top: calc(50% - 0px/2 - 88px);
-            border: 2px solid #000000;
-            transform: rotate(90deg);
-            z-index: 1;
-            pointer-events: none;
-          }
-
-          /* Кнопка крутилки */
-          .spin-button {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 8px 32px;
-            gap: 10px;
-            width: 137px;
-            height: 50px;
-            background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
-            border-radius: 16px;
-            border: none;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 500;
-            font-size: 20px;
-            line-height: 100%;
-            letter-spacing: -0.03em;
-            color: #FFFFFF;
-            transition: opacity 0.2s;
-          }
-
-          .spin-button:active:not(:disabled) {
-            opacity: 0.8;
-          }
-
-          .spin-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-          }
-
-          .cost-info {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-size: 14px;
-            color: #666666;
-            text-align: center;
-            width: 100%;
-          }
-
-          .products-container {
-            display: flex;
-            flex-direction: column;
-            padding: 0px 0px 12px;
-            gap: 10px;
-            width: 100%;
-            flex: none;
-            order: 5;
-            align-self: stretch;
-            flex-grow: 0;
-          }
-
-          .premium-section {
-            display: flex;
-            flex-direction: column;
-            padding: 24px 16px;
-            gap: 16px;
-            width: 100%;
-            background: #F1F1F1;
-            border-radius: 16px;
-            box-sizing: border-box;
-          }
-
-          .premium-title {
-            margin: 0;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-weight: 500;
-            font-size: 24px;
-            line-height: 100%;
-            letter-spacing: -0.03em;
-            color: #000000;
-          }
-
-          .product-item {
-            display: flex;
-            flex-direction: row;
-            padding: 4px 0px;
-            gap: 16px;
-            width: 100%;
-          }
-
-          .product-text {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            flex: 1;
-          }
-
-          .product-name {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-weight: 500;
-            font-size: 16px;
-            line-height: 100%;
-            letter-spacing: -0.05em;
-            color: #000000;
-          }
-
-          .product-description {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-weight: 300;
-            font-size: 16px;
-            line-height: 110%;
-            letter-spacing: -0.02em;
-            color: #000000;
-          }
-
-          .product-buy {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 8px;
-          }
-
-          .buy-button {
-            padding: 8px 32px;
-            height: 32px;
-            background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
-            border-radius: 30px;
-            border: none;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-weight: 500;
-            font-size: 16px;
-            line-height: 100%;
-            letter-spacing: -0.05em;
-            color: #FFFFFF;
-            transition: opacity 0.2s;
-          }
-
-          .buy-button:active:not(:disabled) {
-            opacity: 0.8;
-          }
-
-          .buy-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-          }
-
-          .price-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-          }
-
-          .price-value {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-weight: 500;
-            font-size: 20px;
-            line-height: 100%;
-            letter-spacing: -0.03em;
-            color: #000000;
-          }
-
-          .crystal-icon {
-            width: 25px;
-            height: 25px;
-            filter: drop-shadow(0px 2px 6px rgba(0, 0, 0, 0.25));
-          }
-
-          .loading-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #FFFFFF;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: #666666;
-          }
-
-          @media (max-width: 375px) {
-            .shop-container {
-              padding: 48px 0px 100px;
-            }
-
-            .page-title {
-              font-size: 28px;
-            }
-
-            .page-subtitle {
-              font-size: 18px;
-            }
-          }
-
-          @supports (-webkit-touch-callout: none) {
-            .shop-wrapper {
-              min-height: -webkit-fill-available;
-            }
-          }
-        `}</style>
+      
+      {/* Заголовок магазина */}
+      <div className="w-full mb-6">
+        <h1 className="text-2xl font-bold mb-2">
+          Магазин
+        </h1>
+        <p className="text-gray-600">
+          Обменивай свои плюсы на интересные товары!
+        </p>
       </div>
-    </>
+      
+      {/* Предупреждение о боте */}
+      {!user?.bot_started && (
+        <button 
+          onClick={handleOpenBot}
+          className="w-full bg-gradient-to-r from-red-500 to-red-600 border-red-600 text-white p-4 mb-5 rounded-2xl cursor-pointer hover:opacity-90 transition-opacity"
+        >
+          <p className="font-bold">Внимание!</p>
+          <p className="underline">Запустите бота для получения призов</p>
+        </button>
+      )}
+
+      {/* Блок с балансом */}
+      <div className="w-full grid grid-cols-2 gap-4 mb-5">
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <div className="text-3xl font-bold text-red-600 mb-2">
+            {dailyLimit?.remaining || 0}/{dailyLimit?.maxLimit || 5}
+          </div>
+          <div className="text-sm text-gray-600">Осталось<br/>открытий</div>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <div className="text-3xl font-bold text-red-600 mb-2">
+            {user?.balance_crystals?.toLocaleString('ru-RU') || 0}
+          </div>
+          <div className="text-sm text-gray-600">Текущий<br/>баланс</div>
+        </div>
+      </div>
+
+      {/* Слот-машина */}
+      <div className="w-full bg-white rounded-xl shadow-sm p-4 mb-5">
+        <div className="h-64 mb-4">
+          <HorizontalTextSlotMachine
+            key={spinKey}
+            spinId={spinKey}
+            prizes={ALL_PRIZES.map(p => ({ name: p.name, icon: '' }))}
+            winningPrize={winningPrize ? { name: winningPrize.name, icon: '' } : null}
+            onSpinEnd={handleSpinEnd}
+          />
+        </div>
+        
+        <button 
+          onClick={handleSpin}
+          disabled={isSpinDisabled}
+          className="w-full h-14 flex items-center justify-center bg-gradient-to-r from-red-500 to-red-600 text-white text-lg font-bold rounded-xl 
+          transition-all
+          shadow-[0_4px_0_0_rgba(220,38,38,0.6)] 
+          active:translate-y-1 active:shadow-[0_1px_0_0_rgba(220,38,38,0.6)]
+          disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0"
+        >
+          {isSpinning ? 'Крутится...' : `Крутить`}
+        </button>
+        
+        <div className="text-sm text-red-600 font-medium mt-2">
+          Крутить стоит {CASE_COST} А+
+        </div>
+      </div>
+
+      {/* Товар - созвон */}
+      <div className="w-full bg-white rounded-xl shadow-sm p-5">
+        <h2 className="text-lg font-bold mb-4">Премиум товар</h2>
+        
+        <div className="flex justify-between items-center py-3">
+          <div className="text-left">
+            <div className="font-medium">Созвон с кумиром</div>
+            <div className="text-sm text-gray-500">30 минут личного общения</div>
+          </div>
+          <div className="flex items-center">
+            <span className="text-red-600 font-bold mr-3">10,000 плюсов</span>
+            <button 
+              disabled={isBuyDisabled}
+              className="bg-red-600 text-white text-sm font-semibold px-3 py-1 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Купить
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <div className="w-full bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mt-5 rounded">
+          <p>{error}</p>
+        </div>
+      )}
+    </div>
   );
 }
