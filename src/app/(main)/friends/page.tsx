@@ -226,25 +226,20 @@ export default function FriendsPage() {
         <main className="friends-container">
           {/* Контейнер */}
           <div className="content-container">
-            {/* Верх */}
-            <div className="header-section">
-              <h1 className="page-title">Приглашай друзей и получай плюсы</h1>
-              
-              {/* Изображение */}
-              <div className="header-image">
-                <Image 
-                  src="/images/friends-header.png" 
-                  alt="Друзья" 
-                  width={580} 
-                  height={320}
-                  priority
-                  style={{
-                    width: '100%',
-                    height: 'auto',
-                    transform: 'rotate(13.77deg)',
-                  }}
-                />
-              </div>
+            {/* Верхняя карточка с изображением */}
+            <div className="header-image-wrapper">
+              <Image 
+                src="/images/friends-header.png" 
+                alt="Приглашай друзей" 
+                width={343} 
+                height={300}
+                priority
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                }}
+              />
             </div>
 
             {/* Кнопка условия (первая) */}
@@ -356,8 +351,8 @@ export default function FriendsPage() {
             box-sizing: border-box;
           }
 
-          /* Верх */
-          .header-section {
+          /* Верхняя карточка с изображением */
+          .header-image-wrapper {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
@@ -365,48 +360,11 @@ export default function FriendsPage() {
             gap: 10px;
             isolation: isolate;
             width: 100%;
-            height: 300px;
             flex: none;
             order: 0;
             align-self: stretch;
             flex-grow: 0;
             position: relative;
-          }
-
-          /* Приглашай друзей и получай плюсы */
-          .page-title {
-            margin: 0;
-            width: 284px;
-            height: 56px;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 500;
-            font-size: 32px;
-            line-height: 110%;
-            leading-trim: both;
-            text-edge: cap;
-            display: flex;
-            align-items: flex-end;
-            letter-spacing: -0.03em;
-            color: #000000;
-            flex: none;
-            order: 0;
-            flex-grow: 0;
-            z-index: 0;
-          }
-
-          /* Изображение */
-          .header-image {
-            position: absolute;
-            width: 579.75px;
-            height: 320.11px;
-            left: calc(50% - 579.75px/2 - 8.63px);
-            top: 0px;
-            flex: none;
-            order: 2;
-            flex-grow: 0;
-            z-index: 2;
-            overflow: visible;
           }
 
           /* Кнопка условия (кликабельная) */
@@ -799,11 +757,6 @@ export default function FriendsPage() {
           @media (max-width: 375px) {
             .friends-container {
               padding: 48px 0px 100px;
-            }
-
-            .page-title {
-              font-size: 28px;
-              width: 250px;
             }
 
             .info-label,
