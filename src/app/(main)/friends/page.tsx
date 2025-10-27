@@ -226,63 +226,67 @@ export default function FriendsPage() {
         <main className="friends-container">
           {/* Контейнер */}
           <div className="content-container">
-            {/* Верхняя карточка с изображением - уменьшена и прозрачна */}
-            <div className="header-image-wrapper">
-              <Image 
-                src="/images/friends-header.png" 
-                alt="Приглашай друзей" 
-                width={343} 
-                height={120}
-                priority
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  display: 'block',
-                  opacity: 0.6
-                }}
-              />
-            </div>
-
-            {/* Кнопка условия (первая) */}
-            <button className="info-card clickable" onClick={handleRulesClick}>
-              <div className="info-row">
-                <span className="info-label">Вы пригласили:&nbsp;</span>
-                <span className="info-value">{user?.referral_count || 0}</span>
-              </div>
-              <p className="info-subtitle">
-                {(user?.referral_count || 0) === 0
-                  ? 'Пока никто не присоединился' 
-                  : 'Нажмите, чтобы узнать условия розыгрышей'}
-              </p>
-            </button>
-
-            {/* Информационные блоки */}
-            <div className="stats-row">
-              {/* Таймер */}
-              <div className="stat-card">
-                <div className="stat-value">{timeLeft.days}д {timeLeft.hours}ч</div>
-                <div className="stat-label">Осталось времени<br />до конца розыгрыша</div>
-              </div>
-
-              {/* Приглашения за месяц */}
-              <div className="stat-card">
-                <div className="stat-value">{user?.current_month_referrals || 0}</div>
-                <div className="stat-label">Вы пригласили<br />в этом розыгрыше</div>
+            {/* Верхняя карточка с изображением */}
+            <div className="header-section">
+              <div className="header-image-absolute">
+                <Image 
+                  src="/images/friends-header.png" 
+                  alt="Приглашай друзей" 
+                  width={343} 
+                  height={300}
+                  priority
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    display: 'block',
+                  }}
+                />
               </div>
             </div>
 
-            {/* Кнопка условия участия */}
-            <button className="rules-button" onClick={handleRulesClick}>
-              Условия участия в розыгрышах
-            </button>
+            {/* Контент поверх изображения */}
+            <div className="buttons-overlay">
+              {/* Кнопка условия (первая) */}
+              <button className="info-card clickable" onClick={handleRulesClick}>
+                <div className="info-row">
+                  <span className="info-label">Вы пригласили:&nbsp;</span>
+                  <span className="info-value">{user?.referral_count || 0}</span>
+                </div>
+                <p className="info-subtitle">
+                  {(user?.referral_count || 0) === 0
+                    ? 'Пока никто не присоединился' 
+                    : 'Нажмите, чтобы узнать условия розыгрышей'}
+                </p>
+              </button>
 
-            {/* Кнопка пригласить */}
-            <button className="invite-button" onClick={handleInviteFriend}>
-              <span className="invite-text">Пригласить друга</span>
-              <span className="invite-bonus">+500 плюсов</span>
-              <div className="glow-top"></div>
-              <div className="glow-bottom"></div>
-            </button>
+              {/* Информационные блоки */}
+              <div className="stats-row">
+                {/* Таймер */}
+                <div className="stat-card">
+                  <div className="stat-value">{timeLeft.days}д {timeLeft.hours}ч</div>
+                  <div className="stat-label">Осталось времени<br />до конца розыгрыша</div>
+                </div>
+
+                {/* Приглашения за месяц */}
+                <div className="stat-card">
+                  <div className="stat-value">{user?.current_month_referrals || 0}</div>
+                  <div className="stat-label">Вы пригласили<br />в этом розыгрыше</div>
+                </div>
+              </div>
+
+              {/* Кнопка условия участия */}
+              <button className="rules-button" onClick={handleRulesClick}>
+                Условия участия в розыгрышах
+              </button>
+
+              {/* Кнопка пригласить */}
+              <button className="invite-button" onClick={handleInviteFriend}>
+                <span className="invite-text">Пригласить друга</span>
+                <span className="invite-bonus">+500 плюсов</span>
+                <div className="glow-top"></div>
+                <div className="glow-bottom"></div>
+              </button>
+            </div>
           </div>
         </main>
 
@@ -326,7 +330,7 @@ export default function FriendsPage() {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 30px 0px 80px;
+            padding: 56px 0px 100px;
             gap: 10px;
             isolation: isolate;
             position: relative;
@@ -342,7 +346,6 @@ export default function FriendsPage() {
             flex-direction: column;
             align-items: flex-start;
             padding: 0px 16px;
-            gap: 12px;
             width: 100%;
             flex: none;
             order: 0;
@@ -350,25 +353,35 @@ export default function FriendsPage() {
             flex-grow: 0;
             z-index: 0;
             box-sizing: border-box;
+            position: relative;
           }
 
-          /* Верхняя карточка с изображением - уменьшена */
-          .header-image-wrapper {
+          /* Секция с заголовком */
+          .header-section {
+            width: 100%;
+            position: relative;
+            height: 300px;
+            margin-bottom: -180px;
+            z-index: 0;
+          }
+
+          /* Изображение абсолютно позиционированное */
+          .header-image-absolute {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 0;
+          }
+
+          /* Кнопки поверх изображения */
+          .buttons-overlay {
+            position: relative;
+            z-index: 1;
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            padding: 0px;
             gap: 10px;
-            isolation: isolate;
             width: 100%;
-            height: 120px;
-            flex: none;
-            order: 0;
-            align-self: stretch;
-            flex-grow: 0;
-            position: relative;
-            overflow: hidden;
-            border-radius: 15px;
           }
 
           /* Кнопка условия (кликабельная) */
@@ -377,14 +390,13 @@ export default function FriendsPage() {
             flex-direction: column;
             justify-content: center;
             align-items: flex-start;
-            padding: 20px 16px;
+            padding: 24px 16px;
             gap: 8px;
             width: 100%;
-            height: 90px;
+            height: 98px;
             background: #F1F1F1;
             border-radius: 15px;
             flex: none;
-            order: 1;
             align-self: stretch;
             flex-grow: 0;
             border: none;
@@ -475,9 +487,8 @@ export default function FriendsPage() {
             padding: 0px;
             gap: 8px;
             width: 100%;
-            height: 95px;
+            height: 103px;
             flex: none;
-            order: 2;
             align-self: stretch;
             flex-grow: 0;
           }
@@ -487,10 +498,10 @@ export default function FriendsPage() {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            padding: 20px 0px 16px 16px;
-            gap: 10px;
+            padding: 24px 0px 16px 16px;
+            gap: 12px;
             width: 167.5px;
-            height: 95px;
+            height: 103px;
             background: #F1F1F1;
             border-radius: 16px;
             flex: none;
@@ -545,11 +556,10 @@ export default function FriendsPage() {
             padding: 10px 15px;
             gap: 10px;
             width: 100%;
-            height: 56px;
+            height: 60px;
             background: #F1F1F1;
             border-radius: 15px;
             flex: none;
-            order: 3;
             align-self: stretch;
             flex-grow: 0;
             border: none;
@@ -581,11 +591,10 @@ export default function FriendsPage() {
             gap: 8px;
             isolation: isolate;
             width: 100%;
-            height: 65px;
+            height: 69px;
             background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
             border-radius: 15px;
             flex: none;
-            order: 4;
             align-self: stretch;
             flex-grow: 0;
             border: none;
@@ -760,7 +769,11 @@ export default function FriendsPage() {
 
           @media (max-width: 375px) {
             .friends-container {
-              padding: 20px 0px 60px;
+              padding: 48px 0px 100px;
+            }
+
+            .header-section {
+              margin-bottom: -160px;
             }
 
             .info-label,
