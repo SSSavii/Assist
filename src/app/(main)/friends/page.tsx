@@ -361,7 +361,7 @@ export default function FriendsPage() {
             width: 100%;
             position: relative;
             height: 300px;
-            margin-bottom: -180px;
+            margin-bottom: -100px;
             z-index: 0;
           }
 
@@ -773,7 +773,7 @@ export default function FriendsPage() {
             }
 
             .header-section {
-              margin-bottom: -160px;
+              margin-bottom: -80px;
             }
 
             .info-label,
