@@ -108,24 +108,52 @@ export default function ConditionsPage() {
     };
   }, [router]);
 
-  // Скролл в начало
-useEffect(() => {
-  if (wrapperRef.current) {
-    wrapperRef.current.scrollTop = 0;
-  }
-  
-  const timeoutId = setTimeout(() => {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: 'instant'
-    });
+    // Скролл в начало - более агрессивный подход
+    useEffect(() => {
+    // Немедленный скролл
+    window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
-  }, 10);
+    
+    if (wrapperRef.current) {
+        wrapperRef.current.scrollTop = 0;
+    }
+    
+    // Повторный скролл с небольшой задержкой
+    const timeoutId1 = setTimeout(() => {
+        window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant'
+        });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        
+        if (wrapperRef.current) {
+        wrapperRef.current.scrollTop = 0;
+        }
+    }, 0);
 
-  return () => clearTimeout(timeoutId);
-}, []);
+    // Еще один скролл с большей задержкой
+    const timeoutId2 = setTimeout(() => {
+        window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant'
+        });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        
+        if (wrapperRef.current) {
+        wrapperRef.current.scrollTop = 0;
+        }
+    }, 100);
+
+    return () => {
+        clearTimeout(timeoutId1);
+        clearTimeout(timeoutId2);
+    };
+    }, []);
 
   // Загрузка данных пользователя
   useEffect(() => {
