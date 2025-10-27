@@ -170,28 +170,63 @@ export async function POST(req: NextRequest) {
       user = findUserStmt.get(userData.id) as UserFromDB;
       console.log('✅ User updated');
     } else {
-      const insertStmt = db.prepare(`
-        INSERT INTO users (tg_id, username, first_name, last_name, photo_url, referred_by_id, balance_crystals)
-        VALUES (?, ?, ?, ?, ?, ?, 400)
-      `);
+  const insertStmt = db.prepare(`
+    INSERT INTO users (tg_id, username, first_name, last_name, photo_url, referred_by_id, balance_crystals)
+    VALUES (?, ?, ?, ?, ?, ?, 400)
+  `);
+  
+  insertStmt.run(
+    userData.id,
+    userData.username,
+    userData.first_name,
+    userData.last_name,
+    userData.photo_url || null,
+    referredById
+  );
+
+  user = findUserStmt.get(userData.id) as UserFromDB;
+  
+  if (!user) {
+    console.error('❌ Failed to create user');
+    return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
+  }
+  
+  console.log('✅ New user created');
+  
+  // ДОБАВЛЕНО: Обновление счётчиков реферала у пригласившего
+  if (referredById) {
+    try {
+      const transaction = db.transaction(() => {
+        // Увеличиваем общий счётчик рефералов
+        const updateReferrerStmt = db.prepare(`
+          UPDATE users 
+          SET referral_count = referral_count + 1,
+              current_month_referrals = current_month_referrals + 1
+          WHERE id = ?
+        `);
+        updateReferrerStmt.run(referredById);
+        
+        // Создаём запись в referral_rewards
+        const insertRewardStmt = db.prepare(`
+          INSERT OR IGNORE INTO referral_rewards (user_id, referred_user_id, is_subscribed, reward_given)
+          VALUES (?, ?, 0, 0)
+        `);
+        insertRewardStmt.run(referredById, user!.id); // используем ! потому что мы проверили выше
+      });
       
-      insertStmt.run(
-        userData.id,
-        userData.username,
-        userData.first_name,
-        userData.last_name,
-        userData.photo_url || null,
-        referredById
-      );
-
-      user = findUserStmt.get(userData.id) as UserFromDB;
-      console.log('✅ New user created');
+      transaction();
+      console.log('✅ Referral counters updated for user', referredById);
+    } catch (error) {
+      console.error('❌ Error updating referral counters:', error);
     }
+  }
+}
 
-    if (!user) {
-      console.error('❌ User not found after create/update');
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+// Эта проверка уже есть ниже, но переместим её сюда для ясности
+if (!user) {
+  console.error('❌ User not found after create/update');
+  return NextResponse.json({ error: 'User not found' }, { status: 404 });
+}
 
     const completedTasks = checkTasksStmt.all(user.id) as { task_key: string }[];
     const completedTaskKeys = completedTasks.map(task => task.task_key);

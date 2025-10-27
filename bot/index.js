@@ -3,7 +3,16 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
 import TelegramBot from 'node-telegram-bot-api';
-import db from '../src/lib/init-database.ts';
+import Database from 'better-sqlite3';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Прямой импорт БД без TypeScript
+const dbPath = path.join(__dirname, '..', 'main.db');
+const db = new Database(dbPath);
 
 const {
   BOT_TOKEN,
@@ -155,7 +164,8 @@ async function checkAndResetMonthlyReferrals() {
 
 // Запуск фоновых задач
 setInterval(checkAndFinishAuctions, 60000); // Каждую минуту
-setInterval(checkAndResetMonthlyReferrals, 3600000); // Каждый час
+// ВРЕМЕННО ОТКЛЮЧЕНО для тестирования
+// setInterval(checkAndResetMonthlyReferrals, 3600000); // Каждый час
 console.log('✅ Фоновые задачи запущены.');
 
 // ===== КОМАНДЫ БОТА =====
