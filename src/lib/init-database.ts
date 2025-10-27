@@ -1,8 +1,19 @@
 import Database from 'better-sqlite3';
 import path from 'path';
+import fs from 'fs';
 
 const dbPath = path.join(process.cwd(), 'main.db');
 const db = new Database(dbPath, { verbose: console.log });
+
+// Устанавливаем правильные права доступа для БД
+try {
+  if (fs.existsSync(dbPath)) {
+    fs.chmodSync(dbPath, 0o666); // rw-rw-rw-
+    console.log('✅ Права доступа к базе данных установлены (666)');
+  }
+} catch (error) {
+  console.warn('⚠️ Не удалось установить права доступа:', error);
+}
 
 // Создание таблицы пользователей
 db.exec(`
