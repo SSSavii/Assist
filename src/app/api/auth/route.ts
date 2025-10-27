@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/init-database';
@@ -21,6 +22,10 @@ interface UserFromDB {
   subscribed_to_channel: number;
   boost_count_before: number;
   photo_url: string | null;
+  bot_started: number; // ДОБАВИТЬ
+  referral_count: number; // ДОБАВИТЬ
+  referral_count_subscribed: number; // ДОБАВИТЬ
+  current_month_referrals: number; // ДОБАВИТЬ
 }
 
 interface AuthResponse {
@@ -37,6 +42,10 @@ interface AuthResponse {
   last_login_at: string;
   subscribed_to_channel?: boolean;
   voted_for_channel?: boolean;
+  bot_started?: boolean; // ДОБАВИТЬ
+  referral_count?: number; // ДОБАВИТЬ
+  referral_count_subscribed?: number; // ДОБАВИТЬ
+  current_month_referrals?: number; // ДОБАВИТЬ
   tasks_completed: {
     subscribe: boolean;
     vote: boolean;
@@ -245,6 +254,10 @@ if (!user) {
       last_login_at: user.last_login_at,
       subscribed_to_channel: user.subscribed_to_channel === 1,
       voted_for_channel: user.boost_count_before > 0,
+      bot_started: (user as any).bot_started === 1, // ДОБАВИТЬ
+      referral_count: (user as any).referral_count || 0, // ДОБАВИТЬ
+      referral_count_subscribed: (user as any).referral_count_subscribed || 0, // ДОБАВИТЬ
+      current_month_referrals: (user as any).current_month_referrals || 0, // ДОБАВИТЬ
       tasks_completed: {
         subscribe: completedTaskKeys.includes('subscribe_channel'),
         vote: completedTaskKeys.includes('vote_poll'),
