@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import HorizontalTextSlotMachine from '@/app/components/TextSlotMachine';
 
 const GlobalStyles = () => (
   <>
@@ -100,6 +99,7 @@ interface DailyLimit {
 
 const CASE_COST = 500;
 const PREMIUM_ITEM_COST = 10000;
+const ANIMATION_DURATION = 6000;
 
 export default function ShopPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -108,9 +108,8 @@ export default function ShopPage() {
   const [winningPrize, setWinningPrize] = useState<Prize | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [spinKey, setSpinKey] = useState(0);
-  const hasSpunRef = useRef(false);
-  const isProcessingPrizeRef = useRef(false);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const slotRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -189,9 +188,7 @@ export default function ShopPage() {
 
   const handlePrizeDelivery = async (prize: Prize) => {
     const tg = window.Telegram?.WebApp;
-    if (!tg || isProcessingPrizeRef.current) return;
-
-    isProcessingPrizeRef.current = true;
+    if (!tg) return;
 
     try {
       if (prize.deliveryType === 'instant') {
@@ -256,15 +253,13 @@ export default function ShopPage() {
     } catch (error) {
       console.error('Error delivering prize:', error);
       tg.showAlert('❌ Произошла ошибка при начислении приза. Обратитесь в поддержку.');
-    } finally {
-      isProcessingPrizeRef.current = false;
     }
   };
 
   const handleSpin = async () => {
     const tg = window.Telegram?.WebApp;
 
-    if (isSpinning || hasSpunRef.current || !user) return;
+    if (isSpinning || !user) return;
 
     if (user.balance_crystals < CASE_COST) {
       tg?.showAlert(`У вас недостаточно плюсов! Требуется: ${CASE_COST} А+`);
@@ -279,8 +274,6 @@ export default function ShopPage() {
     setIsSpinning(true);
     setError('');
     setWinningPrize(null);
-    hasSpunRef.current = true;
-    isProcessingPrizeRef.current = false;
 
     try {
       tg?.HapticFeedback.impactOccurred('light');
@@ -327,31 +320,36 @@ export default function ShopPage() {
         maxLimit: dailyLimit?.maxLimit || 5
       });
 
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      // Выбираем приз
       const prize = getRandomPrize();
-      setSpinKey(prev => prev + 1);
       setWinningPrize(prize);
+
+      // Анимация прокрутки
+      const prizeIndex = ALL_PRIZES.findIndex(p => p.name === prize.name);
+      const cardWidth = 144; // 120px + 24px gap
+      const extraSpins = 5;
+      const finalPosition = (prizeIndex + extraSpins * ALL_PRIZES.length) * cardWidth;
+
+      if (slotRef.current) {
+        slotRef.current.scrollTo({
+          left: finalPosition,
+          behavior: 'smooth'
+        });
+      }
+
+      // Через 3 секунды останавливаем и показываем результат
+      setTimeout(() => {
+        tg?.HapticFeedback.notificationOccurred('success');
+        handlePrizeDelivery(prize);
+        setIsSpinning(false);
+      }, ANIMATION_DURATION);
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
       setIsSpinning(false);
-      hasSpunRef.current = false;
       tg?.HapticFeedback.notificationOccurred('error');
       tg?.showAlert(err instanceof Error ? err.message : 'Произошла ошибка. Попробуйте еще раз.');
     }
-  };
-
-  const handleSpinEnd = () => {
-    if (winningPrize && !isProcessingPrizeRef.current) {
-      window.Telegram?.WebApp?.HapticFeedback.notificationOccurred('success');
-      handlePrizeDelivery(winningPrize);
-    }
-    
-    setTimeout(() => {
-      setIsSpinning(false);
-      hasSpunRef.current = false;
-    }, 500);
   };
 
   const handleBuyPremium = async () => {
@@ -386,6 +384,9 @@ export default function ShopPage() {
                   dailyLimit.remaining > 0 && 
                   !isSpinning;
 
+  // Создаём массив призов для прокрутки (повторяем несколько раз для эффекта)
+  const extendedPrizes = [...ALL_PRIZES, ...ALL_PRIZES, ...ALL_PRIZES, ...ALL_PRIZES, ...ALL_PRIZES, ...ALL_PRIZES];
+
   return (
     <>
       <GlobalStyles />
@@ -400,7 +401,7 @@ export default function ShopPage() {
               </p>
             </div>
 
-            {/* Предупреждение - если бот не запущен */}
+            {/* Предупреждение */}
             {!user?.bot_started && (
               <button className="warning-card" onClick={handleOpenBot}>
                 <div className="warning-title">Внимание!</div>
@@ -422,18 +423,25 @@ export default function ShopPage() {
             </div>
 
             {/* Контейнер крутилки */}
-            <div className="spinner-wrapper">
+            <div className="spinner-container">
+              {/* Фон крутилки */}
               <div className="spinner-background">
+                {/* Крутилка */}
                 <div className="spinner-box">
-                  <HorizontalTextSlotMachine
-                    key={spinKey}
-                    spinId={spinKey}
-                    prizes={ALL_PRIZES.map(p => ({ name: p.name, icon: '' }))}
-                    winningPrize={winningPrize ? { name: winningPrize.name, icon: '' } : null}
-                    onSpinEnd={handleSpinEnd}
-                  />
+                  {/* Карточки крутилки */}
+                  <div className="prize-cards" ref={slotRef}>
+                    {extendedPrizes.map((prize, index) => (
+                      <div key={index} className="prize-card">
+                        <div className="prize-name">{prize.name}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Линия посередине */}
+                  <div className="center-line"></div>
                 </div>
 
+                {/* Кнопка крутилки */}
                 <button 
                   onClick={handleSpin}
                   disabled={!canSpin}
@@ -657,7 +665,8 @@ export default function ShopPage() {
             color: #000000;
           }
 
-          .spinner-wrapper {
+          /* Контейнер крутилки */
+          .spinner-container {
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -670,6 +679,7 @@ export default function ShopPage() {
             flex-grow: 0;
           }
 
+          /* Фон крутилки */
           .spinner-background {
             display: flex;
             flex-direction: column;
@@ -683,24 +693,96 @@ export default function ShopPage() {
             box-sizing: border-box;
           }
 
+          /* Крутилка */
           .spinner-box {
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px 0px;
+            gap: 10px;
+            isolation: isolate;
             width: 100%;
-            min-height: 200px;
+            height: 200px;
             background: #FFFFFF;
             border: 1px solid rgba(234, 0, 0, 0.8);
             border-radius: 8px;
             position: relative;
             overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
           }
 
+          /* Карточки крутилки */
+          .prize-cards {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            padding: 0px 16px;
+            gap: 24px;
+            width: 100%;
+            height: 152px;
+            overflow-x: scroll;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            position: relative;
+            z-index: 0;
+          }
+
+          .prize-cards::-webkit-scrollbar {
+            display: none;
+          }
+
+          /* Приз */
+          .prize-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            gap: 10px;
+            min-width: 120px;
+            width: 120px;
+            height: 152px;
+            background: #F1F1F1;
+            box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.25);
+            border-radius: 16px;
+            flex-shrink: 0;
+          }
+
+          .prize-name {
+            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-style: normal;
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 110%;
+            text-align: center;
+            letter-spacing: -0.02em;
+            color: #000000;
+          }
+
+          /* Line 3 - вертикальная линия посередине */
+          .center-line {
+            position: absolute;
+            width: 176px;
+            height: 0px;
+            left: calc(50% - 176px/2 + 88.5px);
+            top: calc(50% - 0px/2 - 88px);
+            border: 2px solid #000000;
+            transform: rotate(90deg);
+            z-index: 1;
+            pointer-events: none;
+          }
+
+          /* Кнопка крутилки */
           .spin-button {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 8px 32px;
+            gap: 10px;
             width: 137px;
             height: 50px;
             background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
@@ -709,6 +791,7 @@ export default function ShopPage() {
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-style: normal;
             font-weight: 500;
             font-size: 20px;
             line-height: 100%;
