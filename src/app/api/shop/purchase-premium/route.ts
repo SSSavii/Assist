@@ -1,5 +1,13 @@
-// Функция для уведомления админов о покупке премиум товара (через fetch)
-export async function notifyAdminsAboutPurchase(
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { NextRequest, NextResponse } from 'next/server';
+import db from '@/lib/init-database';
+import { validateTelegramHash } from '@/lib/telegram-auth';
+
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const ADMIN_IDS = process.env.ADMIN_IDS?.split(',').map(id => parseInt(id.trim())) || [];
+
+// Внутренняя функция (НЕ экспортируется!)
+async function notifyAdminsAboutPurchase(
   userId: number,
   userName: string,
   userUsername: string,
@@ -7,9 +15,6 @@ export async function notifyAdminsAboutPurchase(
   itemCost: number,
   newBalance: number
 ) {
-  const BOT_TOKEN = process.env.BOT_TOKEN;
-  const ADMIN_IDS = process.env.ADMIN_IDS?.split(',').map(id => parseInt(id.trim())) || [];
-  
   if (!BOT_TOKEN) {
     console.error('[ERROR] BOT_TOKEN not configured');
     return;
@@ -55,4 +60,90 @@ export async function notifyAdminsAboutPurchase(
   });
 
   await Promise.allSettled(promises);
+}
+
+export async function POST(req: NextRequest) {
+  console.log(`\n--- [${new Date().toISOString()}] Received /api/shop/purchase-premium request ---`);
+  
+  try {
+    const { initData, itemName, itemCost } = await req.json();
+
+    if (!initData || !itemName || !itemCost) {
+      console.error('[ERROR] Missing required fields');
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const botToken = process.env.BOT_TOKEN;
+    if (!botToken) {
+      console.error('[ERROR] BOT_TOKEN not configured');
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+
+    const isValid = validateTelegramHash(initData, botToken);
+    if (!isValid) {
+      console.warn('[WARN] Invalid Telegram hash');
+      return NextResponse.json({ error: 'Invalid Telegram hash' }, { status: 403 });
+    }
+
+    const params = new URLSearchParams(initData);
+    const userData = JSON.parse(params.get('user') || '{}');
+    const tgUserId = userData.id;
+
+    if (!tgUserId) {
+      console.error('[ERROR] Invalid user data');
+      return NextResponse.json({ error: 'Invalid user data' }, { status: 400 });
+    }
+
+    // Получаем пользователя из БД
+    const findUserStmt = db.prepare('SELECT * FROM users WHERE tg_id = ?');
+    const user = findUserStmt.get(tgUserId) as any;
+
+    if (!user) {
+      console.error('[ERROR] User not found');
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Проверяем баланс
+    if (user.balance_crystals < itemCost) {
+      console.warn(`[WARN] Insufficient balance for user ${tgUserId}`);
+      return NextResponse.json({ 
+        error: `Недостаточно плюсов. У вас: ${user.balance_crystals}, требуется: ${itemCost}` 
+      }, { status: 400 });
+    }
+
+    // Списываем плюсы
+    const newBalance = user.balance_crystals - itemCost;
+    const updateBalanceStmt = db.prepare(
+      'UPDATE users SET balance_crystals = ? WHERE tg_id = ?'
+    );
+    updateBalanceStmt.run(newBalance, tgUserId);
+
+    console.log(`[INFO] Deducted ${itemCost} crystals from user ${tgUserId}. New balance: ${newBalance}`);
+
+    // Формируем данные для уведомления
+    const userName = `${user.first_name}${user.last_name ? ' ' + user.last_name : ''}`;
+    const userUsername = user.username || '';
+
+    // Уведомляем админов о покупке
+    try {
+      await notifyAdminsAboutPurchase(tgUserId, userName, userUsername, itemName, itemCost, newBalance);
+      console.log(`[SUCCESS] Admins notified about purchase by user ${tgUserId}`);
+    } catch (error) {
+      console.error('[ERROR] Failed to notify admins:', error);
+      // Продолжаем выполнение, даже если уведомление не отправилось
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      newBalance,
+      message: 'Покупка успешно совершена'
+    });
+
+  } catch (error) {
+    console.error('--- [FATAL ERROR] API /api/shop/purchase-premium crashed: ---', error);
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: String(error)
+    }, { status: 500 });
+  }
 }
