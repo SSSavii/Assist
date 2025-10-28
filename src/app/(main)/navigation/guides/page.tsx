@@ -152,17 +152,17 @@ export default function GuidesPage() {
         {
           id: 1,
           title: "Нейросеть Heygen\nдля переозвучки и создания\nцифрового аватара",
-          link: "https://t.me/+6flpcSdc4sg5OTAy"
+          link: "https://t.me/c/2782276287/171"
         },
         {
           id: 2,
           title: "Cоветы для работы\nна удаленке",
-          link: "https://t.me/+6flpcSdc4sg5OTAy"
+          link: "https://t.me/c/2782276287/199"
         },
         {
           id: 3,
           title: "Успешная презентация проекта",
-          link: "https://t.me/+6flpcSdc4sg5OTAy"
+          link: "https://t.me/c/2782276287/212"
         }
       ]
     },
@@ -173,7 +173,7 @@ export default function GuidesPage() {
         {
           id: 1,
           title: "10 ошибок\nбизнес-ассистентов",
-          link: "https://t.me/+6flpcSdc4sg5OTAy"
+          link: "https://t.me/c/2782276287/219"
         }
       ]
     }

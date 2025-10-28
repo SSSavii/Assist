@@ -142,17 +142,17 @@ export default function SelectionsPage() {
     {
       id: 1,
       title: "Подборка нейросетей в тг",
-      link: "https://t.me/+6flpcSdc4sg5OTAy"
+      link: "https://t.me/c/2782276287/144"
     },
     {
       id: 2,
       title: "Подборка мероприятий\nна сентябрь",
-      link: "https://t.me/+6flpcSdc4sg5OTAy"
+      link: "https://t.me/c/2782276287/193"
     },
     {
       id: 3,
       title: "Ютуб-каналы\nдля саморазвития",
-      link: "https://t.me/+6flpcSdc4sg5OTAy"
+      link: "https://t.me/c/2782276287/232"
     },
     {
       id: 4,

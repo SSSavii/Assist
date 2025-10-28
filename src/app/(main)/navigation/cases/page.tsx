@@ -152,12 +152,12 @@ export default function CasesPage() {
         {
           id: 1,
           title: "Екатерина Возилкина,\nMaru Studio",
-          link: "https://t.me/assist_plus_channel/123"
+          link: "https://t.me/c/2782276287/205"
         },
         {
           id: 2,
           title: "Полина Жижина,\nSelSovet",
-          link: "https://t.me/assist_plus_channel/124"
+          link: "https://t.me/c/2782276287/159?single"
         },
         {
           id: 3,

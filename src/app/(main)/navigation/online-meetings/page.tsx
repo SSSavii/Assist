@@ -142,12 +142,12 @@ export default function OnlineMeetingsPage() {
     {
       id: 1,
       title: "Эфир с Иваном Абрамовым\n1 августа",
-      link: "https://t.me/+6flpcSdc4sg5OTAy"
+      link: "https://t.me/c/2782276287/93"
     },
     {
       id: 2,
       title: "Эфир с Иваном Абрамовым\n24 августа",
-      link: "https://t.me/+6flpcSdc4sg5OTAy"
+      link: "https://t.me/c/2782276287/122"
     }
   ];
 

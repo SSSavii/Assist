@@ -141,8 +141,8 @@ export default function EventsPage() {
   const events: EventItem[] = [
     {
       id: 1,
-      title: "Мероприятие 1",
-      link: "https://t.me/+6flpcSdc4sg5OTAy"
+      title: "Наши мероприятия в сентябре",
+      link: "https://t.me/c/2782276287/185"
     },
     {
       id: 2,

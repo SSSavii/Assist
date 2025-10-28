@@ -142,7 +142,7 @@ export default function OfflineEventsPage() {
     {
       id: 1,
       title: "Форум-группа",
-      link: "https://t.me/+6flpcSdc4sg5OTAy"
+      link: "https://t.me/c/2782276287/124"
     },
     {
       id: 2,

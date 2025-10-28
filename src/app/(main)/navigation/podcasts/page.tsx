@@ -141,8 +141,8 @@ export default function PodcastsPage() {
   const podcasts: PodcastItem[] = [
     {
       id: 1,
-      title: "Подкаст 1",
-      link: "https://t.me/+6flpcSdc4sg5OTAy"
+      title: "Как совмещать работу и учебу?",
+      link: "https://t.me/c/2782276287/183"
     },
     {
       id: 2,

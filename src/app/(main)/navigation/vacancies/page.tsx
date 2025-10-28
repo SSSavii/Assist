@@ -149,7 +149,7 @@ export default function VacanciesPage() {
     {
       id: 2,
       title: "Денис Орлов,\n«Ваш реставратор»",
-      link: "https://t.me/+6flpcSdc4sg5OTAy"
+      link: "https://t.me/c/2782276287/231"
     }
   ];
 
