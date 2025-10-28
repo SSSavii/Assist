@@ -36,21 +36,39 @@ interface ProfileLinkProps {
   iconBgColor: string;
   text: string;
   subText?: string;
-  href: string;
+  href?: string;
+  onClick?: () => void;
 }
 
-function ProfileLink({ icon: Icon, iconBgColor, text, subText, href }: ProfileLinkProps) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center w-full p-3 bg-gray-100 rounded-lg transition-colors hover:bg-gray-200 active:bg-gray-300"
-    >
+function ProfileLink({ icon: Icon, iconBgColor, text, subText, href, onClick }: ProfileLinkProps) {
+  const content = (
+    <>
       <div className={`p-2 rounded-md ${iconBgColor}`}>
         <Icon className="h-5 w-5 text-white" />
       </div>
       <span className="ml-4 font-semibold flex-grow">{text}</span>
       {subText && <span className="text-gray-500 mr-2">{subText}</span>}
       <ChevronRight className="h-5 w-5 text-gray-400" />
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        onClick={onClick}
+        className="flex items-center w-full p-3 bg-gray-100 rounded-lg transition-colors hover:bg-gray-200 active:bg-gray-300"
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <Link
+      href={href || '#'}
+      className="flex items-center w-full p-3 bg-gray-100 rounded-lg transition-colors hover:bg-gray-200 active:bg-gray-300"
+    >
+      {content}
     </Link>
   );
 }
@@ -85,6 +103,13 @@ export default function ProfilePage() {
 
   const handleNavigationClick = () => {
     router.push('/navigation');
+  };
+
+  const handleCommunityClick = () => {
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.openTelegramLink('https://t.me/+6flpcSdc4sg5OTAy');
+    }
   };
 
   useEffect(() => {
@@ -200,7 +225,7 @@ export default function ProfilePage() {
           icon={Users}
           iconBgColor="bg-orange-500"
           text="Сообщество Assist+"
-          href=""
+          onClick={handleCommunityClick}
         />
 
         {/* Кнопка навигации по каналу АССИСТ+ */}

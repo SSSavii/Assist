@@ -247,18 +247,13 @@ export default function FriendsPage() {
 
             {/* Контент поверх изображения */}
             <div className="buttons-overlay">
-              {/* Кнопка условия (первая) */}
-              <button className="info-card clickable" onClick={handleRulesClick}>
+              {/* Информационная карточка (не кликабельная) */}
+              <div className="info-card">
                 <div className="info-row">
-                  <span className="info-label">Вы пригласили:&nbsp;</span>
+                  <span className="info-label">Вы пригласили: </span>
                   <span className="info-value">{user?.referral_count || 0}</span>
                 </div>
-                <p className="info-subtitle">
-                  {(user?.referral_count || 0) === 0
-                    ? 'Пока никто не присоединился' 
-                    : 'Нажмите, чтобы узнать условия розыгрышей'}
-                </p>
-              </button>
+              </div>
 
               {/* Информационные блоки */}
               <div className="stats-row">
@@ -365,39 +360,30 @@ export default function FriendsPage() {
             width: 100%;
           }
 
-          /* Кнопка условия (кликабельная) */
+          /* Информационная карточка (не кликабельная) */
           .info-card {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             padding: 24px 16px;
             gap: 8px;
             width: 100%;
-            height: 98px;
+            height: 72px;
             background: #F1F1F1;
             border-radius: 15px;
             flex: none;
             align-self: stretch;
             flex-grow: 0;
-            border: none;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
             box-sizing: border-box;
-            transition: opacity 0.2s;
-          }
-
-          .info-card.clickable:active {
-            opacity: 0.7;
           }
 
           .info-row {
             display: flex;
             flex-direction: row;
-            align-items: flex-start;
+            align-items: center;
             padding: 0px;
-            gap: 3px;
-            width: 188px;
+            gap: 0px;
             height: 24px;
             flex: none;
             order: 0;
@@ -405,56 +391,31 @@ export default function FriendsPage() {
           }
 
           .info-label {
-            width: 170px;
-            height: 24px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-style: normal;
             font-weight: 500;
             font-size: 24px;
             line-height: 100%;
             display: flex;
-            align-items: flex-end;
-            text-align: center;
+            align-items: center;
             letter-spacing: -0.03em;
             color: #000000;
             flex: none;
             order: 0;
             flex-grow: 0;
+            white-space: nowrap;
           }
 
           .info-value {
-            width: auto;
-            min-width: 15px;
-            height: 24px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-style: normal;
             font-weight: 500;
             font-size: 24px;
             line-height: 100%;
             display: flex;
-            align-items: flex-end;
-            text-align: center;
+            align-items: center;
             letter-spacing: -0.03em;
             color: rgba(234, 0, 0, 0.9);
-            flex: none;
-            order: 1;
-            flex-grow: 0;
-          }
-
-          .info-subtitle {
-            margin: 0;
-            width: 220px;
-            height: 18px;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 300;
-            font-size: 16px;
-            line-height: 110%;
-            display: flex;
-            align-items: flex-end;
-            text-align: center;
-            letter-spacing: -0.02em;
-            color: #000000;
             flex: none;
             order: 1;
             flex-grow: 0;
