@@ -1,97 +1,58 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/init-database';
-import { validateTelegramHash } from '@/lib/telegram-auth';
-
-const BOT_TOKEN = process.env.BOT_TOKEN;
-const ADMIN_IDS = process.env.ADMIN_IDS?.split(',').map(id => parseInt(id.trim())) || [];
-
-export async function POST(req: NextRequest) {
-  try {
-    const { initData, itemName, itemCost } = await req.json();
-
-    if (!initData || !itemName || !itemCost) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
-
-    const botToken = process.env.BOT_TOKEN;
-    if (!botToken) {
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
-    }
-
-    if (!validateTelegramHash(initData, botToken)) {
-      return NextResponse.json({ error: 'Invalid Telegram hash' }, { status: 403 });
-    }
-
-    const params = new URLSearchParams(initData);
-    const userData = JSON.parse(params.get('user') || '{}');
-
-    if (!userData.id) {
-      return NextResponse.json({ error: 'Invalid user data' }, { status: 400 });
-    }
-
-    // Проверяем баланс и списываем кристаллы
-    const findUserStmt = db.prepare('SELECT * FROM users WHERE tg_id = ?');
-    const user = findUserStmt.get(userData.id) as any;
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    if (user.balance_crystals < itemCost) {
-      return NextResponse.json({ 
-        error: `Недостаточно плюсов. У вас: ${user.balance_crystals}, требуется: ${itemCost}` 
-      }, { status: 400 });
-    }
-
-    // Списываем плюсы
-    const newBalance = user.balance_crystals - itemCost;
-    const updateBalanceStmt = db.prepare(
-      'UPDATE users SET balance_crystals = ? WHERE tg_id = ?'
-    );
-    updateBalanceStmt.run(newBalance, userData.id);
-
-    // Отправляем уведомление админам
-    if (BOT_TOKEN && ADMIN_IDS.length > 0) {
-      const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-      const userIdentifier = user.username ? `@${user.username}` : `ID: ${userData.id}`;
-      
-      const message = `🛍 НОВАЯ ПОКУПКА!\n\n` +
-                     `👤 Пользователь: ${fullName}\n` +
-                     `🆔 ${userIdentifier}\n` +
-                     `📦 Товар: ${itemName}\n` +
-                     `💎 Стоимость: ${itemCost.toLocaleString('ru-RU')} А+\n` +
-                     `💰 Новый баланс: ${newBalance.toLocaleString('ru-RU')} А+\n\n` +
-                     `📞 Свяжитесь с пользователем для организации созвона.`;
-
-      for (const adminId of ADMIN_IDS) {
-        try {
-          await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: adminId,
-              text: message,
-              parse_mode: 'HTML'
-            })
-          });
-        } catch (error) {
-          console.error(`Failed to notify admin ${adminId}:`, error);
-        }
-      }
-    }
-
-    return NextResponse.json({ 
-      success: true, 
-      newBalance,
-      message: 'Покупка успешно совершена'
-    });
-
-  } catch (error) {
-    console.error('Purchase error:', error);
-    return NextResponse.json({ 
-      error: 'Internal server error',
-      details: String(error)
-    }, { status: 500 });
+// Функция для уведомления админов о покупке премиум товара (через fetch)
+export async function notifyAdminsAboutPurchase(
+  userId: number,
+  userName: string,
+  userUsername: string,
+  itemName: string,
+  itemCost: number,
+  newBalance: number
+) {
+  const BOT_TOKEN = process.env.BOT_TOKEN;
+  const ADMIN_IDS = process.env.ADMIN_IDS?.split(',').map(id => parseInt(id.trim())) || [];
+  
+  if (!BOT_TOKEN) {
+    console.error('[ERROR] BOT_TOKEN not configured');
+    return;
   }
+
+  if (ADMIN_IDS.length === 0) {
+    console.warn('[WARN] No admin IDs configured for notifications');
+    return;
+  }
+
+  const userIdentifier = userUsername ? `@${userUsername}` : `ID: ${userId}`;
+  
+  const message = `🛍 <b>НОВАЯ ПОКУПКА ПРЕМИУМ ТОВАРА!</b>\n\n` +
+                 `👤 <b>Пользователь:</b> ${userName}\n` +
+                 `🆔 <b>Telegram:</b> ${userIdentifier}\n` +
+                 `📦 <b>Товар:</b> ${itemName}\n` +
+                 `💎 <b>Стоимость:</b> ${itemCost.toLocaleString('ru-RU')} А+\n` +
+                 `💰 <b>Новый баланс:</b> ${newBalance.toLocaleString('ru-RU')} А+\n\n` +
+                 `📞 <b>Действие:</b> Свяжитесь с пользователем для организации созвона.`;
+
+  const promises = ADMIN_IDS.map(async (adminId) => {
+    try {
+      const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: adminId,
+          text: message,
+          parse_mode: 'HTML',
+          disable_web_page_preview: true
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Telegram API error: ${JSON.stringify(errorData)}`);
+      }
+
+      console.log(`[INFO] Purchase notification sent to admin ${adminId}`);
+    } catch (error) {
+      console.error(`[ERROR] Failed to send purchase notification to admin ${adminId}:`, error);
+    }
+  });
+
+  await Promise.allSettled(promises);
 }
