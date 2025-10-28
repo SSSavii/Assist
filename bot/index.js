@@ -165,7 +165,7 @@ async function checkAndResetMonthlyReferrals() {
 // Запуск фоновых задач
 setInterval(checkAndFinishAuctions, 60000); // Каждую минуту
 // ВРЕМЕННО ОТКЛЮЧЕНО для тестирования
-// setInterval(checkAndResetMonthlyReferrals, 3600000); // Каждый час
+setInterval(checkAndResetMonthlyReferrals, 3600000); // Каждый час
 console.log('✅ Фоновые задачи запущены.');
 
 // ===== КОМАНДЫ БОТА =====
