@@ -347,7 +347,8 @@ export default function ShopPage() {
       tg.HapticFeedback.impactOccurred('light');
     }
     const botUsername = 'my_auction_admin_bot';
-    tg?.openTelegramLink(`https://t.me/${botUsername}`);
+    // Добавляем ?start для автоматического запуска бота с командой /start
+    tg?.openTelegramLink(`https://t.me/${botUsername}?start=from_webapp`);
   };
 
   const handlePurchasePremiumItem = async () => {
