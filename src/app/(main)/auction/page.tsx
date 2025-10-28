@@ -687,7 +687,7 @@ export default function ShopPage() {
           .products-container {
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
+            align-items: center;
             padding: 0px;
             gap: 10px;
             width: 100%;

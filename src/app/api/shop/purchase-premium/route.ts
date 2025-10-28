@@ -4,7 +4,7 @@ import db from '@/lib/init-database';
 import { validateTelegramHash } from '@/lib/telegram-auth';
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const ADMIN_IDS = process.env.ADMIN_IDS?.split(',').map(id => parseInt(id.trim())) || [];
+const ADMIN_IDS = process.env.TELEGRAM_ADMIN_IDS?.split(',').map(id => parseInt(id.trim())) || [];
 
 // Внутренняя функция (НЕ экспортируется!)
 async function notifyAdminsAboutPurchase(
@@ -17,7 +17,6 @@ async function notifyAdminsAboutPurchase(
 ) {
   console.log('[DEBUG] Starting notifyAdminsAboutPurchase');
   console.log('[DEBUG] BOT_TOKEN exists:', !!BOT_TOKEN);
-  console.log('[DEBUG] BOT_TOKEN length:', BOT_TOKEN?.length || 0);
   console.log('[DEBUG] ADMIN_IDS:', ADMIN_IDS);
   console.log('[DEBUG] ADMIN_IDS length:', ADMIN_IDS.length);
 
@@ -48,16 +47,13 @@ async function notifyAdminsAboutPurchase(
     
     try {
       const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-      console.log(`[DEBUG] URL: https://api.telegram.org/bot***TOKEN***/sendMessage`);
-      
+
       const body = {
         chat_id: adminId,
         text: message,
         parse_mode: 'HTML',
         disable_web_page_preview: true
       };
-      
-      console.log(`[DEBUG] Request body:`, JSON.stringify(body, null, 2));
 
       const response = await fetch(url, {
         method: 'POST',
@@ -77,10 +73,6 @@ async function notifyAdminsAboutPurchase(
       console.log(`[SUCCESS] Purchase notification sent to admin ${adminId}`);
     } catch (error) {
       console.error(`[ERROR] Failed to send purchase notification to admin ${adminId}:`, error);
-      if (error instanceof Error) {
-        console.error(`[ERROR] Error message:`, error.message);
-        console.error(`[ERROR] Error stack:`, error.stack);
-      }
     }
   });
 
