@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import HorizontalTextSlotMachine from '@/app/components/TextSlotMachine';
 
 const GlobalStyles = () => (
@@ -90,6 +91,9 @@ interface UserProfile {
   balance_crystals: number;
   cases_to_open: number;
   bot_started?: boolean;
+  first_name: string;
+  last_name?: string;
+  username?: string;
 }
 
 interface DailyLimit {
@@ -99,6 +103,7 @@ interface DailyLimit {
 }
 
 const CASE_COST = 500;
+const PREMIUM_ITEM_COST = 10000;
 
 export default function ShopPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -108,6 +113,7 @@ export default function ShopPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [spinKey, setSpinKey] = useState(0);
+  const [isPurchasing, setIsPurchasing] = useState(false);
   const hasSpunRef = useRef(false);
   const isProcessingPrizeRef = useRef(false);
 
@@ -344,116 +350,565 @@ export default function ShopPage() {
     tg?.openTelegramLink(`https://t.me/${botUsername}`);
   };
 
+  const handlePurchasePremiumItem = async () => {
+    const tg = window.Telegram?.WebApp;
+    
+    if (isPurchasing || !user) return;
+
+    if (user.balance_crystals < PREMIUM_ITEM_COST) {
+      tg?.showAlert(`У вас недостаточно плюсов!\nТребуется: ${PREMIUM_ITEM_COST.toLocaleString('ru-RU')} А+`);
+      return;
+    }
+
+    setIsPurchasing(true);
+
+    try {
+      tg?.HapticFeedback.impactOccurred('medium');
+
+      const response = await fetch('/api/shop/purchase-premium', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          initData: tg?.initData,
+          itemName: 'Созвон с кумиром',
+          itemCost: PREMIUM_ITEM_COST
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Не удалось совершить покупку');
+      }
+
+      const data = await response.json();
+
+      setUser(prev => prev ? {
+        ...prev,
+        balance_crystals: data.newBalance
+      } : null);
+
+      tg?.HapticFeedback.notificationOccurred('success');
+      tg?.showAlert('🎉 Покупка успешно совершена!\n\n📞 Администратор свяжется с вами в ближайшее время для организации созвона.');
+
+    } catch (err) {
+      console.error('Purchase error:', err);
+      tg?.HapticFeedback.notificationOccurred('error');
+      tg?.showAlert(err instanceof Error ? err.message : 'Произошла ошибка при покупке. Попробуйте еще раз.');
+    } finally {
+      setIsPurchasing(false);
+    }
+  };
+
   if (isLoading) {
-    return <div className="fixed inset-0 flex items-center justify-center bg-white"><p>Загрузка...</p></div>;
+    return <div className="loading-container">Загрузка...</div>;
   }
 
-  // Вычисляем disabled для кнопки крутилки
   const isSpinDisabled = isSpinning || 
                          !user || 
                          (user?.balance_crystals ?? 0) < CASE_COST || 
                          (dailyLimit?.remaining ?? 0) <= 0;
 
-  // Вычисляем disabled для кнопки покупки
-  const isBuyDisabled = !user || (user?.balance_crystals ?? 0) < 10000;
+  const isBuyDisabled = isPurchasing || !user || (user?.balance_crystals ?? 0) < PREMIUM_ITEM_COST;
 
   return (
-    <div className="flex flex-col min-h-screen font-sans items-center px-4 pt-6 pb-4 text-center text-black bg-gray-50">
+    <>
       <GlobalStyles />
-      
-      {/* Заголовок магазина */}
-      <div className="w-full mb-6">
-        <h1 className="text-2xl font-bold mb-2">
-          Магазин
-        </h1>
-        <p className="text-gray-600">
-          Обменивай свои плюсы на интересные товары!
-        </p>
-      </div>
-      
-      {/* Предупреждение о боте */}
-      {!user?.bot_started && (
-        <button 
-          onClick={handleOpenBot}
-          className="w-full bg-gradient-to-r from-red-500 to-red-600 border-red-600 text-white p-4 mb-5 rounded-2xl cursor-pointer hover:opacity-90 transition-opacity"
-        >
-          <p className="font-bold">Внимание!</p>
-          <p className="underline">Запустите бота для получения призов</p>
-        </button>
-      )}
-
-      {/* Блок с балансом */}
-      <div className="w-full grid grid-cols-2 gap-4 mb-5">
-        <div className="bg-white rounded-xl shadow-sm p-5">
-          <div className="text-3xl font-bold text-red-600 mb-2">
-            {dailyLimit?.remaining || 0}/{dailyLimit?.maxLimit || 5}
+      <div className="shop-wrapper">
+        <main className="shop-container">
+          {/* Заголовок магазина */}
+          <div className="shop-header">
+            <h1 className="shop-title">Магазин</h1>
+            <p className="shop-subtitle">
+              Обменивай свои плюсы на интересные товары!
+            </p>
           </div>
-          <div className="text-sm text-gray-600">Осталось<br/>открытий</div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm p-5">
-          <div className="text-3xl font-bold text-red-600 mb-2">
-            {user?.balance_crystals?.toLocaleString('ru-RU') || 0}
-          </div>
-          <div className="text-sm text-gray-600">Текущий<br/>баланс</div>
-        </div>
-      </div>
-
-      {/* Слот-машина */}
-      <div className="w-full bg-white rounded-xl shadow-sm p-4 mb-5">
-        <div className="h-64 mb-4">
-          <HorizontalTextSlotMachine
-            key={spinKey}
-            spinId={spinKey}
-            prizes={ALL_PRIZES.map(p => ({ name: p.name, icon: '' }))}
-            winningPrize={winningPrize ? { name: winningPrize.name, icon: '' } : null}
-            onSpinEnd={handleSpinEnd}
-          />
-        </div>
-        
-        <button 
-          onClick={handleSpin}
-          disabled={isSpinDisabled}
-          className="w-full h-14 flex items-center justify-center bg-gradient-to-r from-red-500 to-red-600 text-white text-lg font-bold rounded-xl 
-          transition-all
-          shadow-[0_4px_0_0_rgba(220,38,38,0.6)] 
-          active:translate-y-1 active:shadow-[0_1px_0_0_rgba(220,38,38,0.6)]
-          disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0"
-        >
-          {isSpinning ? 'Крутится...' : `Крутить`}
-        </button>
-        
-        <div className="text-sm text-red-600 font-medium mt-2">
-          Крутить стоит {CASE_COST} А+
-        </div>
-      </div>
-
-      {/* Товар - созвон */}
-      <div className="w-full bg-white rounded-xl shadow-sm p-5">
-        <h2 className="text-lg font-bold mb-4">Премиум товар</h2>
-        
-        <div className="flex justify-between items-center py-3">
-          <div className="text-left">
-            <div className="font-medium">Созвон с кумиром</div>
-            <div className="text-sm text-gray-500">30 минут личного общения</div>
-          </div>
-          <div className="flex items-center">
-            <span className="text-red-600 font-bold mr-3">10,000 плюсов</span>
-            <button 
-              disabled={isBuyDisabled}
-              className="bg-red-600 text-white text-sm font-semibold px-3 py-1 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Купить
+          
+          {/* Предупреждение о боте */}
+          {!user?.bot_started && (
+            <button onClick={handleOpenBot} className="bot-warning">
+              <p className="warning-title">Внимание!</p>
+              <p className="warning-text">Запустите бота для получения призов</p>
             </button>
-          </div>
-        </div>
-      </div>
+          )}
 
-      {error && (
-        <div className="w-full bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mt-5 rounded">
-          <p>{error}</p>
-        </div>
-      )}
-    </div>
+          {/* Блок с балансом */}
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-value">{dailyLimit?.remaining || 0}/{dailyLimit?.maxLimit || 5}</div>
+              <div className="stat-label">Осталось<br/>открытий</div>
+            </div>
+            
+            <div className="stat-card">
+              <div className="stat-value">{user?.balance_crystals?.toLocaleString('ru-RU') || 0}</div>
+              <div className="stat-label">Текущий<br/>баланс</div>
+            </div>
+          </div>
+
+          {/* Слот-машина */}
+          <div className="slot-section">
+            <div className="slot-machine">
+              <HorizontalTextSlotMachine
+                key={spinKey}
+                spinId={spinKey}
+                prizes={ALL_PRIZES.map(p => ({ name: p.name, icon: '' }))}
+                winningPrize={winningPrize ? { name: winningPrize.name, icon: '' } : null}
+                onSpinEnd={handleSpinEnd}
+              />
+            </div>
+            
+            <button 
+              onClick={handleSpin}
+              disabled={isSpinDisabled}
+              className="spin-button"
+            >
+              {isSpinning ? 'Крутится...' : `Крутить`}
+            </button>
+            
+            <div className="spin-cost">
+              Крутить стоит {CASE_COST} А+
+            </div>
+          </div>
+
+          {/* Контейнер товары */}
+          <div className="products-container">
+            {/* Премиум товары */}
+            <div className="premium-section">
+              <h2 className="premium-title">Премиум товар</h2>
+              
+              {/* Товар */}
+              <div className="product-item">
+                {/* Текст */}
+                <div className="product-text">
+                  <div className="product-name">Созвон с кумиром</div>
+                  <div className="product-description">30 минут личного общения</div>
+                </div>
+                
+                {/* Купить */}
+                <div className="purchase-section">
+                  <button 
+                    onClick={handlePurchasePremiumItem}
+                    disabled={isBuyDisabled}
+                    className="buy-button"
+                  >
+                    {isPurchasing ? 'Покупка...' : 'Купить'}
+                  </button>
+                  
+                  {/* + очки */}
+                  <div className="price-section">
+                    <span className="price-value">{PREMIUM_ITEM_COST.toLocaleString('ru-RU')}</span>
+                    <div className="crystal-icon">
+                      <Image 
+                        src="/images/322.png" 
+                        alt="Crystal" 
+                        width={25} 
+                        height={25}
+                        style={{ 
+                          filter: 'drop-shadow(0px 2px 6px rgba(0, 0, 0, 0.25))'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {error && (
+            <div className="error-message">
+              <p>{error}</p>
+            </div>
+          )}
+        </main>
+
+        <style jsx>{`
+          .shop-wrapper {
+            position: relative;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            background-color: #FFFFFF;
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 80px;
+          }
+
+          .shop-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 16px 100px;
+            gap: 16px;
+            width: 100%;
+            min-height: 100vh;
+            box-sizing: border-box;
+          }
+
+          .shop-header {
+            width: 100%;
+            max-width: 343px;
+            text-align: center;
+            margin-bottom: 8px;
+          }
+
+          .shop-title {
+            margin: 0 0 8px 0;
+            font-family: 'Cera Pro', sans-serif;
+            font-style: normal;
+            font-weight: 700;
+            font-size: 28px;
+            line-height: 110%;
+            color: #000000;
+          }
+
+          .shop-subtitle {
+            margin: 0;
+            font-family: 'Cera Pro', sans-serif;
+            font-style: normal;
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 120%;
+            color: #666666;
+          }
+
+          .bot-warning {
+            width: 100%;
+            max-width: 343px;
+            background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
+            border: 2px solid #D72525;
+            color: white;
+            padding: 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            border: none;
+          }
+
+          .bot-warning:active {
+            opacity: 0.9;
+          }
+
+          .warning-title {
+            margin: 0 0 4px 0;
+            font-family: 'Cera Pro', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+          }
+
+          .warning-text {
+            margin: 0;
+            font-family: 'Cera Pro', sans-serif;
+            font-weight: 400;
+            font-size: 14px;
+            text-decoration: underline;
+          }
+
+          .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+            max-width: 343px;
+          }
+
+          .stat-card {
+            background: #F1F1F1;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+          }
+
+          .stat-value {
+            font-family: 'Cera Pro', sans-serif;
+            font-weight: 700;
+            font-size: 32px;
+            line-height: 100%;
+            color: #EA0000;
+            margin-bottom: 8px;
+          }
+
+          .stat-label {
+            font-family: 'Cera Pro', sans-serif;
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 110%;
+            color: #000000;
+          }
+
+          .slot-section {
+            width: 100%;
+            max-width: 343px;
+            background: #F1F1F1;
+            border-radius: 16px;
+            padding: 16px;
+          }
+
+          .slot-machine {
+            height: 256px;
+            margin-bottom: 16px;
+          }
+
+          .spin-button {
+            width: 100%;
+            height: 56px;
+            background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
+            color: white;
+            font-family: 'Cera Pro', sans-serif;
+            font-weight: 700;
+            font-size: 18px;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.1s;
+            box-shadow: 0 4px 0 0 rgba(220, 38, 38, 0.6);
+            margin-bottom: 8px;
+          }
+
+          .spin-button:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 0 rgba(220, 38, 38, 0.6);
+          }
+
+          .spin-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+
+          .spin-cost {
+            font-family: 'Cera Pro', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            text-align: center;
+            color: #EA0000;
+          }
+
+          .products-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0px 0px 12px;
+            gap: 10px;
+            width: 100%;
+            max-width: 343px;
+            flex: none;
+            order: 5;
+            align-self: stretch;
+            flex-grow: 0;
+          }
+
+          .premium-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 24px 16px;
+            gap: 16px;
+            width: 100%;
+            background: #F1F1F1;
+            border-radius: 16px;
+            flex: none;
+            order: 0;
+            align-self: stretch;
+            flex-grow: 0;
+            box-sizing: border-box;
+          }
+
+          .premium-title {
+            margin: 0;
+            width: 100%;
+            font-family: 'Cera Pro', sans-serif;
+            font-style: normal;
+            font-weight: 500;
+            font-size: 24px;
+            line-height: 100%;
+            leading-trim: both;
+            text-edge: cap;
+            letter-spacing: -0.03em;
+            color: #000000;
+            flex: none;
+            order: 0;
+            flex-grow: 0;
+          }
+
+          .product-item {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            padding: 4px 0px;
+            gap: 16px;
+            width: 100%;
+            flex: none;
+            order: 1;
+            align-self: stretch;
+            flex-grow: 0;
+          }
+
+          .product-text {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0px;
+            gap: 4px;
+            flex: 1;
+            order: 0;
+            flex-grow: 1;
+          }
+
+          .product-name {
+            font-family: 'Cera Pro', sans-serif;
+            font-style: normal;
+            font-weight: 500;
+            font-size: 16px;
+            line-height: 100%;
+            letter-spacing: -0.05em;
+            color: #000000;
+            flex: none;
+            order: 0;
+            align-self: stretch;
+            flex-grow: 0;
+          }
+
+          .product-description {
+            font-family: 'Cera Pro', sans-serif;
+            font-style: normal;
+            font-weight: 300;
+            font-size: 16px;
+            line-height: 110%;
+            letter-spacing: -0.02em;
+            color: #000000;
+            flex: none;
+            order: 1;
+            align-self: stretch;
+            flex-grow: 0;
+          }
+
+          .purchase-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            padding: 0px;
+            gap: 8px;
+            flex: none;
+            order: 1;
+            flex-grow: 0;
+          }
+
+          .buy-button {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 8px 32px;
+            gap: 10px;
+            background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
+            border-radius: 30px;
+            flex: none;
+            order: 0;
+            align-self: stretch;
+            flex-grow: 0;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            font-family: 'Cera Pro', sans-serif;
+            font-style: normal;
+            font-weight: 500;
+            font-size: 16px;
+            line-height: 100%;
+            text-align: center;
+            letter-spacing: -0.05em;
+            color: #FFFFFF;
+          }
+
+          .buy-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+
+          .buy-button:active:not(:disabled) {
+            opacity: 0.9;
+          }
+
+          .price-section {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 0px;
+            gap: 10px;
+            flex: none;
+            order: 1;
+            flex-grow: 0;
+          }
+
+          .price-value {
+            font-family: 'Cera Pro', sans-serif;
+            font-style: normal;
+            font-weight: 500;
+            font-size: 20px;
+            line-height: 100%;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            letter-spacing: -0.03em;
+            color: #000000;
+            flex: none;
+            order: 0;
+            flex-grow: 0;
+          }
+
+          .crystal-icon {
+            width: 25px;
+            height: 25px;
+            flex: none;
+            order: 1;
+            flex-grow: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .error-message {
+            width: 100%;
+            max-width: 343px;
+            background: #FEE2E2;
+            border-left: 4px solid #DC2626;
+            color: #991B1B;
+            padding: 16px;
+            border-radius: 8px;
+          }
+
+          .error-message p {
+            margin: 0;
+            font-family: 'Cera Pro', sans-serif;
+            font-size: 14px;
+          }
+
+          .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #FFFFFF;
+            font-family: 'Cera Pro', sans-serif;
+            color: #666666;
+          }
+
+          @media (max-width: 375px) {
+            .shop-title {
+              font-size: 24px;
+            }
+
+            .premium-title {
+              font-size: 20px;
+            }
+          }
+
+          @supports (-webkit-touch-callout: none) {
+            .shop-wrapper {
+              min-height: -webkit-fill-available;
+            }
+          }
+        `}</style>
+      </div>
+    </>
   );
 }
