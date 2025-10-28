@@ -10,13 +10,11 @@ export default function EditBioPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  // Используем ref, чтобы всегда иметь доступ к актуальному значению bio
   const bioRef = useRef(bio);
   useEffect(() => {
     bioRef.current = bio;
   }, [bio]);
 
-  // Функция сохранения, исправленная и надежная
   const handleSave = useCallback(() => {
     const tg = window.Telegram?.WebApp;
     if (!tg || !tg.initData) return;
@@ -45,7 +43,6 @@ export default function EditBioPage() {
     });
   }, [router]);
 
-  // useEffect для настройки Telegram UI и загрузки данных
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -61,17 +58,21 @@ export default function EditBioPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ initData: tg.initData }),
       })
-      .then(res => res.json())
-      .then(data => {
-        if (data.bio) {
-          setBio(data.bio);
-          setInitialBio(data.bio);
-        }
+      .then(res => {
+        if (!res.ok) throw new Error('Не удалось загрузить описание');
+        return res.json();
       })
-      .catch(() => setError("Не удалось загрузить описание."))
+      .then(data => {
+        const bioText = data.bio || '';
+        setBio(bioText);
+        setInitialBio(bioText);
+      })
+      .catch((err) => {
+        console.error('Load bio error:', err);
+        setError("Не удалось загрузить описание.");
+      })
       .finally(() => setLoading(false));
 
-      // Функция очистки для предотвращения багов
       return () => {
         tg.MainButton.hideProgress();
         tg.BackButton.hide();
@@ -82,7 +83,6 @@ export default function EditBioPage() {
     }
   }, [handleSave, router]);
 
-  // useEffect для управления видимостью кнопки "Сохранить"
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (tg) {

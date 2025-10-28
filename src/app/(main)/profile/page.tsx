@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -74,11 +75,17 @@ function BalanceDisplay({ icon: Icon, iconBgColor, text, balance }: BalanceDispl
 }
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [winnings, setWinnings] = useState<Winning[]>([]);
   const [loading, setLoading] = useState(true);
   const [winningsLoading, setWinningsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isNavigationPressed, setIsNavigationPressed] = useState(false);
+
+  const handleNavigationClick = () => {
+    router.push('/navigation');
+  };
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -195,6 +202,27 @@ export default function ProfilePage() {
           text="Сообщество Assist+"
           href=""
         />
+
+        {/* Кнопка навигации по каналу АССИСТ+ */}
+        <button
+          className={`flex items-center justify-between w-full p-5 bg-gradient-to-r from-[#F34444] to-[#D72525] rounded-3xl transition-transform shadow-lg ${isNavigationPressed ? 'scale-[0.98]' : ''}`}
+          onClick={handleNavigationClick}
+          onMouseDown={() => setIsNavigationPressed(true)}
+          onMouseUp={() => setIsNavigationPressed(false)}
+          onMouseLeave={() => setIsNavigationPressed(false)}
+          onTouchStart={() => setIsNavigationPressed(true)}
+          onTouchEnd={() => setIsNavigationPressed(false)}
+        >
+          <div className="text-white font-semibold text-lg text-left leading-tight">
+            <div>Навигация</div>
+            <div>по каналу АССИСТ+</div>
+          </div>
+          <div className="text-white flex-shrink-0">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 1L9 6L3 11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </button>
       </div>
 
       {/* Раздел истории выигрышей */}

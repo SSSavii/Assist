@@ -27,6 +27,8 @@ interface UserFromDB {
   referral_count: number;
   referral_count_subscribed: number;
   current_month_referrals: number;
+  bio: string | null;
+  awards: string | null;
 }
 
 interface AuthResponse {
@@ -47,6 +49,8 @@ interface AuthResponse {
   referral_count?: number;
   referral_count_subscribed?: number;
   current_month_referrals?: number;
+  bio?: string;
+  awards?: string;
   tasks_completed: {
     subscribe: boolean;
     vote: boolean;
@@ -326,6 +330,8 @@ export async function POST(req: NextRequest) {
       referral_count: user.referral_count || 0,
       referral_count_subscribed: user.referral_count_subscribed || 0,
       current_month_referrals: user.current_month_referrals || 0,
+      bio: user.bio || '',
+      awards: user.awards || '',
       tasks_completed: {
         subscribe: completedTaskKeys.includes('subscribe_channel'),
         vote: completedTaskKeys.includes('vote_poll'),

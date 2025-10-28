@@ -23,7 +23,6 @@ export default function EditAwardsPage() {
     }
     
     tg.offEvent('mainButtonClicked', handleSave);
-    
     tg.MainButton.showProgress();
 
     fetch('/api/profile/update-awards', {
@@ -66,19 +65,23 @@ export default function EditAwardsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ initData: tg.initData }),
       })
-      .then(res => res.json())
-      .then(data => {
-        if (data.awards) {
-          setAwards(data.awards);
-          setInitialAwards(data.awards);
-        }
+      .then(res => {
+        if (!res.ok) throw new Error('Не удалось загрузить достижения');
+        return res.json();
       })
-      .catch(() => setError("Не удалось загрузить текущие достижения."))
+      .then(data => {
+        const awardsText = data.awards || '';
+        setAwards(awardsText);
+        setInitialAwards(awardsText);
+      })
+      .catch((err) => {
+        console.error('Load awards error:', err);
+        setError("Не удалось загрузить текущие достижения.");
+      })
       .finally(() => setLoading(false));
 
       return () => {
         tg.MainButton.hideProgress();
-    
         tg.BackButton.hide();
         tg.MainButton.hide();
         tg.offEvent('backButtonClicked', onBackClick);
