@@ -341,14 +341,26 @@ export default function ShopPage() {
     }, 500);
   };
 
-  const handleOpenBot = () => {
+  const handleOpenBot = async () => {
     const tg = window.Telegram?.WebApp;
     if (tg?.HapticFeedback) {
       tg.HapticFeedback.impactOccurred('light');
     }
+
+    // Отправляем запрос на сервер, чтобы бот сам отправил сообщение пользователю
+    try {
+      await fetch('/api/bot/start-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: tg?.initData }),
+      });
+    } catch (error) {
+      console.error('Error notifying bot:', error);
+    }
+
+    // И открываем бота
     const botUsername = 'my_auction_admin_bot';
-    // Добавляем ?start для автоматического запуска бота с командой /start
-    tg?.openTelegramLink(`https://t.me/${botUsername}?start=from_webapp`);
+    tg?.openTelegramLink(`https://t.me/${botUsername}`);
   };
 
   const handlePurchasePremiumItem = async () => {
