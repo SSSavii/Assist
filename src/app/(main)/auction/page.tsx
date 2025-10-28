@@ -683,11 +683,12 @@ export default function ShopPage() {
             color: #EA0000;
           }
 
+          /* Контейнер товары */
           .products-container {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            padding: 0px 0px 12px;
+            padding: 0px;
             gap: 10px;
             width: 100%;
             max-width: 343px;
@@ -697,6 +698,7 @@ export default function ShopPage() {
             flex-grow: 0;
           }
 
+          /* Премиум товары */
           .premium-section {
             display: flex;
             flex-direction: column;
@@ -704,6 +706,7 @@ export default function ShopPage() {
             padding: 24px 16px;
             gap: 16px;
             width: 100%;
+            max-width: 100%;  /* Изменено с 343px */
             background: #F1F1F1;
             border-radius: 16px;
             flex: none;
