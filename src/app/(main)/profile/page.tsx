@@ -56,7 +56,7 @@ function ProfileLink({ icon: Icon, iconBgColor, text, subText, href, onClick }: 
     return (
       <button
         onClick={onClick}
-        className="flex items-center w-full p-3 bg-gray-100 rounded-lg transition-colors hover:bg-gray-200 active:bg-gray-300"
+        className="flex items-center w-full p-3 bg-gray-100 rounded-lg transition-colors hover:bg-gray-200 active:bg-gray-300 text-left"
       >
         {content}
       </button>
@@ -224,7 +224,7 @@ export default function ProfilePage() {
         <ProfileLink
           icon={Users}
           iconBgColor="bg-orange-500"
-          text="Сообщество Assist+"
+          text="Сообщество АССИСТ+"
           onClick={handleCommunityClick}
         />
 
