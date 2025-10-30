@@ -356,7 +356,7 @@ export default function HomePage() {
   const handleVoteForChannel = () => {
     const tg = window.Telegram?.WebApp;
     // Просто открываем страницу буста, проверка будет через getUserChatBoosts
-    tg?.openTelegramLink('https://t.me/boost/assistplus');
+    tg?.openTelegramLink('https://t.me/boost?c=2782276287');
   };
 
   const handleNavigationClick = () => {
