@@ -355,23 +355,8 @@ export default function HomePage() {
 
   const handleVoteForChannel = () => {
     const tg = window.Telegram?.WebApp;
-    
-    if (tg?.initData) {
-      fetch('/api/save-boost-count', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData: tg.initData }),
-      })
-      .then(() => {
-        tg.openTelegramLink('https://t.me/boost?c=2782276287');
-      })
-      .catch((err) => {
-        console.error('Save boost count error:', err);
-        tg.openTelegramLink('https://t.me/boost?c=2782276287');
-      });
-    } else {
-      tg?.openTelegramLink('https://t.me/boost?c=2782276287');
-    }
+    // Просто открываем страницу буста, проверка будет через getUserChatBoosts
+    tg?.openTelegramLink('https://t.me/boost/assistplus');
   };
 
   const handleNavigationClick = () => {

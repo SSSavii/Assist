@@ -25,6 +25,56 @@ const TASK_KEYS = {
   invite: 'invite_friend'
 };
 
+/**
+ * Проверяет, давал ли пользователь буст каналу
+ * Использует Telegram Bot API метод getUserChatBoosts
+ * Документация: https://core.telegram.org/bots/api#getuserchatboosts
+ */
+async function checkUserBoost(userId: number): Promise<boolean> {
+  if (!BOT_TOKEN || !CHANNEL_ID) {
+    console.error('Bot token or channel ID not configured');
+    return false;
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.telegram.org/bot${BOT_TOKEN}/getUserChatBoosts`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chat_id: CHANNEL_ID,
+          user_id: userId
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Telegram API getUserChatBoosts error:', errorData);
+      return false;
+    }
+
+    const data = await response.json();
+    
+    // Если у пользователя есть хотя бы один активный буст - он проголосовал
+    const hasBoosts = data.result?.boosts && data.result.boosts.length > 0;
+    
+    console.log(`User ${userId} boost check:`, {
+      hasBoosts,
+      boostCount: data.result?.boosts?.length || 0,
+      boosts: data.result?.boosts
+    });
+    
+    return hasBoosts;
+  } catch (error) {
+    console.error('Error checking user boost:', error);
+    return false;
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { initData, taskId } = await req.json();
@@ -164,21 +214,15 @@ export async function POST(req: NextRequest) {
             });
           }
 
-          const currentBoostCount = await getChannelBoostCount();
+          // Используем getUserChatBoosts для проверки буста конкретного пользователя
+          const hasBoost = await checkUserBoost(userData.id);
           
-          if (currentBoostCount === null) {
-            return NextResponse.json({ 
-              success: false, 
-              message: 'Не удалось получить информацию о бустах' 
-            });
-          }
-
-          if (user.boost_count_before > 0 && currentBoostCount > user.boost_count_before) {
+          if (hasBoost) {
             isCompleted = true;
             message = 'Спасибо за поддержку канала!';
           } else {
             isCompleted = false;
-            message = 'Буст не обнаружен. Попробуйте еще раз через несколько секунд.';
+            message = 'Буст не обнаружен. Проголосуйте за канал и попробуйте снова через несколько секунд.';
           }
         } catch (error) {
           console.error('Vote check error:', error);
@@ -380,35 +424,5 @@ async function checkChannelSubscription(userId: number) {
   } catch (error) {
     console.error('Error checking subscription:', error);
     throw error;
-  }
-}
-
-async function getChannelBoostCount(): Promise<number | null> {
-  if (!BOT_TOKEN || !CHANNEL_ID) {
-    throw new Error('Bot token or channel ID not configured');
-  }
-
-  try {
-    const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        chat_id: CHANNEL_ID
-      })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Telegram API error:', errorData);
-      return null;
-    }
-
-    const data = await response.json();
-    return data.result?.boost_count || 0;
-  } catch (error) {
-    console.error('Error getting boost count:', error);
-    return null;
   }
 }
