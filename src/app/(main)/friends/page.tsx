@@ -415,7 +415,7 @@ export default function FriendsPage() {
             display: flex;
             align-items: center;
             letter-spacing: -0.03em;
-            color: rgba(234, 0, 0, 0.9);
+            color: #EA0000;
             flex: none;
             order: 1;
             flex-grow: 0;
