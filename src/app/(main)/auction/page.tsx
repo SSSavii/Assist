@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import HorizontalTextSlotMachine from '@/app/components/TextSlotMachine';
 
@@ -106,6 +107,7 @@ const CASE_COST = 500;
 const PREMIUM_ITEM_COST = 10000;
 
 export default function ShopPage() {
+  const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [dailyLimit, setDailyLimit] = useState<DailyLimit | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -347,7 +349,6 @@ export default function ShopPage() {
       tg.HapticFeedback.impactOccurred('light');
     }
 
-    // Отправляем запрос на сервер, чтобы бот сам отправил сообщение пользователю
     try {
       await fetch('/api/bot/start-user', {
         method: 'POST',
@@ -358,7 +359,6 @@ export default function ShopPage() {
       console.error('Error notifying bot:', error);
     }
 
-    // И открываем бота
     const botUsername = 'my_auction_admin_bot';
     tg?.openTelegramLink(`https://t.me/${botUsername}`);
   };
@@ -410,6 +410,14 @@ export default function ShopPage() {
     } finally {
       setIsPurchasing(false);
     }
+  };
+
+  const handleShowPrizes = () => {
+    const tg = window.Telegram?.WebApp;
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('light');
+    }
+    router.push('/prizes');
   };
 
   if (isLoading) {
@@ -475,6 +483,13 @@ export default function ShopPage() {
               className="spin-button"
             >
               {isSpinning ? 'Крутится...' : `Крутить`}
+            </button>
+            
+            <button 
+              onClick={handleShowPrizes}
+              className="prizes-link"
+            >
+              Возможные призы
             </button>
             
             <div className="spin-cost">
@@ -675,7 +690,7 @@ export default function ShopPage() {
             cursor: pointer;
             transition: all 0.1s;
             box-shadow: 0 4px 0 0 rgba(220, 38, 38, 0.6);
-            margin-bottom: 8px;
+            margin-bottom: 12px;
           }
 
           .spin-button:active:not(:disabled) {
@@ -686,6 +701,30 @@ export default function ShopPage() {
           .spin-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+          }
+
+          .prizes-link {
+            width: 100%;
+            background: transparent;
+            border: none;
+            font-family: 'Cera Pro', sans-serif;
+            font-style: normal;
+            font-weight: 500;
+            font-size: 16px;
+            line-height: 100%;
+            text-align: center;
+            letter-spacing: -0.05em;
+            text-decoration-line: underline;
+            color: #000000;
+            cursor: pointer;
+            padding: 8px 0;
+            margin-bottom: 4px;
+            transition: opacity 0.2s;
+            -webkit-tap-highlight-color: transparent;
+          }
+
+          .prizes-link:active {
+            opacity: 0.7;
           }
 
           .spin-cost {
@@ -719,7 +758,7 @@ export default function ShopPage() {
             padding: 24px 16px;
             gap: 16px;
             width: 100%;
-            max-width: 100%;  /* Изменено с 343px */
+            max-width: 343px;
             background: #F1F1F1;
             border-radius: 16px;
             flex: none;
