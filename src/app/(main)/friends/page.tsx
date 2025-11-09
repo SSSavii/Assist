@@ -415,7 +415,7 @@ export default function FriendsPage() {
             display: flex;
             align-items: center;
             letter-spacing: -0.03em;
-            color: #F23939;
+            color: #FF0000;
             flex: none;
             order: 1;
             flex-grow: 0;
@@ -465,7 +465,7 @@ export default function FriendsPage() {
             display: flex;
             align-items: flex-end;
             letter-spacing: -0.03em;
-            color: #F23939;
+            color: #FF0000;
             flex: none;
             order: 0;
             flex-grow: 0;
@@ -632,14 +632,14 @@ export default function FriendsPage() {
           .error-container {
             padding: 24px;
             text-align: center;
-            color: #F23939;
+            color: #FF0000;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
           }
 
           .reload-button {
             margin-top: 16px;
             padding: 12px 24px;
-            background: #F23939;
+            background: #FF0000;
             color: white;
             border: none;
             border-radius: 12px;
