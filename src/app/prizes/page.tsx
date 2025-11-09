@@ -68,7 +68,7 @@ type Prize = {
   chance: string;
   chanceColor: string;
   points: string;
-  description: string;
+  items: string[];
 };
 
 export default function PrizesPage() {
@@ -80,35 +80,52 @@ export default function PrizesPage() {
       chance: 'Супер редкий шанс',
       chanceColor: '#FFCA37',
       points: '3000 A+',
-      description: 'Завтрак с предпринимателем (онлайн-формат или офлайн при наличии слотов)\nИндивидуальный разбор 60 минут от предпринимателя\nПриглашение на закрытое мероприятие/митап'
+      items: [
+        'Завтрак с предпринимателем (онлайн-формат или офлайн при наличии слотов)',
+        'Индивидуальный разбор 60 минут от предпринимателя',
+        'Приглашение на закрытое мероприятие/митап'
+      ]
     },
     {
       id: 2,
       chance: 'Очень маленький шанс',
       chanceColor: '#FF6A6A',
       points: '2000 A+',
-      description: 'Разбор 1 запроса от предпринимателя с высокой выручкой\nПакет практических лайфхаков (видеоурок/гайд)'
+      items: [
+        'Разбор 1 запроса от предпринимателя с высокой выручкой',
+        'Пакет практических лайфхаков (видеоурок/гайд)'
+      ]
     },
     {
       id: 3,
       chance: 'Маленький шанс',
       chanceColor: '#E895FF',
       points: '1000 A+',
-      description: 'Розыгрыш онлайн-мини-разбора (10 минут)\nПриглашение на еженедельный созвон с командой АССИСТ+ (с возможным разбором)\nРазбор резюме'
+      items: [
+        'Розыгрыш онлайн-мини-разбора (10 минут)',
+        'Приглашение на еженедельный созвон с командой АССИСТ+ (с возможным разбором)',
+        'Разбор резюме'
+      ]
     },
     {
       id: 4,
       chance: 'Хороший шанс',
       chanceColor: '#9EA4FF',
       points: '500 A+',
-      description: 'Разбор запроса от команды'
+      items: [
+        'Разбор запроса от команды'
+      ]
     },
     {
       id: 5,
       chance: 'Отличный шанс',
       chanceColor: '#F1F1F1',
       points: '',
-      description: '1 тематический чек-лист (без повторов). После 10 чек-листов — 250 A+\n250 A+\n100 A+'
+      items: [
+        '1 тематический чек-лист (без повторов). После 10 чек-листов — 250 A+',
+        '250 A+',
+        '100 A+'
+      ]
     }
   ];
 
@@ -138,13 +155,17 @@ export default function PrizesPage() {
                 </div>
                 
                 <div className="prize-description">
-                  {prize.points && <span className="prize-points">{prize.points} </span>}
-                  {prize.description.split('\n').map((line, index) => (
-                    <span key={index}>
-                      {line}
-                      {index < prize.description.split('\n').length - 1 && <br />}
-                    </span>
-                  ))}
+                  {prize.points && (
+                    <>
+                      <span className="prize-points">{prize.points}</span>
+                      <br />
+                    </>
+                  )}
+                  <ul className="prize-list">
+                    {prize.items.map((item, index) => (
+                      <li key={index} className="prize-list-item">{item}</li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             ))}
@@ -269,6 +290,27 @@ export default function PrizesPage() {
 
           .prize-points {
             font-weight: 500;
+          }
+
+          .prize-list {
+            margin: 4px 0 0 0;
+            padding-left: 20px;
+            list-style-type: disc;
+          }
+
+          .prize-list-item {
+            margin-bottom: 4px;
+            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-style: normal;
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 110%;
+            letter-spacing: -0.02em;
+            color: #000000;
+          }
+
+          .prize-list-item:last-child {
+            margin-bottom: 0;
           }
 
           .close-button {

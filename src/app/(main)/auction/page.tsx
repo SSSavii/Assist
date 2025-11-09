@@ -746,7 +746,6 @@ export default function ShopPage() {
             max-width: 343px;
             flex: none;
             order: 5;
-            align-self: stretch;
             flex-grow: 0;
           }
 
@@ -758,12 +757,10 @@ export default function ShopPage() {
             padding: 24px 16px;
             gap: 16px;
             width: 100%;
-            max-width: 343px;
             background: #F1F1F1;
             border-radius: 16px;
             flex: none;
             order: 0;
-            align-self: stretch;
             flex-grow: 0;
             box-sizing: border-box;
           }
