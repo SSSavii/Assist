@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 
 const GlobalStyles = () => (
   <>
@@ -73,6 +74,28 @@ type Prize = {
 
 export default function PrizesPage() {
   const router = useRouter();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Скролл вверх при загрузке страницы
+  useEffect(() => {
+    // Скроллим wrapper
+    if (wrapperRef.current) {
+      wrapperRef.current.scrollTop = 0;
+    }
+    
+    // Скроллим window с задержкой
+    const timeoutId = setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant'
+      });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 10);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   const prizes: Prize[] = [
     {
@@ -140,7 +163,7 @@ export default function PrizesPage() {
   return (
     <>
       <GlobalStyles />
-      <div className="prizes-wrapper">
+      <div className="prizes-wrapper" ref={wrapperRef}>
         <main className="prizes-container">
           <div className="content-container">
             <h1 className="prizes-title">Возможные призы</h1>
@@ -157,8 +180,7 @@ export default function PrizesPage() {
                 <div className="prize-description">
                   {prize.points && (
                     <>
-                      <span className="prize-points">{prize.points}</span>
-                      <br />
+                      <div className="prize-points">{prize.points}</div>
                     </>
                   )}
                   <ul className="prize-list">
@@ -190,6 +212,7 @@ export default function PrizesPage() {
             overflow-x: hidden;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            scroll-behavior: auto;
           }
 
           .prizes-container {
@@ -219,6 +242,7 @@ export default function PrizesPage() {
             align-self: stretch;
             flex-grow: 0;
             z-index: 0;
+            box-sizing: border-box;
           }
 
           .prizes-title {
@@ -290,10 +314,11 @@ export default function PrizesPage() {
 
           .prize-points {
             font-weight: 500;
+            margin-bottom: 4px;
           }
 
           .prize-list {
-            margin: 4px 0 0 0;
+            margin: 0;
             padding-left: 20px;
             list-style-type: disc;
           }
