@@ -243,7 +243,7 @@ export default function FriendsPage() {
               <div className="info-card">
                 <div className="info-row">
                   <span className="info-label">Вы пригласили: </span>
-                  <span className="info-value" style={{ color: '#FF3838' }}>
+                  <span className="info-value" style={{ color: '#ff0000ff' }}>
                     {user?.referral_count || 0}
                   </span>
                 </div>
@@ -251,14 +251,14 @@ export default function FriendsPage() {
 
               <div className="stats-row">
                 <div className="stat-card">
-                  <div className="stat-value" style={{ color: '#FF3838' }}>
+                  <div className="stat-value" style={{ color: '#ff0000ff' }}>
                     {timeLeft.days}д {timeLeft.hours}ч
                   </div>
                   <div className="stat-label">Осталось времени<br />до конца розыгрыша</div>
                 </div>
 
                 <div className="stat-card">
-                  <div className="stat-value" style={{ color: '#FF3838' }}>
+                  <div className="stat-value" style={{ color: '#ff0000ff' }}>
                     {user?.current_month_referrals || 0}
                   </div>
                   <div className="stat-label">Вы пригласили<br />в этом розыгрыше</div>
@@ -272,7 +272,7 @@ export default function FriendsPage() {
               <button 
                 className="invite-button" 
                 onClick={handleInviteFriend}
-                style={{ background: 'linear-gradient(243.66deg, #FF4444 10.36%, #E72525 86.45%)' }}
+                style={{ background: 'linear-gradient(243.66deg, #ff0000ff 10.36%, #E72525 86.45%)' }}
               >
                 <span className="invite-text">Пригласить друга</span>
                 <span className="invite-bonus">+500 плюсов</span>
@@ -614,14 +614,14 @@ export default function FriendsPage() {
           .error-container {
             padding: 24px;
             text-align: center;
-            color: #FF3838;
+            color: #ff0000ff;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
           }
 
           .reload-button {
             margin-top: 16px;
             padding: 12px 24px;
-            background: #FF3838;
+            background: #ff0000ff;
             color: white;
             border: none;
             border-radius: 12px;
