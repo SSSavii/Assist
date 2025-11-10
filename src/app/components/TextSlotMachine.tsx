@@ -35,16 +35,18 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     const [isInitialized, setIsInitialized] = useState(false);
     const lastSpinIdRef = useRef<number>(-1);
 
+    // Инициализация барабана один раз
     useLayoutEffect(() => {
-        if (containerRef.current) {
+        if (containerRef.current && prizes.length > 0) {
             const width = containerRef.current.offsetWidth;
             setContainerWidth(width);
             
-            const initialReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
+            // Создаем большой начальный барабан
+            const initialReel = Array.from({ length: 30 }, () => shuffle(prizes)).flat();
             setReelItems(initialReel);
             
-            // Устанавливаем начальную позицию
-            const initialPosition = (width / 2) - (5 * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
+            // Устанавливаем начальную позицию в центр
+            const initialPosition = (width / 2) - (10 * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
             setTransform(`translateX(${initialPosition}px)`);
             
             setIsInitialized(true);
@@ -59,56 +61,50 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             return;
         }
         
+        console.log('Starting spin with prize:', winningPrize.name);
         lastSpinIdRef.current = spinId;
         
-        // Создаем новый барабан
-        const newReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
+        // НЕ пересоздаем барабан! Используем существующий
+        // Находим место для выигрышного приза
+        const currentReelCopy = [...reelItems];
         
-        const winningIndex = newReel.findIndex(item => item.name === winningPrize.name);
+        // Ищем индекс далеко впереди для плавной анимации
+        const targetIndex = Math.floor(currentReelCopy.length * 0.7) + Math.floor(Math.random() * 10);
         
-        if (winningIndex !== -1) {
-            const targetIndex = winningIndex < MIN_SPIN_DISTANCE 
-                ? winningIndex + MIN_SPIN_DISTANCE 
-                : winningIndex;
-                
-            const safeIndex = targetIndex % newReel.length;
-            newReel[safeIndex] = winningPrize;
-            
-            // Сначала устанавливаем новый барабан
-            setReelItems(newReel);
-            
-            // Затем сбрасываем позицию в начало БЕЗ анимации
-            const startPosition = containerWidth * 2;
-            setTransform(`translateX(${startPosition}px)`);
-            setIsAnimating(false);
-            
-            // Даем время на отрисовку
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    // Теперь запускаем анимацию к финальной позиции
-                    const finalPosition = (containerWidth / 2) - (safeIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
-                    
-                    setIsAnimating(true);
-                    setTransform(`translateX(${finalPosition}px)`);
-
-                    if (timeoutRef.current) {
-                        clearTimeout(timeoutRef.current);
-                    }
-                    
-                    timeoutRef.current = setTimeout(() => {
-                        setIsAnimating(false);
-                        onSpinEnd();
-                    }, ANIMATION_DURATION);
-                });
-            });
+        // Вставляем выигрышный приз
+        if (targetIndex < currentReelCopy.length) {
+            currentReelCopy[targetIndex] = winningPrize;
+            setReelItems(currentReelCopy);
         }
+        
+        // Ждем, пока React отрисует обновленный барабан
+        setTimeout(() => {
+            // Вычисляем финальную позицию
+            const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
+            
+            console.log('Animating to position:', finalPosition);
+            
+            // Запускаем анимацию
+            setIsAnimating(true);
+            setTransform(`translateX(${finalPosition}px)`);
+
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+            
+            timeoutRef.current = setTimeout(() => {
+                setIsAnimating(false);
+                console.log('Spin ended');
+                onSpinEnd();
+            }, ANIMATION_DURATION);
+        }, 50); // Даем 50ms на отрисовку
 
         return () => {
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
             }
         };
-    }, [winningPrize, spinId, containerWidth, isInitialized, onSpinEnd, prizes]);
+    }, [winningPrize, spinId, containerWidth, isInitialized, onSpinEnd, prizes, reelItems]);
 
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-red-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
@@ -123,12 +119,12 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             >
                 {reelItems.map((prize, index) => (
                     <div
-                        key={`${prize.name}-${index}`}
+                        key={`prize-${index}`}
                         className="h-full flex items-center justify-center flex-shrink-0"
                         style={{ width: REEL_ITEM_WIDTH, padding: '8px' }}
                     >
                         <div className="w-full h-full flex items-center justify-center bg-white border-2 border-gray-300 rounded-xl shadow-md overflow-hidden relative">
-                            {prize.icon && (
+                            {prize.icon ? (
                                 <div className="relative w-full h-full p-2">
                                     <Image 
                                         src={prize.icon} 
@@ -139,15 +135,22 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                                             padding: '4px'
                                         }}
                                         sizes="120px"
+                                        priority={index < 20}
                                     />
                                 </div>
+                            ) : (
+                                <div className="text-xs text-center p-2">{prize.name}</div>
                             )}
                         </div>
                     </div>
                 ))}
             </div>
+            
+            {/* Градиенты по бокам */}
             <div className="absolute top-0 left-0 h-full w-1/3 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
             <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+            
+            {/* Красная линия-индикатор */}
             <div className="absolute top-1/2 left-1/2 w-0.5 h-4/5 bg-red-600 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-lg" />
         </div>
     );
