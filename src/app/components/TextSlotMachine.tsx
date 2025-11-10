@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useRef, useLayoutEffect } from 'react';
-import Image from 'next/image';
 
 type Prize = { name: string; icon: string };
 
@@ -78,20 +77,23 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             // Вычисляем финальную позицию
             const finalPosition = (containerWidth / 2) - (safeIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
             
-            // Запускаем анимацию сразу
-            setIsAnimating(true);
-            setTransform(`translateX(${finalPosition}px)`);
+            // Небольшая задержка перед началом анимации, чтобы изображения загрузились
+            setTimeout(() => {
+                // Запускаем анимацию
+                setIsAnimating(true);
+                setTransform(`translateX(${finalPosition}px)`);
 
-            // Очищаем предыдущий таймер
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
-            
-            // Устанавливаем таймер на завершение
-            timeoutRef.current = setTimeout(() => {
-                setIsAnimating(false);
-                onSpinEnd();
-            }, ANIMATION_DURATION);
+                // Очищаем предыдущий таймер
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current);
+                }
+                
+                // Устанавливаем таймер на завершение
+                timeoutRef.current = setTimeout(() => {
+                    setIsAnimating(false);
+                    onSpinEnd();
+                }, ANIMATION_DURATION);
+            }, 100); // 100ms задержка для загрузки изображений
         }
 
         return () => {
@@ -118,14 +120,13 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                         className="h-full flex items-center justify-center p-2 flex-shrink-0"
                         style={{ width: REEL_ITEM_WIDTH }}
                     >
-                        <div className="w-full h-4/5 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden relative">
+                        <div className="w-full h-4/5 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm p-1 overflow-hidden">
                             {prize.icon && (
-                                <Image 
+                                <img 
                                     src={prize.icon} 
                                     alt={prize.name}
-                                    fill
-                                    className="object-contain p-1"
-                                    sizes="120px"
+                                    className="w-full h-full object-contain"
+                                    loading="eager"
                                 />
                             )}
                         </div>
