@@ -702,7 +702,7 @@ export default function ShopPage() {
           }
 
           .slot-machine {
-            height: 256px;
+            height: 200px;
             margin-bottom: 16px;
           }
 

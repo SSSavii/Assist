@@ -21,7 +21,7 @@ const shuffle = (array: Prize[]): Prize[] => {
     return newArray;
 };
 
-const REEL_ITEM_WIDTH = 140;
+const REEL_ITEM_WIDTH = 120;
 const ANIMATION_DURATION = 6000;
 const MIN_SPIN_DISTANCE = 40;
 
@@ -42,6 +42,11 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             
             const initialReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
             setReelItems(initialReel);
+            
+            // Устанавливаем начальную позицию
+            const initialPosition = (width / 2) - (5 * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
+            setTransform(`translateX(${initialPosition}px)`);
+            
             setIsInitialized(true);
         }
     }, [prizes]);
@@ -56,6 +61,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
         
         lastSpinIdRef.current = spinId;
         
+        // Создаем новый барабан
         const newReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
         
         const winningIndex = newReel.findIndex(item => item.name === winningPrize.name);
@@ -68,21 +74,33 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             const safeIndex = targetIndex % newReel.length;
             newReel[safeIndex] = winningPrize;
             
+            // Сначала устанавливаем новый барабан
             setReelItems(newReel);
             
-            const finalPosition = (containerWidth / 2) - (safeIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
+            // Затем сбрасываем позицию в начало БЕЗ анимации
+            const startPosition = containerWidth * 2;
+            setTransform(`translateX(${startPosition}px)`);
+            setIsAnimating(false);
             
-            setIsAnimating(true);
-            setTransform(`translateX(${finalPosition}px)`);
+            // Даем время на отрисовку
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    // Теперь запускаем анимацию к финальной позиции
+                    const finalPosition = (containerWidth / 2) - (safeIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
+                    
+                    setIsAnimating(true);
+                    setTransform(`translateX(${finalPosition}px)`);
 
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
-            
-            timeoutRef.current = setTimeout(() => {
-                setIsAnimating(false);
-                onSpinEnd();
-            }, ANIMATION_DURATION);
+                    if (timeoutRef.current) {
+                        clearTimeout(timeoutRef.current);
+                    }
+                    
+                    timeoutRef.current = setTimeout(() => {
+                        setIsAnimating(false);
+                        onSpinEnd();
+                    }, ANIMATION_DURATION);
+                });
+            });
         }
 
         return () => {
@@ -95,7 +113,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-red-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
             <div
-                className="absolute top-0 left-0 h-full flex"
+                className="absolute top-0 left-0 h-full flex items-center"
                 style={{
                     transform: transform,
                     transition: isAnimating
@@ -106,18 +124,23 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                 {reelItems.map((prize, index) => (
                     <div
                         key={`${prize.name}-${index}`}
-                        className="h-full flex items-center justify-center p-2 flex-shrink-0"
-                        style={{ width: REEL_ITEM_WIDTH }}
+                        className="h-full flex items-center justify-center flex-shrink-0"
+                        style={{ width: REEL_ITEM_WIDTH, padding: '8px' }}
                     >
                         <div className="w-full h-full flex items-center justify-center bg-white border-2 border-gray-300 rounded-xl shadow-md overflow-hidden relative">
                             {prize.icon && (
-                                <Image 
-                                    src={prize.icon} 
-                                    alt={prize.name}
-                                    fill
-                                    style={{ objectFit: 'cover' }}
-                                    sizes="140px"
-                                />
+                                <div className="relative w-full h-full p-2">
+                                    <Image 
+                                        src={prize.icon} 
+                                        alt={prize.name}
+                                        fill
+                                        style={{ 
+                                            objectFit: 'contain',
+                                            padding: '4px'
+                                        }}
+                                        sizes="120px"
+                                    />
+                                </div>
                             )}
                         </div>
                     </div>
