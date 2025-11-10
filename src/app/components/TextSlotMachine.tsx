@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useLayoutEffect } from 'react';
+import Image from 'next/image';
 
 type Prize = { name: string; icon: string };
 
@@ -8,7 +9,7 @@ interface HorizontalTextSlotMachineProps {
     prizes: Prize[];
     winningPrize: Prize | null;
     onSpinEnd: () => void;
-    spinId: number; // Добавляем уникальный ID спина
+    spinId: number;
 }
 
 const shuffle = (array: Prize[]): Prize[] => {
@@ -20,7 +21,7 @@ const shuffle = (array: Prize[]): Prize[] => {
     return newArray;
 };
 
-const REEL_ITEM_WIDTH = 160;
+const REEL_ITEM_WIDTH = 140;
 const ANIMATION_DURATION = 6000;
 const MIN_SPIN_DISTANCE = 40;
 
@@ -46,7 +47,6 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     }, [prizes]);
 
     useEffect(() => {
-        // Проверяем что это новый спин (по ID)
         if (!isInitialized || 
             !winningPrize || 
             containerWidth === 0 || 
@@ -54,17 +54,13 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             return;
         }
         
-        // Запоминаем ID текущего спина
         lastSpinIdRef.current = spinId;
         
-        // Создаем новый барабан
         const newReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
         
-        // Находим индекс выигрышного приза
         const winningIndex = newReel.findIndex(item => item.name === winningPrize.name);
         
         if (winningIndex !== -1) {
-            // Гарантируем минимальную дистанцию прокрутки
             const targetIndex = winningIndex < MIN_SPIN_DISTANCE 
                 ? winningIndex + MIN_SPIN_DISTANCE 
                 : winningIndex;
@@ -74,19 +70,15 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             
             setReelItems(newReel);
             
-            // Вычисляем финальную позицию
             const finalPosition = (containerWidth / 2) - (safeIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
             
-            // Запускаем анимацию сразу
             setIsAnimating(true);
             setTransform(`translateX(${finalPosition}px)`);
 
-            // Очищаем предыдущий таймер
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
             }
             
-            // Устанавливаем таймер на завершение
             timeoutRef.current = setTimeout(() => {
                 setIsAnimating(false);
                 onSpinEnd();
@@ -117,8 +109,19 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                         className="h-full flex items-center justify-center p-2 flex-shrink-0"
                         style={{ width: REEL_ITEM_WIDTH }}
                     >
-                        <div className="w-full h-4/5 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm px-3">
-                            <p className="text-sm font-medium text-center text-gray-800">
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-white border-2 border-gray-300 rounded-xl shadow-md p-2 relative">
+                            {prize.icon && (
+                                <div className="w-20 h-20 relative mb-1">
+                                    <Image 
+                                        src={prize.icon} 
+                                        alt={prize.name}
+                                        fill
+                                        style={{ objectFit: 'contain' }}
+                                        sizes="80px"
+                                    />
+                                </div>
+                            )}
+                            <p className="text-[10px] font-medium text-center text-gray-800 leading-tight">
                                 {prize.name}
                             </p>
                         </div>
@@ -127,7 +130,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             </div>
             <div className="absolute top-0 left-0 h-full w-1/3 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
             <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
-            <div className="absolute top-1/2 left-1/2 w-0.5 h-4/5 bg-red-600 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full" />
+            <div className="absolute top-1/2 left-1/2 w-0.5 h-4/5 bg-red-600 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-lg" />
         </div>
     );
 }

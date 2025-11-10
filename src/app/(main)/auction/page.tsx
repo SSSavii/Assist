@@ -69,21 +69,39 @@ const GlobalStyles = () => (
 
 type Prize = {
   name: string;
-  type: 'rare' | 'common';
+  type: 'impossible' | 'very_rare' | 'rare' | 'common' | 'excellent';
+  probability: number; // Вероятность в процентах
   canWin: boolean;
   deliveryType: 'instant' | 'bot_message' | 'manual';
+  image: string; // Путь к картинке
 };
 
 const ALL_PRIZES: Prize[] = [
-  { name: 'Онлайн-мини-разбор с Иваном', type: 'rare', canWin: true, deliveryType: 'manual' },
-  { name: 'Приоритетное место в мини-разборе у Ивана', type: 'rare', canWin: true, deliveryType: 'manual' },
-  { name: 'Участие в розыгрыше завтрака с Иваном', type: 'rare', canWin: false, deliveryType: 'manual' },
-  { name: 'Ответ Ивана голосом на ваш вопрос', type: 'rare', canWin: true, deliveryType: 'manual' },
-  { name: 'Звонок 1 на 1 с Антоном Орешкиным', type: 'rare', canWin: true, deliveryType: 'manual' },
-  { name: '3 чек-листа', type: 'common', canWin: true, deliveryType: 'bot_message' },
-  { name: 'Участие в созвоне Антона Орешкина с БА', type: 'common', canWin: true, deliveryType: 'manual' },
-  { name: '1000 A+', type: 'common', canWin: true, deliveryType: 'instant' },
-  { name: 'Разбор вашего резюме', type: 'common', canWin: true, deliveryType: 'manual' }
+  // Нереальный шанс (0%)
+  { name: '3000 A+', type: 'impossible', probability: 0, canWin: false, deliveryType: 'instant', image: '/prizes/3000-aplus.png' },
+  { name: 'Приглашение на закрытое мероприятие', type: 'impossible', probability: 0, canWin: false, deliveryType: 'manual', image: '/prizes/closed-event.png' },
+  { name: 'Индивидуальный разбор от предпринимателя (60 минут)', type: 'impossible', probability: 0, canWin: false, deliveryType: 'manual', image: '/prizes/individual-60min.png' },
+  { name: 'Завтрак с предпринимателем', type: 'impossible', probability: 0, canWin: false, deliveryType: 'manual', image: '/prizes/breakfast.png' },
+  
+  // Очень маленький шанс (0.5%)
+  { name: '2000 A+', type: 'very_rare', probability: 0.166, canWin: true, deliveryType: 'instant', image: '/prizes/2000-aplus.png' },
+  { name: 'Разбор 1 запроса от предпринимателя с высокой выручкой', type: 'very_rare', probability: 0.167, canWin: true, deliveryType: 'manual', image: '/prizes/entrepreneur-analysis.png' },
+  { name: 'Пакет практических лайфхаков', type: 'very_rare', probability: 0.167, canWin: true, deliveryType: 'bot_message', image: '/prizes/lifehacks.png' },
+  
+  // Маленький шанс (10%)
+  { name: 'Участие в розыгрыше на 10-ти минутный онлайн-мини-разбор', type: 'rare', probability: 2.5, canWin: true, deliveryType: 'manual', image: '/prizes/lottery-10min.png' },
+  { name: 'Участие в еженедельном созвоне с БА', type: 'rare', probability: 2.5, canWin: true, deliveryType: 'manual', image: '/prizes/weekly-call.png' },
+  { name: '1000 A+', type: 'rare', probability: 2.5, canWin: true, deliveryType: 'instant', image: '/prizes/1000-aplus.png' },
+  { name: 'Разбор вашего резюме', type: 'rare', probability: 2.5, canWin: true, deliveryType: 'manual', image: '/prizes/resume.png' },
+  
+  // Хороший шанс (35%)
+  { name: '500 A+', type: 'common', probability: 17.5, canWin: true, deliveryType: 'instant', image: '/prizes/500-aplus.png' },
+  { name: 'Разбор запроса от команды', type: 'common', probability: 17.5, canWin: true, deliveryType: 'manual', image: '/prizes/team-analysis.png' },
+  
+  // Отличный шанс (54.5%)
+  { name: 'Чек-лист', type: 'excellent', probability: 18.17, canWin: true, deliveryType: 'bot_message', image: '/prizes/checklist.png' },
+  { name: '100 A+', type: 'excellent', probability: 18.17, canWin: true, deliveryType: 'instant', image: '/prizes/100-aplus.png' },
+  { name: '250 A+', type: 'excellent', probability: 18.16, canWin: true, deliveryType: 'instant', image: '/prizes/250-aplus.png' },
 ];
 
 interface UserProfile {
@@ -168,12 +186,19 @@ export default function ShopPage() {
   }, []);
 
   const getRandomPrize = (): Prize => {
-    const random = Math.random();
-    const availablePrizes = random < 0.2 
-      ? ALL_PRIZES.filter(p => p.type === 'rare' && p.canWin)
-      : ALL_PRIZES.filter(p => p.type === 'common' && p.canWin);
-
-    return availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
+    const winnablePrizes = ALL_PRIZES.filter(p => p.canWin);
+    const totalProbability = winnablePrizes.reduce((sum, prize) => sum + prize.probability, 0);
+    
+    let random = Math.random() * totalProbability;
+    
+    for (const prize of winnablePrizes) {
+      random -= prize.probability;
+      if (random <= 0) {
+        return prize;
+      }
+    }
+    
+    return winnablePrizes[winnablePrizes.length - 1];
   };
 
   const handlePrizeDelivery = async (prize: Prize) => {
@@ -196,10 +221,14 @@ export default function ShopPage() {
 
         if (response.ok) {
           const data = await response.json();
-          if (prize.name === '1000 A+') {
+          
+          // Обработка разных типов A+
+          const plusMatches = prize.name.match(/(\d+)\s*A\+/);
+          if (plusMatches) {
+            const amount = parseInt(plusMatches[1]);
             setUser(prev => prev ? {
               ...prev,
-              balance_crystals: data.newBalance || (prev.balance_crystals + 1000)
+              balance_crystals: data.newBalance || (prev.balance_crystals + amount)
             } : null);
             
             tg.showAlert(`🎉 Поздравляем! Вы выиграли: ${prize.name}\n\n✨ Плюсы начислены на ваш баланс!`);
@@ -417,7 +446,7 @@ export default function ShopPage() {
     if (tg?.HapticFeedback) {
       tg.HapticFeedback.impactOccurred('light');
     }
-    router.push('/auction/prizes');
+    router.push('/prizes');
   };
 
   if (isLoading) {
@@ -471,8 +500,8 @@ export default function ShopPage() {
               <HorizontalTextSlotMachine
                 key={spinKey}
                 spinId={spinKey}
-                prizes={ALL_PRIZES.map(p => ({ name: p.name, icon: '' }))}
-                winningPrize={winningPrize ? { name: winningPrize.name, icon: '' } : null}
+                prizes={ALL_PRIZES.map(p => ({ name: p.name, icon: p.image }))}
+                winningPrize={winningPrize ? { name: winningPrize.name, icon: winningPrize.image } : null}
                 onSpinEnd={handleSpinEnd}
               />
             </div>
