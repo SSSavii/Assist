@@ -109,21 +109,16 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                         className="h-full flex items-center justify-center p-2 flex-shrink-0"
                         style={{ width: REEL_ITEM_WIDTH }}
                     >
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-white border-2 border-gray-300 rounded-xl shadow-md p-2 relative">
+                        <div className="w-full h-full flex items-center justify-center bg-white border-2 border-gray-300 rounded-xl shadow-md overflow-hidden relative">
                             {prize.icon && (
-                                <div className="w-20 h-20 relative mb-1">
-                                    <Image 
-                                        src={prize.icon} 
-                                        alt={prize.name}
-                                        fill
-                                        style={{ objectFit: 'contain' }}
-                                        sizes="80px"
-                                    />
-                                </div>
+                                <Image 
+                                    src={prize.icon} 
+                                    alt={prize.name}
+                                    fill
+                                    style={{ objectFit: 'cover' }}
+                                    sizes="140px"
+                                />
                             )}
-                            <p className="text-[10px] font-medium text-center text-gray-800 leading-tight">
-                                {prize.name}
-                            </p>
                         </div>
                     </div>
                 ))}
