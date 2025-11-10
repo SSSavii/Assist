@@ -415,7 +415,7 @@ export default function FriendsPage() {
             display: flex;
             align-items: center;
             letter-spacing: -0.03em;
-            color: #F23939;
+            color: #EA0000;
             flex: none;
             order: 1;
             flex-grow: 0;
@@ -465,7 +465,7 @@ export default function FriendsPage() {
             display: flex;
             align-items: flex-end;
             letter-spacing: -0.03em;
-            color: #F23939;
+            color: #EA0000;
             flex: none;
             order: 0;
             flex-grow: 0;
@@ -534,7 +534,7 @@ export default function FriendsPage() {
             isolation: isolate;
             width: 100%;
             height: 69px;
-            background: linear-gradient(244deg, #F23939 0%, #DB1B1B 100%);
+            background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
             border-radius: 15px;
             flex: none;
             align-self: stretch;
@@ -632,14 +632,14 @@ export default function FriendsPage() {
           .error-container {
             padding: 24px;
             text-align: center;
-            color: #F23939;
+            color: #EA0000;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
           }
 
           .reload-button {
             margin-top: 16px;
             padding: 12px 24px;
-            background: #F23939;
+            background: #EA0000;
             color: white;
             border: none;
             border-radius: 12px;
