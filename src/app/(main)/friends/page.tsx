@@ -82,7 +82,6 @@ export default function FriendsPage() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0 });
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Инициализация Telegram WebApp
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -92,7 +91,6 @@ export default function FriendsPage() {
     }
   }, []);
 
-  // Скролл в начало
   useEffect(() => {
     if (wrapperRef.current) {
       wrapperRef.current.scrollTop = 0;
@@ -111,7 +109,6 @@ export default function FriendsPage() {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  // Загрузка данных пользователя
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (!tg) {
@@ -149,7 +146,6 @@ export default function FriendsPage() {
       });
   }, []);
 
-  // Таймер до конца месяца
   useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
@@ -247,18 +243,24 @@ export default function FriendsPage() {
               <div className="info-card">
                 <div className="info-row">
                   <span className="info-label">Вы пригласили: </span>
-                  <span className="info-value">{user?.referral_count || 0}</span>
+                  <span className="info-value" style={{ color: '#EA0000' }}>
+                    {user?.referral_count || 0}
+                  </span>
                 </div>
               </div>
 
               <div className="stats-row">
                 <div className="stat-card">
-                  <div className="stat-value">{timeLeft.days}д {timeLeft.hours}ч</div>
+                  <div className="stat-value" style={{ color: '#EA0000' }}>
+                    {timeLeft.days}д {timeLeft.hours}ч
+                  </div>
                   <div className="stat-label">Осталось времени<br />до конца розыгрыша</div>
                 </div>
 
                 <div className="stat-card">
-                  <div className="stat-value">{user?.current_month_referrals || 0}</div>
+                  <div className="stat-value" style={{ color: '#EA0000' }}>
+                    {user?.current_month_referrals || 0}
+                  </div>
                   <div className="stat-label">Вы пригласили<br />в этом розыгрыше</div>
                 </div>
               </div>
@@ -267,7 +269,11 @@ export default function FriendsPage() {
                 Условия участия в розыгрышах
               </button>
 
-              <button className="invite-button" onClick={handleInviteFriend}>
+              <button 
+                className="invite-button" 
+                onClick={handleInviteFriend}
+                style={{ background: 'linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%)' }}
+              >
                 <span className="invite-text">Пригласить друга</span>
                 <span className="invite-bonus">+500 плюсов</span>
                 <div className="glow-top"></div>
@@ -400,7 +406,6 @@ export default function FriendsPage() {
             display: flex;
             align-items: center;
             letter-spacing: -0.03em;
-            color: #EA0000 !important;
             flex: none;
             order: 1;
             flex-grow: 0;
@@ -448,7 +453,6 @@ export default function FriendsPage() {
             display: flex;
             align-items: flex-end;
             letter-spacing: -0.03em;
-            color: #EA0000 !important;
             flex: none;
             order: 0;
             flex-grow: 0;
@@ -515,7 +519,6 @@ export default function FriendsPage() {
             isolation: isolate;
             width: 100%;
             height: 69px;
-            background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%) !important;
             border-radius: 15px;
             flex: none;
             align-self: stretch;
