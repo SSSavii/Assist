@@ -224,34 +224,32 @@ export default function ConditionsPage() {
   }
 
   return (
-    <>
-      <GlobalStyles />
-      <div className="conditions-wrapper" ref={wrapperRef}>
-        <main className="conditions-container">
-          <div className="content-container">
-            {/* Условия */}
-            <div className="conditions-section">
-              {/* Заголовок */}
-              <div className="header-section">
-                <h1 className="page-title">Условия участия в розыгрышах</h1>
-                
-                {/* СНАЧАЛА: Описательный блок */}
-                <div className="description-block">
-                  <p className="description-text">
-                    Привет! Это реферальная программа «АССИСТ+». Приглашай друзей по своей персональной ссылке и попадай в ежемесячные розыгрыши призов. Раз в месяц мы подводим итоги розыгрыша и награждаем счастливчиков, выполнивших необходимые условия.
-                  </p>
-                  
-                  <h2 className="subtitle">Как это работает:</h2>
-                  
-                  <p className="description-text">
-                    — В зачёт идёт друг, который впервые перешел по твоей ссылке и выполнил простое условие (подписка на канал «АССИСТ+»).
-                    <br/>— Каждый месяц счётчик обнуляется, в начале следующего месяца подводим итоги и объявляем победителей.
-                    <br/>— Фейки, боты и мультиаккаунты не учитываются, их использование строго запрещено и оперативно отслеживается.
-                  </p>
-                </div>
-              </div>
+  <>
+    <GlobalStyles />
+    <div className="conditions-wrapper" ref={wrapperRef}>
+      <main className="conditions-container">
+        <div className="content-container">
+          <div className="conditions-section">
+            {/* 1. ЗАГОЛОВОК */}
+            <h1 className="page-title">Условия участия в розыгрышах</h1>
+            
+            {/* 2. ОПИСАТЕЛЬНЫЙ БЛОК */}
+            <div className="description-block">
+              <p className="description-text">
+                Привет! Это реферальная программа «АССИСТ+». Приглашай друзей по своей персональной ссылке и попадай в ежемесячные розыгрыши призов. Раз в месяц мы подводим итоги розыгрыша и награждаем счастливчиков, выполнивших необходимые условия.
+              </p>
+              
+              <h2 className="subtitle">Как это работает:</h2>
+              
+              <p className="description-text">
+                — В зачёт идёт друг, который впервые перешел по твоей ссылке и выполнил простое условие (подписка на канал «АССИСТ+»).
+                <br/>— Каждый месяц счётчик обнуляется, в начале следующего месяца подводим итоги и объявляем победителей.
+                <br/>— Фейки, боты и мультиаккаунты не учитываются, их использование строго запрещено и оперативно отслеживается.
+              </p>
+            </div>
 
-              {/* ПОТОМ: Карточки условий */}
+            {/* 3. КАРТОЧКИ УСЛОВИЙ */}
+            <div className="cards-container">
               {conditions.map((condition) => {
                 const completed = isCompleted(condition.required);
                 return (
@@ -259,365 +257,363 @@ export default function ConditionsPage() {
                     key={condition.id}
                     className={completed ? 'condition-card completed' : 'condition-card'}
                   >
-                    {/* Верх */}
                     <div className="card-header">
                       <span className="card-title">{condition.title}</span>
                       <span className="card-status">
                         {completed ? 'Выполнено' : 'Не выполнено'}
                       </span>
                     </div>
-
-                    {/* Описание */}
                     <p className="card-description">{condition.description}</p>
                   </div>
                 );
               })}
             </div>
-
-            {/* Кнопка */}
-            <button className="back-button" onClick={handleBackClick}>
-              Понятно
-            </button>
           </div>
-        </main>
 
-        <style jsx>{`
-          .conditions-wrapper {
-            position: relative;
-            min-height: 100vh;
-            min-height: -webkit-fill-available;
-            background-color: #FFFFFF;
-            width: 100%;
-            max-width: 100vw;
-            overflow-x: hidden;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            scroll-behavior: auto;
-          }
+          {/* 4. КНОПКА */}
+          <button className="back-button" onClick={handleBackClick}>
+            Понятно
+          </button>
+        </div>
+      </main>
 
+      <style jsx>{`
+        .conditions-wrapper {
+          position: relative;
+          min-height: 100vh;
+          min-height: -webkit-fill-available;
+          background-color: #FFFFFF;
+          width: 100%;
+          max-width: 100vw;
+          overflow-x: hidden;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          scroll-behavior: auto;
+        }
+
+        .conditions-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 56px 0px 100px;
+          gap: 10px;
+          isolation: isolate;
+          position: relative;
+          width: 100%;
+          min-height: 812px;
+          background: #FFFFFF;
+          box-sizing: border-box;
+        }
+
+        .content-container {
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0px 16px;
+          gap: 10px;
+          width: 100%;
+          flex: none;
+          order: 0;
+          align-self: stretch;
+          flex-grow: 0;
+          z-index: 0;
+          box-sizing: border-box;
+        }
+
+        .conditions-section {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 0px;
+          gap: 8px;
+          margin: 0 auto;
+          width: 100%;
+          max-width: 343px;
+          flex: none;
+          order: 0;
+          align-self: stretch;
+          flex-grow: 0;
+        }
+
+        /* 1. ЗАГОЛОВОК - order: 0 */
+        .page-title {
+          margin: 0 0 16px 0;
+          width: 100%;
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-style: normal;
+          font-weight: 500;
+          font-size: 32px;
+          line-height: 110%;
+          leading-trim: both;
+          text-edge: cap;
+          display: flex;
+          align-items: flex-end;
+          letter-spacing: -0.03em;
+          color: #000000;
+          flex: none;
+          order: 0;
+          flex-grow: 0;
+        }
+
+        /* 2. ОПИСАТЕЛЬНЫЙ БЛОК - order: 1 */
+        .description-block {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 0px 0px 16px 0px;
+          gap: 8px;
+          width: 100%;
+          flex: none;
+          order: 1;
+          align-self: stretch;
+          flex-grow: 0;
+        }
+
+        .description-text {
+          margin: 0;
+          width: 100%;
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-style: normal;
+          font-weight: 300;
+          font-size: 16px;
+          line-height: 110%;
+          display: flex;
+          align-items: flex-end;
+          letter-spacing: -0.02em;
+          color: #000000;
+          flex: none;
+          align-self: stretch;
+          flex-grow: 0;
+        }
+
+        .subtitle {
+          margin: 0;
+          width: 100%;
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-style: normal;
+          font-weight: 400;
+          font-size: 20px;
+          line-height: 100%;
+          display: flex;
+          align-items: flex-end;
+          letter-spacing: -0.02em;
+          color: #000000;
+          flex: none;
+          align-self: stretch;
+          flex-grow: 0;
+        }
+
+        /* 3. КОНТЕЙНЕР КАРТОЧЕК - order: 2 */
+        .cards-container {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 0px;
+          gap: 8px;
+          width: 100%;
+          flex: none;
+          order: 2;
+          align-self: stretch;
+          flex-grow: 0;
+        }
+
+        .condition-card {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 16px;
+          gap: 10px;
+          width: 100%;
+          background: #F1F1F1;
+          border-radius: 15px;
+          flex: none;
+          align-self: stretch;
+          flex-grow: 0;
+          box-sizing: border-box;
+        }
+
+        .condition-card.completed {
+          background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
+        }
+
+        .card-header {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: flex-end;
+          padding: 0px;
+          gap: 10px;
+          width: 100%;
+          flex: none;
+          order: 0;
+          flex-grow: 0;
+        }
+
+        .card-title {
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-style: normal;
+          font-weight: 500;
+          font-size: 20px;
+          line-height: 100%;
+          display: flex;
+          align-items: flex-end;
+          letter-spacing: -0.03em;
+          color: #000000;
+          flex: none;
+          order: 0;
+          flex-grow: 0;
+        }
+
+        .condition-card.completed .card-title {
+          color: #FFFFFF;
+        }
+
+        .card-status {
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-style: normal;
+          font-weight: 400;
+          font-size: 16px;
+          line-height: 110%;
+          display: flex;
+          align-items: flex-end;
+          letter-spacing: -0.02em;
+          color: #000000;
+          flex: none;
+          order: 1;
+          flex-grow: 0;
+        }
+
+        .condition-card.completed .card-status {
+          font-weight: 500;
+          letter-spacing: -0.05em;
+          color: #FFFFFF;
+        }
+
+        .card-description {
+          margin: 0;
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-style: normal;
+          font-weight: 300;
+          font-size: 16px;
+          line-height: 110%;
+          display: flex;
+          align-items: flex-end;
+          letter-spacing: -0.02em;
+          color: #000000;
+          flex: none;
+          order: 1;
+          align-self: stretch;
+          flex-grow: 0;
+        }
+
+        .condition-card.completed .card-description {
+          font-weight: 400;
+          color: #FFFFFF;
+        }
+
+        /* 4. КНОПКА */
+        .back-button {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          padding: 16px 0px;
+          gap: 10px;
+          margin: 0 auto;
+          width: 100%;
+          max-width: 343px;
+          height: 52px;
+          background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
+          border-radius: 16px;
+          flex: none;
+          order: 1;
+          align-self: stretch;
+          flex-grow: 0;
+          border: none;
+          cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+          transition: opacity 0.2s;
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-style: normal;
+          font-weight: 500;
+          font-size: 20px;
+          line-height: 100%;
+          letter-spacing: -0.03em;
+          color: #FFFFFF;
+          box-sizing: border-box;
+        }
+
+        .back-button:active {
+          opacity: 0.8;
+        }
+
+        .loading-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          height: -webkit-fill-available;
+          background-color: #FFFFFF;
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          color: #666666;
+        }
+
+        .error-container {
+          padding: 24px;
+          text-align: center;
+          color: #EA0000;
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .reload-button {
+          margin-top: 16px;
+          padding: 12px 24px;
+          background: #EA0000;
+          color: white;
+          border: none;
+          border-radius: 12px;
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          cursor: pointer;
+        }
+
+        @media (max-width: 375px) {
           .conditions-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 56px 0px 100px;
-            gap: 10px;
-            isolation: isolate;
-            position: relative;
-            width: 100%;
-            min-height: 812px;
-            background: #FFFFFF;
-            box-sizing: border-box;
-          }
-
-          .content-container {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0px 16px;
-            gap: 10px;
-            width: 100%;
-            flex: none;
-            order: 0;
-            align-self: stretch;
-            flex-grow: 0;
-            z-index: 0;
-            box-sizing: border-box;
-          }
-
-          .conditions-section {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 0px;
-            gap: 8px;
-            margin: 0 auto;
-            width: 100%;
-            max-width: 343px;
-            flex: none;
-            order: 0;
-            align-self: stretch;
-            flex-grow: 0;
-          }
-
-          .header-section {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 0px 0px 16px;
-            gap: 16px;
-            width: 100%;
-            flex: none;
-            order: 0;
-            align-self: stretch;
-            flex-grow: 0;
+            padding: 48px 0px 100px;
           }
 
           .page-title {
-            margin: 0;
-            width: 244px;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 500;
-            font-size: 32px;
-            line-height: 110%;
-            leading-trim: both;
-            text-edge: cap;
-            display: flex;
-            align-items: flex-end;
-            letter-spacing: -0.03em;
-            color: #000000;
-            flex: none;
-            order: 0;
-            flex-grow: 0;
-          }
-
-          .description-block {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 0px;
-            gap: 8px;
-            width: 100%;
-            flex: none;
-            order: 1;
-            align-self: stretch;
-            flex-grow: 0;
-          }
-
-          .description-text {
-            margin: 0;
-            width: 100%;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 300;
-            font-size: 16px;
-            line-height: 110%;
-            display: flex;
-            align-items: flex-end;
-            letter-spacing: -0.02em;
-            color: #000000;
-            flex: none;
-            order: 0;
-            align-self: stretch;
-            flex-grow: 0;
+            font-size: 28px;
           }
 
           .subtitle {
-            margin: 0;
-            width: 100%;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 400;
-            font-size: 20px;
-            line-height: 100%;
-            display: flex;
-            align-items: flex-end;
-            letter-spacing: -0.02em;
-            color: #000000;
-            flex: none;
-            order: 1;
-            align-self: stretch;
-            flex-grow: 0;
+            font-size: 18px;
           }
 
-          .condition-card {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 16px;
-            gap: 10px;
-            width: 100%;
-            background: #F1F1F1;
-            border-radius: 15px;
-            flex: none;
-            align-self: stretch;
-            flex-grow: 0;
-            box-sizing: border-box;
-          }
-
-          .condition-card.completed {
-            background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
-          }
-
-          .card-header {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: flex-end;
-            padding: 0px;
-            gap: 10px;
-            width: 100%;
-            flex: none;
-            order: 0;
-            flex-grow: 0;
+          .description-text {
+            font-size: 14px;
           }
 
           .card-title {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 500;
-            font-size: 20px;
-            line-height: 100%;
-            display: flex;
-            align-items: flex-end;
-            letter-spacing: -0.03em;
-            color: #000000;
-            flex: none;
-            order: 0;
-            flex-grow: 0;
-          }
-
-          .condition-card.completed .card-title {
-            color: #FFFFFF;
+            font-size: 18px;
           }
 
           .card-status {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 400;
-            font-size: 16px;
-            line-height: 110%;
-            display: flex;
-            align-items: flex-end;
-            letter-spacing: -0.02em;
-            color: #000000;
-            flex: none;
-            order: 1;
-            flex-grow: 0;
-          }
-
-          .condition-card.completed .card-status {
-            font-weight: 500;
-            letter-spacing: -0.05em;
-            color: #FFFFFF;
+            font-size: 14px;
           }
 
           .card-description {
-            margin: 0;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 300;
-            font-size: 16px;
-            line-height: 110%;
-            display: flex;
-            align-items: flex-end;
-            letter-spacing: -0.02em;
-            color: #000000;
-            flex: none;
-            order: 1;
-            align-self: stretch;
-            flex-grow: 0;
+            font-size: 14px;
           }
+        }
 
-          .condition-card.completed .card-description {
-            font-weight: 400;
-            color: #FFFFFF;
+        @supports (-webkit-touch-callout: none) {
+          .conditions-wrapper {
+            min-height: -webkit-fill-available;
           }
-
-          .back-button {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 16px 0px;
-            gap: 10px;
-            margin: 0 auto;
-            width: 100%;
-            max-width: 343px;
-            height: 52px;
-            background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
-            border-radius: 16px;
-            flex: none;
-            order: 1;
-            align-self: stretch;
-            flex-grow: 0;
-            border: none;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            transition: opacity 0.2s;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-style: normal;
-            font-weight: 500;
-            font-size: 20px;
-            line-height: 100%;
-            letter-spacing: -0.03em;
-            color: #FFFFFF;
-            box-sizing: border-box;
-          }
-
-          .back-button:active {
-            opacity: 0.8;
-          }
-
-          .loading-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            height: -webkit-fill-available;
-            background-color: #FFFFFF;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: #666666;
-          }
-
-          .error-container {
-            padding: 24px;
-            text-align: center;
-            color: #EA0000;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-          }
-
-          .reload-button {
-            margin-top: 16px;
-            padding: 12px 24px;
-            background: #EA0000;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            cursor: pointer;
-          }
-
-          @media (max-width: 375px) {
-            .conditions-container {
-              padding: 48px 0px 100px;
-            }
-
-            .page-title {
-              font-size: 28px;
-              width: auto;
-              max-width: 220px;
-            }
-
-            .subtitle {
-              font-size: 18px;
-            }
-
-            .description-text {
-              font-size: 14px;
-            }
-
-            .card-title {
-              font-size: 18px;
-            }
-
-            .card-status {
-              font-size: 14px;
-            }
-
-            .card-description {
-              font-size: 14px;
-            }
-          }
-
-          @supports (-webkit-touch-callout: none) {
-            .conditions-wrapper {
-              min-height: -webkit-fill-available;
-            }
-          }
-        `}</style>
-      </div>
-    </>
-  );
+        }
+      `}</style>
+    </div>
+  </>
+);
 }

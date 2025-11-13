@@ -120,7 +120,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                                 */
                                 <div 
                                     className="w-full h-full flex items-center justify-center"
-                                    style={{ transform: 'scale(1.3)' }}
+                                    style={{ transform: 'scale(1.25)' }}
                                 >
                                     <img 
                                         src={prize.icon} 
