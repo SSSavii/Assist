@@ -21,7 +21,7 @@ const shuffle = (array: Prize[]): Prize[] => {
 };
 
 // ИЗМЕНЕНО: вернули расстояние ближе к изначальному (было 120, делаем 110)
-const REEL_ITEM_WIDTH = 110;
+const REEL_ITEM_WIDTH = 115;
 const ANIMATION_DURATION = 6000;
 const MIN_SPIN_DISTANCE = 40;
 const POST_ANIMATION_DELAY = 1000;
