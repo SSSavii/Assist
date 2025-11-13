@@ -110,12 +110,10 @@ export default function ConditionsPage() {
 
   // Отдельный useEffect для скролла - ТОЧНО КАК В РАБОЧИХ ФАЙЛАХ
   useEffect(() => {
-    // Скроллим wrapper
     if (wrapperRef.current) {
       wrapperRef.current.scrollTop = 0;
     }
     
-    // Скроллим window с задержкой
     const timeoutId = setTimeout(() => {
       window.scrollTo({
         top: 0,
@@ -172,30 +170,37 @@ export default function ConditionsPage() {
       id: 1,
       required: 1,
       title: '1 приглашение',
-      description: 'Какой то еще мини приз'
+      description: 'Глубокий чек-лист от «АССИСТ+» для первых 10 победителей'
     },
     {
       id: 2,
-      required: 10,
-      title: '10 приглашений',
-      description: 'Возможность попасть на онлайн мини-разбор с Иваном Абрамовым. Разбор проводится еженедельно.'
+      required: 5,
+      title: '5 приглашений',
+      description: 'Разбор резюме и портфолио от команды «АССИСТ+»'
     },
     {
       id: 3,
-      required: 20,
-      title: '20 приглашений',
-      description: 'Приоритетное место на мини-разборе, что гарантирует 100% участие в ближайшей сессии.'
+      required: 10,
+      title: '10 приглашений',
+      description: 'Книга + размещение канала в рекомендациях на 30 дней. (Рекомендации — это папка с каналами ребят, которые поддержали наш проект)'
     },
     {
       id: 4,
-      required: 30,
-      title: '30 приглашений',
-      description: 'Участие в ежемесячном розыгрыше завтрака с Иваном Абрамовым в Сколково.'
+      required: 25,
+      title: '25 приглашений',
+      description: 'Закрытый мини-разбор с предпринимателем (онлайн, 60 минут, группа)'
+    },
+    {
+      id: 5,
+      required: 50,
+      title: '50 приглашений',
+      description: 'Очная встреча в Сколково с секретным гостем'
     }
   ];
 
+  // ИСПРАВЛЕНА ЛОГИКА - используем current_month_referrals вместо referral_count
   const isCompleted = (required: number): boolean => {
-    return (user?.referral_count || 0) >= required;
+    return (user?.current_month_referrals || 0) >= required;
   };
 
   const handleBackClick = () => {
@@ -226,13 +231,27 @@ export default function ConditionsPage() {
       <GlobalStyles />
       <div className="conditions-wrapper" ref={wrapperRef}>
         <main className="conditions-container">
-          {/* Контейнер */}
           <div className="content-container">
             {/* Условия */}
             <div className="conditions-section">
               {/* Заголовок */}
               <div className="header-section">
                 <h1 className="page-title">Условия участия в розыгрышах</h1>
+                
+                {/* Описательный блок */}
+                <div className="description-block">
+                  <p className="description-text">
+                    Привет! Это реферальная программа «АССИСТ+». Приглашай друзей по своей персональной ссылке и попадай в ежемесячные розыгрыши призов. Раз в месяц мы подводим итоги розыгрыша и награждаем счастливчиков, выполнивших необходимые условия.
+                  </p>
+                  
+                  <h2 className="subtitle">Как это работает:</h2>
+                  
+                  <p className="description-text">
+                    — В зачёт идёт друг, который впервые перешел по твоей ссылке и выполнил простое условие (подписка на канал «АССИСТ+»).
+                    <br/>— Каждый месяц счётчик обнуляется, в начале следующего месяца подводим итоги и объявляем победителей.
+                    <br/>— Фейки, боты и мультиаккаунты не учитываются, их использование строго запрещено и оперативно отслеживается.
+                  </p>
+                </div>
               </div>
 
               {/* Карточки условий */}
@@ -279,7 +298,6 @@ export default function ConditionsPage() {
             scroll-behavior: auto;
           }
 
-          /* Друзья */
           .conditions-container {
             display: flex;
             flex-direction: column;
@@ -294,7 +312,6 @@ export default function ConditionsPage() {
             box-sizing: border-box;
           }
 
-          /* Контейнер */
           .content-container {
             display: flex;
             flex-direction: column;
@@ -311,7 +328,6 @@ export default function ConditionsPage() {
             box-sizing: border-box;
           }
 
-          /* Условия */
           .conditions-section {
             display: flex;
             flex-direction: column;
@@ -327,13 +343,12 @@ export default function ConditionsPage() {
             flex-grow: 0;
           }
 
-          /* Заголовок */
           .header-section {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
             padding: 0px 0px 16px;
-            gap: 10px;
+            gap: 16px;
             width: 100%;
             flex: none;
             order: 0;
@@ -341,7 +356,6 @@ export default function ConditionsPage() {
             flex-grow: 0;
           }
 
-          /* Условия участия в розыгрышах */
           .page-title {
             margin: 0;
             width: 244px;
@@ -361,7 +375,55 @@ export default function ConditionsPage() {
             flex-grow: 0;
           }
 
-          /* Карточка условия */
+          .description-block {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0px;
+            gap: 8px;
+            width: 100%;
+            flex: none;
+            order: 1;
+            align-self: stretch;
+            flex-grow: 0;
+          }
+
+          .description-text {
+            margin: 0;
+            width: 100%;
+            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-style: normal;
+            font-weight: 300;
+            font-size: 16px;
+            line-height: 110%;
+            display: flex;
+            align-items: flex-end;
+            letter-spacing: -0.02em;
+            color: #000000;
+            flex: none;
+            order: 0;
+            align-self: stretch;
+            flex-grow: 0;
+          }
+
+          .subtitle {
+            margin: 0;
+            width: 100%;
+            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-style: normal;
+            font-weight: 400;
+            font-size: 20px;
+            line-height: 100%;
+            display: flex;
+            align-items: flex-end;
+            letter-spacing: -0.02em;
+            color: #000000;
+            flex: none;
+            order: 1;
+            align-self: stretch;
+            flex-grow: 0;
+          }
+
           .condition-card {
             display: flex;
             flex-direction: column;
@@ -381,7 +443,6 @@ export default function ConditionsPage() {
             background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
           }
 
-          /* Верх */
           .card-header {
             display: flex;
             flex-direction: row;
@@ -395,7 +456,6 @@ export default function ConditionsPage() {
             flex-grow: 0;
           }
 
-          /* Название условия */
           .card-title {
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-style: normal;
@@ -415,7 +475,6 @@ export default function ConditionsPage() {
             color: #FFFFFF;
           }
 
-          /* Статус */
           .card-status {
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-style: normal;
@@ -437,7 +496,6 @@ export default function ConditionsPage() {
             color: #FFFFFF;
           }
 
-          /* Описание */
           .card-description {
             margin: 0;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -460,7 +518,6 @@ export default function ConditionsPage() {
             color: #FFFFFF;
           }
 
-          /* Кнопка */
           .back-button {
             display: flex;
             flex-direction: column;
@@ -534,6 +591,14 @@ export default function ConditionsPage() {
               font-size: 28px;
               width: auto;
               max-width: 220px;
+            }
+
+            .subtitle {
+              font-size: 18px;
+            }
+
+            .description-text {
+              font-size: 14px;
             }
 
             .card-title {
