@@ -20,8 +20,7 @@ const shuffle = (array: Prize[]): Prize[] => {
     return newArray;
 };
 
-// ИЗМЕНЕНО: Уменьшаем расстояние между карточками
-const REEL_ITEM_WIDTH = 95; // было 120
+const REEL_ITEM_WIDTH = 95;
 const ANIMATION_DURATION = 6000;
 const MIN_SPIN_DISTANCE = 40;
 const POST_ANIMATION_DELAY = 1000;
@@ -105,23 +104,19 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                 {reelItems.map((prize, index) => (
                     <div
                         key={`${prize.name}-${index}`}
-                        /* ИЗМЕНЕНО: уменьшили padding с p-2 до p-1 */
-                        className="h-full flex items-center justify-center p-1 flex-shrink-0"
+                        /* ИЗМЕНЕНО: добавили py-1 для вертикальных отступов */
+                        className="h-full flex items-center justify-center px-1 py-1 flex-shrink-0"
                         style={{ width: REEL_ITEM_WIDTH }}
                     >
                         {/* ИЗМЕНЕНО: 
-                            - высота с h-4/5 на h-[96%] (почти полная)
-                            - убрали padding p-1, оставили только overflow-hidden
+                            - убрали h-[96%], теперь высота контролируется через py-1 выше
+                            - оставили h-full чтобы занимала всё доступное место
                         */}
-                        <div className="w-full h-[96%] flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                        <div className="w-full h-full flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
                             {prize.icon && (
                                 <img 
                                     src={prize.icon} 
                                     alt={prize.name}
-                                    /* ИЗМЕНЕНО: 
-                                       - добавили max-w-full max-h-full для адаптивности
-                                       - object-contain сохраняет пропорции
-                                    */
                                     className="max-w-full max-h-full object-contain"
                                     loading="eager"
                                 />
