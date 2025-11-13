@@ -23,6 +23,7 @@ const shuffle = (array: Prize[]): Prize[] => {
 const REEL_ITEM_WIDTH = 120;
 const ANIMATION_DURATION = 6000;
 const MIN_SPIN_DISTANCE = 40;
+const POST_ANIMATION_DELAY = 1000; // 1 секунда задержки после анимации
 
 export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: HorizontalTextSlotMachineProps) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -60,22 +61,17 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
         // Создаем новый барабан
         const newReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
         
-        // Находим индекс выигрышного приза
-        const winningIndex = newReel.findIndex(item => item.name === winningPrize.name);
+        // Выбираем позицию для выигрышного приза (гарантируем минимальную дистанцию + немного рандома)
+        const targetIndex = MIN_SPIN_DISTANCE + Math.floor(Math.random() * 10);
         
-        if (winningIndex !== -1) {
-            // Гарантируем минимальную дистанцию прокрутки
-            const targetIndex = winningIndex < MIN_SPIN_DISTANCE 
-                ? winningIndex + MIN_SPIN_DISTANCE 
-                : winningIndex;
-                
-            const safeIndex = targetIndex % newReel.length;
-            newReel[safeIndex] = winningPrize;
+        // ГАРАНТИРОВАННО вставляем выигрышный приз в эту позицию
+        if (targetIndex < newReel.length) {
+            newReel[targetIndex] = { ...winningPrize }; // Создаем копию для избежания мутаций
             
             setReelItems(newReel);
             
-            // Вычисляем финальную позицию
-            const finalPosition = (containerWidth / 2) - (safeIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
+            // Вычисляем финальную позицию ТОЧНО к targetIndex
+            const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
             
             // Небольшая задержка перед началом анимации, чтобы изображения загрузились
             setTimeout(() => {
@@ -88,10 +84,13 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                     clearTimeout(timeoutRef.current);
                 }
                 
-                // Устанавливаем таймер на завершение
+                // Устанавливаем таймер на завершение + задержка 1 сек
                 timeoutRef.current = setTimeout(() => {
                     setIsAnimating(false);
-                    onSpinEnd();
+                    // Вызываем onSpinEnd после задержки
+                    setTimeout(() => {
+                        onSpinEnd();
+                    }, POST_ANIMATION_DELAY);
                 }, ANIMATION_DURATION);
             }, 100); // 100ms задержка для загрузки изображений
         }

@@ -70,10 +70,10 @@ const GlobalStyles = () => (
 type Prize = {
   name: string;
   type: 'impossible' | 'very_rare' | 'rare' | 'common' | 'excellent';
-  probability: number; // Вероятность в процентах
+  probability: number;
   canWin: boolean;
   deliveryType: 'instant' | 'bot_message' | 'manual';
-  image: string; // Путь к картинке
+  image: string;
 };
 
 const ALL_PRIZES: Prize[] = [
@@ -209,6 +209,7 @@ export default function ShopPage() {
 
     try {
       if (prize.deliveryType === 'instant') {
+        // Мгновенное начисление A+
         const response = await fetch('/api/user/award-prize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -222,19 +223,16 @@ export default function ShopPage() {
         if (response.ok) {
           const data = await response.json();
           
-          // Обработка разных типов A+
-          const plusMatches = prize.name.match(/(\d+)\s*A\+/);
-          if (plusMatches) {
-            const amount = parseInt(plusMatches[1]);
-            setUser(prev => prev ? {
-              ...prev,
-              balance_crystals: data.newBalance || (prev.balance_crystals + amount)
-            } : null);
-            
-            tg.showAlert(`🎉 Поздравляем! Вы выиграли: ${prize.name}\n\n✨ Плюсы начислены на ваш баланс!`);
-          }
+          // Обновляем баланс
+          setUser(prev => prev ? {
+            ...prev,
+            balance_crystals: data.newBalance
+          } : null);
+          
+          tg.showAlert(`🎉 Поздравляем! Вы выиграли: ${prize.name}\n\n✨ Плюсы начислены на ваш баланс!`);
         }
       } else if (prize.deliveryType === 'bot_message') {
+        // Отправка через бота (чек-листы и т.д.)
         await fetch('/api/bot/send-prize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -245,8 +243,13 @@ export default function ShopPage() {
           }),
         });
         
-        tg.showAlert(`🎉 Поздравляем! Вы выиграли: ${prize.name}\n\n📬 Приз отправлен вам в бот!`);
+        if (prize.name === 'Чек-лист') {
+          tg.showAlert(`🎉 Поздравляем! Вы выиграли чек-лист!\n\n📬 Проверьте бота - чек-лист отправлен!`);
+        } else {
+          tg.showAlert(`🎉 Поздравляем! Вы выиграли: ${prize.name}\n\n📬 Приз отправлен вам в бот!`);
+        }
       } else if (prize.deliveryType === 'manual') {
+        // Ручная обработка (созвоны, разборы и т.д.)
         await fetch('/api/bot/send-prize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -260,6 +263,7 @@ export default function ShopPage() {
         tg.showAlert(`🎉 Поздравляем! Вы выиграли: ${prize.name}\n\n📞 С вами свяжутся в ближайшее время!`);
       }
 
+      // Сохраняем выигрыш в БД
       await fetch('/api/user/save-winning', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -465,7 +469,6 @@ export default function ShopPage() {
       <GlobalStyles />
       <div className="shop-wrapper">
         <main className="shop-container">
-          {/* Заголовок магазина */}
           <div className="shop-header">
             <h1 className="shop-title">Магазин</h1>
             <p className="shop-subtitle">
@@ -473,7 +476,6 @@ export default function ShopPage() {
             </p>
           </div>
           
-          {/* Предупреждение о боте */}
           {!user?.bot_started && (
             <button onClick={handleOpenBot} className="bot-warning">
               <p className="warning-title">Внимание!</p>
@@ -481,7 +483,6 @@ export default function ShopPage() {
             </button>
           )}
 
-          {/* Блок с балансом */}
           <div className="stats-grid">
             <div className="stat-card">
               <div className="stat-value">{dailyLimit?.remaining || 0}/{dailyLimit?.maxLimit || 5}</div>
@@ -494,7 +495,6 @@ export default function ShopPage() {
             </div>
           </div>
 
-          {/* Слот-машина */}
           <div className="slot-section">
             <div className="slot-machine">
               <HorizontalTextSlotMachine
@@ -526,21 +526,16 @@ export default function ShopPage() {
             </div>
           </div>
 
-          {/* Контейнер товары */}
           <div className="products-container">
-            {/* Премиум товары */}
             <div className="premium-section">
               <h2 className="premium-title">Премиум товар</h2>
               
-              {/* Товар */}
               <div className="product-item">
-                {/* Текст */}
                 <div className="product-text">
                   <div className="product-name">Созвон с кумиром</div>
                   <div className="product-description">30 минут личного общения</div>
                 </div>
                 
-                {/* Купить */}
                 <div className="purchase-section">
                   <button 
                     onClick={handlePurchasePremiumItem}
@@ -550,7 +545,6 @@ export default function ShopPage() {
                     {isPurchasing ? 'Покупка...' : 'Купить'}
                   </button>
                   
-                  {/* + очки */}
                   <div className="price-section">
                     <span className="price-value">{PREMIUM_ITEM_COST.toLocaleString('ru-RU')}</span>
                     <div className="crystal-icon">
@@ -702,7 +696,7 @@ export default function ShopPage() {
           }
 
           .slot-machine {
-            height: 150px;
+            height: 180px;
             margin-bottom: 16px;
           }
 
@@ -764,7 +758,6 @@ export default function ShopPage() {
             color: #EA0000;
           }
 
-          /* Контейнер товары */
           .products-container {
             display: flex;
             flex-direction: column;
@@ -778,7 +771,6 @@ export default function ShopPage() {
             flex-grow: 0;
           }
 
-          /* Премиум товары */
           .premium-section {
             display: flex;
             flex-direction: column;

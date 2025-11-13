@@ -6,6 +6,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -59,17 +60,36 @@ export async function notifyAdminsAboutWinning(userId, userName, userUsername, p
 }
 
 // Функция для отправки приза пользователю
-export async function sendPrizeToUser(userId, prizeName, messageType) {
+export async function sendPrizeToUser(userId, prizeName, messageType, checklistFileName = null) {
   try {
     let messageText = '';
     
-    if (messageType === 'checklist') {
-      messageText = `🎉 Поздравляем! Вы выиграли: *${prizeName}*\n\n📚 Ваши чек-листы будут отправлены в ближайшее время.`;
+    if (messageType === 'checklist' && checklistFileName) {
+      // Отправка чек-листа
+      const checklistPath = path.join(process.cwd(), 'public', 'checklists', checklistFileName);
+      
+      if (!fs.existsSync(checklistPath)) {
+        console.error(`[SEND PRIZE] Чек-лист не найден: ${checklistPath}`);
+        throw new Error('Checklist file not found');
+      }
+
+      const caption = `🎉 Поздравляем! Вы получили чек-лист!\n\n📄 ${checklistFileName.replace('.pdf', '')}`;
+      
+      await bot.sendDocument(userId, checklistPath, { caption });
+      return true;
+    } else if (messageType === 'checklist_bonus') {
+      messageText = `🎉🎉🎉 *Поздравляем!*\n\n` +
+                   `Вы получили все 10 чек-листов!\n\n` +
+                   `🎁 Бонус: *+250 A+* начислены на ваш баланс!`;
     } else if (messageType === 'manual_contact') {
-      messageText = `🎉 Поздравляем! Вы выиграли: *${prizeName}*\n\n✨ С вами свяжутся в ближайшее время для организации вашего приза!`;
+      messageText = `🎉 Поздравляем! Вы выиграли: *${prizeName}*\n\n` +
+                   `✨ С вами свяжутся в ближайшее время для организации вашего приза!`;
     }
 
-    await bot.sendMessage(userId, messageText, { parse_mode: 'Markdown' });
+    if (messageText) {
+      await bot.sendMessage(userId, messageText, { parse_mode: 'Markdown' });
+    }
+    
     return true;
   } catch (error) {
     console.error(`[SEND PRIZE] Ошибка отправки приза пользователю ${userId}:`, error);
@@ -164,7 +184,6 @@ async function checkAndResetMonthlyReferrals() {
 
 // Запуск фоновых задач
 setInterval(checkAndFinishAuctions, 60000); // Каждую минуту
-// ВРЕМЕННО ОТКЛЮЧЕНО для тестирования
 setInterval(checkAndResetMonthlyReferrals, 3600000); // Каждый час
 console.log('✅ Фоновые задачи запущены.');
 

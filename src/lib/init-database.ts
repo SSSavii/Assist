@@ -40,9 +40,19 @@ db.exec(`
     referral_count_subscribed INTEGER DEFAULT 0,
     current_month_referrals INTEGER DEFAULT 0,
     last_referral_reset TEXT,
+    checklists_received INTEGER DEFAULT 0,
     FOREIGN KEY (referred_by_id) REFERENCES users(id)
   )
 `);
+
+// Добавляем поле checklists_received если его нет
+try {
+  db.exec(`ALTER TABLE users ADD COLUMN checklists_received INTEGER DEFAULT 0`);
+  console.log('✅ Добавлено поле checklists_received');
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+} catch (error) {
+  // Поле уже существует
+}
 
 // Таблица лотов (аукционы)
 db.exec(`
@@ -300,5 +310,6 @@ console.log('   - Истории покупок');
 console.log('   - Магазина товаров');
 console.log('   - Ежедневных лимитов');
 console.log('   - Проверки запуска бота');
+console.log('   - Счетчика полученных чек-листов');
 
 export default db;

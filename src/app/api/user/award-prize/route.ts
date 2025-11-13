@@ -48,10 +48,16 @@ export async function POST(req: NextRequest) {
 
       // Мгновенное начисление призов
       if (prizeType === 'instant') {
-        if (prizeName === '1000 A+') {
-          const updateStmt = db.prepare('UPDATE users SET balance_crystals = balance_crystals + 1000 WHERE id = ?');
-          updateStmt.run(user.id);
-          newBalance += 1000;
+        // Извлекаем количество A+ из названия приза
+        const plusMatches = prizeName.match(/(\d+)\s*A\+/);
+        if (plusMatches) {
+          const amount = parseInt(plusMatches[1]);
+          const updateStmt = db.prepare('UPDATE users SET balance_crystals = balance_crystals + ? WHERE id = ?');
+          updateStmt.run(amount, user.id);
+          newBalance += amount;
+          console.log(`[INFO] Awarded ${amount} A+ to user ${user.id}`);
+        } else {
+          console.warn(`[WARN] Could not parse A+ amount from prize name: ${prizeName}`);
         }
       }
 
