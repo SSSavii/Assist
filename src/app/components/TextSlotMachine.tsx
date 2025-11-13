@@ -20,7 +20,8 @@ const shuffle = (array: Prize[]): Prize[] => {
     return newArray;
 };
 
-const REEL_ITEM_WIDTH = 95;
+// ИЗМЕНЕНО: вернули расстояние ближе к изначальному (было 120, делаем 110)
+const REEL_ITEM_WIDTH = 110;
 const ANIMATION_DURATION = 6000;
 const MIN_SPIN_DISTANCE = 40;
 const POST_ANIMATION_DELAY = 1000;
@@ -104,22 +105,30 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                 {reelItems.map((prize, index) => (
                     <div
                         key={`${prize.name}-${index}`}
-                        /* ИЗМЕНЕНО: добавили py-1 для вертикальных отступов */
-                        className="h-full flex items-center justify-center px-1 py-1 flex-shrink-0"
+                        className="h-full flex items-center justify-center p-2 flex-shrink-0"
                         style={{ width: REEL_ITEM_WIDTH }}
                     >
                         {/* ИЗМЕНЕНО: 
-                            - убрали h-[96%], теперь высота контролируется через py-1 выше
-                            - оставили h-full чтобы занимала всё доступное место
+                            - добавили overflow-visible чтобы картинка могла выходить за границы
+                            - добавили relative для позиционирования
                         */}
-                        <div className="w-full h-full flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                        <div className="w-full h-4/5 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm overflow-visible relative">
                             {prize.icon && (
-                                <img 
-                                    src={prize.icon} 
-                                    alt={prize.name}
-                                    className="max-w-full max-h-full object-contain"
-                                    loading="eager"
-                                />
+                                /* ИЗМЕНЕНО: 
+                                   - обернули картинку в div с transform: scale(1.5)
+                                   - это увеличит картинку в 1.5 раза с сохранением пропорций
+                                */
+                                <div 
+                                    className="w-full h-full flex items-center justify-center"
+                                    style={{ transform: 'scale(1.5)' }}
+                                >
+                                    <img 
+                                        src={prize.icon} 
+                                        alt={prize.name}
+                                        className="max-w-full max-h-full object-contain"
+                                        loading="eager"
+                                    />
+                                </div>
                             )}
                         </div>
                     </div>
