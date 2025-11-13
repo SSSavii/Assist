@@ -450,7 +450,7 @@ export default function ShopPage() {
     if (tg?.HapticFeedback) {
       tg.HapticFeedback.impactOccurred('light');
     }
-    router.push('/prizes');
+    router.push('/auction/prizes');
   };
 
   if (isLoading) {
