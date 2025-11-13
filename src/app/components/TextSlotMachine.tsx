@@ -20,10 +20,11 @@ const shuffle = (array: Prize[]): Prize[] => {
     return newArray;
 };
 
-const REEL_ITEM_WIDTH = 120;
+// ИЗМЕНЕНО: Уменьшаем расстояние между карточками
+const REEL_ITEM_WIDTH = 95; // было 120
 const ANIMATION_DURATION = 6000;
 const MIN_SPIN_DISTANCE = 40;
-const POST_ANIMATION_DELAY = 1000; // 1 секунда задержки после анимации
+const POST_ANIMATION_DELAY = 1000;
 
 export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: HorizontalTextSlotMachineProps) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -47,7 +48,6 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     }, [prizes]);
 
     useEffect(() => {
-        // Проверяем что это новый спин (по ID)
         if (!isInitialized || 
             !winningPrize || 
             containerWidth === 0 || 
@@ -55,44 +55,33 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             return;
         }
         
-        // Запоминаем ID текущего спина
         lastSpinIdRef.current = spinId;
         
-        // Создаем новый барабан
         const newReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
-        
-        // Выбираем позицию для выигрышного приза (гарантируем минимальную дистанцию + немного рандома)
         const targetIndex = MIN_SPIN_DISTANCE + Math.floor(Math.random() * 10);
         
-        // ГАРАНТИРОВАННО вставляем выигрышный приз в эту позицию
         if (targetIndex < newReel.length) {
-            newReel[targetIndex] = { ...winningPrize }; // Создаем копию для избежания мутаций
+            newReel[targetIndex] = { ...winningPrize };
             
             setReelItems(newReel);
             
-            // Вычисляем финальную позицию ТОЧНО к targetIndex
             const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
             
-            // Небольшая задержка перед началом анимации, чтобы изображения загрузились
             setTimeout(() => {
-                // Запускаем анимацию
                 setIsAnimating(true);
                 setTransform(`translateX(${finalPosition}px)`);
 
-                // Очищаем предыдущий таймер
                 if (timeoutRef.current) {
                     clearTimeout(timeoutRef.current);
                 }
                 
-                // Устанавливаем таймер на завершение + задержка 1 сек
                 timeoutRef.current = setTimeout(() => {
                     setIsAnimating(false);
-                    // Вызываем onSpinEnd после задержки
                     setTimeout(() => {
                         onSpinEnd();
                     }, POST_ANIMATION_DELAY);
                 }, ANIMATION_DURATION);
-            }, 100); // 100ms задержка для загрузки изображений
+            }, 100);
         }
 
         return () => {
@@ -116,15 +105,24 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                 {reelItems.map((prize, index) => (
                     <div
                         key={`${prize.name}-${index}`}
-                        className="h-full flex items-center justify-center p-2 flex-shrink-0"
+                        /* ИЗМЕНЕНО: уменьшили padding с p-2 до p-1 */
+                        className="h-full flex items-center justify-center p-1 flex-shrink-0"
                         style={{ width: REEL_ITEM_WIDTH }}
                     >
-                        <div className="w-full h-4/5 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm p-1 overflow-hidden">
+                        {/* ИЗМЕНЕНО: 
+                            - высота с h-4/5 на h-[96%] (почти полная)
+                            - убрали padding p-1, оставили только overflow-hidden
+                        */}
+                        <div className="w-full h-[96%] flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
                             {prize.icon && (
                                 <img 
                                     src={prize.icon} 
                                     alt={prize.name}
-                                    className="w-full h-full object-contain"
+                                    /* ИЗМЕНЕНО: 
+                                       - добавили max-w-full max-h-full для адаптивности
+                                       - object-contain сохраняет пропорции
+                                    */
+                                    className="max-w-full max-h-full object-contain"
                                     loading="eager"
                                 />
                             )}

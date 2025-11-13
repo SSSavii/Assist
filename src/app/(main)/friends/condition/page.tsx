@@ -108,7 +108,6 @@ export default function ConditionsPage() {
     };
   }, [router]);
 
-  // Отдельный useEffect для скролла - ТОЧНО КАК В РАБОЧИХ ФАЙЛАХ
   useEffect(() => {
     if (wrapperRef.current) {
       wrapperRef.current.scrollTop = 0;
@@ -127,7 +126,6 @@ export default function ConditionsPage() {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  // Загрузка данных пользователя
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (!tg) {
@@ -198,7 +196,6 @@ export default function ConditionsPage() {
     }
   ];
 
-  // ИСПРАВЛЕНА ЛОГИКА - используем current_month_referrals вместо referral_count
   const isCompleted = (required: number): boolean => {
     return (user?.current_month_referrals || 0) >= required;
   };
@@ -238,7 +235,7 @@ export default function ConditionsPage() {
               <div className="header-section">
                 <h1 className="page-title">Условия участия в розыгрышах</h1>
                 
-                {/* Описательный блок */}
+                {/* СНАЧАЛА: Описательный блок */}
                 <div className="description-block">
                   <p className="description-text">
                     Привет! Это реферальная программа «АССИСТ+». Приглашай друзей по своей персональной ссылке и попадай в ежемесячные розыгрыши призов. Раз в месяц мы подводим итоги розыгрыша и награждаем счастливчиков, выполнивших необходимые условия.
@@ -254,7 +251,7 @@ export default function ConditionsPage() {
                 </div>
               </div>
 
-              {/* Карточки условий */}
+              {/* ПОТОМ: Карточки условий */}
               {conditions.map((condition) => {
                 const completed = isCompleted(condition.required);
                 return (
