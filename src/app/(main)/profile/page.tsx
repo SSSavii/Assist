@@ -7,7 +7,6 @@ import Image from 'next/image';
 import {
   Users,
   ChevronRight,
-  Medal,
   UserCircle,
   Pencil,
   Wallet,
@@ -212,13 +211,6 @@ export default function ProfilePage() {
           iconBgColor="bg-blue-500"
           text="Добавить описание"
           href="/profile/edit-bio"
-        />
-
-        <ProfileLink
-          icon={Medal}
-          iconBgColor="bg-purple-500"
-          text="Добавить достижения"
-          href="/profile/edit-awards"
         />
 
         <ProfileLink
