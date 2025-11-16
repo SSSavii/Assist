@@ -4,3 +4,27 @@ node_modules/
 dist/
 build/
 main.db
+# Зависимости
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# База данных
+*.db
+*.db.backup
+*.sqlite
+*.sqlite3
+
+# Конфиги с секретами
+.env
+.env.local
+.env.production
+
+# Логи
+*.log
+.pm2/
+
+# Системные
+.DS_Store
