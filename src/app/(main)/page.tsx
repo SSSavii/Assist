@@ -8,6 +8,42 @@ import { useRouter } from 'next/navigation';
 const GlobalStyles = () => (
   <>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    {/* Preload критичных шрифтов */}
+    <link
+      rel="preload"
+      href="/fonts/CeraPro-Regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossOrigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/fonts/CeraPro-Medium.woff2"
+      as="font"
+      type="font/woff2"
+      crossOrigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/fonts/CeraPro-Bold.woff2"
+      as="font"
+      type="font/woff2"
+      crossOrigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/fonts/Vasek-Italic.woff2"
+      as="font"
+      type="font/woff2"
+      crossOrigin="anonymous"
+    />
+    
+    {/* Preload критичных изображений */}
+    <link rel="preload" href="/svg4122-a7pi.svg" as="image" />
+    <link rel="preload" href="/svg4122-denw.svg" as="image" />
+    <link rel="preload" href="/images/134.png" as="image" />
+    
     <style jsx global>{`
       * {
         box-sizing: border-box;
@@ -29,7 +65,7 @@ const GlobalStyles = () => (
              url('/fonts/CeraPro-Regular.woff') format('woff');
         font-weight: 400;
         font-style: normal;
-        font-display: swap;
+        font-display: block;
       }
       
       @font-face {
@@ -38,7 +74,7 @@ const GlobalStyles = () => (
              url('/fonts/CeraPro-Light.woff') format('woff');
         font-weight: 300;
         font-style: normal;
-        font-display: swap;
+        font-display: block;
       }
       
       @font-face {
@@ -47,7 +83,7 @@ const GlobalStyles = () => (
              url('/fonts/CeraPro-Medium.woff') format('woff');
         font-weight: 500;
         font-style: normal;
-        font-display: swap;
+        font-display: block;
       }
       
       @font-face {
@@ -56,7 +92,7 @@ const GlobalStyles = () => (
              url('/fonts/CeraPro-Bold.woff') format('woff');
         font-weight: 700;
         font-style: normal;
-        font-display: swap;
+        font-display: block;
       }
       
       @font-face {
@@ -65,7 +101,7 @@ const GlobalStyles = () => (
              url('/fonts/Vasek-Italic.woff') format('woff');
         font-weight: 400;
         font-style: italic;
-        font-display: swap;
+        font-display: block;
       }
       
       body {
@@ -355,7 +391,6 @@ export default function HomePage() {
 
   const handleVoteForChannel = () => {
     const tg = window.Telegram?.WebApp;
-    // Просто открываем страницу буста, проверка будет через getUserChatBoosts
     tg?.openTelegramLink('https://t.me/boost?c=2782276287');
   };
 

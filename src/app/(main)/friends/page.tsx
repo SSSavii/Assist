@@ -7,6 +7,33 @@ import Image from 'next/image';
 const GlobalStyles = () => (
   <>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    {/* Preload шрифтов */}
+    <link
+      rel="preload"
+      href="/fonts/CeraPro-Regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossOrigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/fonts/CeraPro-Medium.woff2"
+      as="font"
+      type="font/woff2"
+      crossOrigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/fonts/CeraPro-Bold.woff2"
+      as="font"
+      type="font/woff2"
+      crossOrigin="anonymous"
+    />
+    
+    {/* Preload главного изображения */}
+    <link rel="preload" href="/images/friends-header.png" as="image" />
+    
     <style jsx global>{`
       * {
         box-sizing: border-box;
@@ -28,7 +55,7 @@ const GlobalStyles = () => (
              url('/fonts/CeraPro-Regular.woff') format('woff');
         font-weight: 400;
         font-style: normal;
-        font-display: swap;
+        font-display: block;
       }
       
       @font-face {
@@ -37,7 +64,7 @@ const GlobalStyles = () => (
              url('/fonts/CeraPro-Light.woff') format('woff');
         font-weight: 300;
         font-style: normal;
-        font-display: swap;
+        font-display: block;
       }
       
       @font-face {
@@ -46,7 +73,7 @@ const GlobalStyles = () => (
              url('/fonts/CeraPro-Medium.woff') format('woff');
         font-weight: 500;
         font-style: normal;
-        font-display: swap;
+        font-display: block;
       }
       
       @font-face {
@@ -55,7 +82,7 @@ const GlobalStyles = () => (
              url('/fonts/CeraPro-Bold.woff') format('woff');
         font-weight: 700;
         font-style: normal;
-        font-display: swap;
+        font-display: block;
       }
       
       body {

@@ -9,6 +9,30 @@ import HorizontalTextSlotMachine from '@/app/components/TextSlotMachine';
 const GlobalStyles = () => (
   <>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    {/* Preload шрифтов */}
+    <link
+      rel="preload"
+      href="/fonts/CeraPro-Regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossOrigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/fonts/CeraPro-Medium.woff2"
+      as="font"
+      type="font/woff2"
+      crossOrigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/fonts/CeraPro-Bold.woff2"
+      as="font"
+      type="font/woff2"
+      crossOrigin="anonymous"
+    />
+    
     <style jsx global>{`
       * {
         box-sizing: border-box;
@@ -30,7 +54,7 @@ const GlobalStyles = () => (
              url('/fonts/CeraPro-Regular.woff') format('woff');
         font-weight: 400;
         font-style: normal;
-        font-display: swap;
+        font-display: block;
       }
       
       @font-face {
@@ -39,7 +63,7 @@ const GlobalStyles = () => (
              url('/fonts/CeraPro-Light.woff') format('woff');
         font-weight: 300;
         font-style: normal;
-        font-display: swap;
+        font-display: block;
       }
       
       @font-face {
@@ -48,7 +72,7 @@ const GlobalStyles = () => (
              url('/fonts/CeraPro-Medium.woff') format('woff');
         font-weight: 500;
         font-style: normal;
-        font-display: swap;
+        font-display: block;
       }
       
       @font-face {
@@ -57,7 +81,7 @@ const GlobalStyles = () => (
              url('/fonts/CeraPro-Bold.woff') format('woff');
         font-weight: 700;
         font-style: normal;
-        font-display: swap;
+        font-display: block;
       }
       
       body {
@@ -209,7 +233,6 @@ export default function ShopPage() {
 
     try {
       if (prize.deliveryType === 'instant') {
-        // Мгновенное начисление A+
         const response = await fetch('/api/user/award-prize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -223,7 +246,6 @@ export default function ShopPage() {
         if (response.ok) {
           const data = await response.json();
           
-          // Обновляем баланс
           setUser(prev => prev ? {
             ...prev,
             balance_crystals: data.newBalance
@@ -232,7 +254,6 @@ export default function ShopPage() {
           tg.showAlert(`🎉 Поздравляем! Вы выиграли: ${prize.name}\n\n✨ Плюсы начислены на ваш баланс!`);
         }
       } else if (prize.deliveryType === 'bot_message') {
-        // Отправка через бота (чек-листы и т.д.)
         await fetch('/api/bot/send-prize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -249,7 +270,6 @@ export default function ShopPage() {
           tg.showAlert(`🎉 Поздравляем! Вы выиграли: ${prize.name}\n\n📬 Приз отправлен вам в бот!`);
         }
       } else if (prize.deliveryType === 'manual') {
-        // Ручная обработка (созвоны, разборы и т.д.)
         await fetch('/api/bot/send-prize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -263,7 +283,6 @@ export default function ShopPage() {
         tg.showAlert(`🎉 Поздравляем! Вы выиграли: ${prize.name}\n\n📞 С вами свяжутся в ближайшее время!`);
       }
 
-      // Сохраняем выигрыш в БД
       await fetch('/api/user/save-winning', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
