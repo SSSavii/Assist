@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///Users/georgiiisavich/Desktop/assist_plus/src/app/%28main%29/friends/page.tsx"],"sourcesContent":["'use client';\n\nexport default function FriendsPage() {\n  return (\n    <div style={{ padding: '20px', textAlign: 'center' }}>\n      <h1>Страница Друзья</h1>\n      <p>Если ты это видишь — проблема в коде, а не в маршруте.</p>\n    </div>\n  );\n}"],"names":[],"mappings":";;;;AAAA;;AAEe,SAAS;IACtB,qBACE,8OAAC;QAAI,OAAO;YAAE,SAAS;YAAQ,WAAW;QAAS;;0BACjD,8OAAC;0BAAG;;;;;;0BACJ,8OAAC;0BAAE;;;;;;;;;;;;AAGT","debugId":null}}]
-}
