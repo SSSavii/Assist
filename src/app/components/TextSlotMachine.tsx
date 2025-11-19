@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import { useEffect, useState, useRef, useLayoutEffect } from 'react';
@@ -28,75 +27,58 @@ const POST_ANIMATION_DELAY = 1000;
 
 export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: HorizontalTextSlotMachineProps) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const reelRef = useRef<HTMLDivElement>(null);
-    
     const [containerWidth, setContainerWidth] = useState(0);
+    
+    // Массив создается ОДИН РАЗ и больше НЕ МЕНЯЕТСЯ
+    const [reelItems, setReelItems] = useState<Prize[]>([]);
+    
+    const [transform, setTransform] = useState('translateX(0px)');
     const [isAnimating, setIsAnimating] = useState(false);
-    const [isInitialized, setIsInitialized] = useState(false);
-    
-    // ГЛАВНОЕ: храним массив в ref, а не в state
-    const reelItemsRef = useRef<Prize[]>([]);
-    
-    // Это состояние нужно только чтобы заставить React отрендерить начальный массив
-    const [, forceUpdate] = useState(0);
-    
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSpinIdRef = useRef<number>(-1);
 
-    // 1. ИНИЦИАЛИЗАЦИЯ - создаём случайный массив ОДИН РАЗ
+    // Инициализация - ОДИН РАЗ создаем случайный массив
     useLayoutEffect(() => {
-        if (containerRef.current && prizes.length > 0 && !isInitialized) {
+        if (containerRef.current && prizes.length > 0 && reelItems.length === 0) {
             const width = containerRef.current.offsetWidth;
             setContainerWidth(width);
             
-            // Генерируем случайный массив в ref
-            reelItemsRef.current = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
-            
-            setIsInitialized(true);
-            forceUpdate(prev => prev + 1); // Заставляем React отрендерить
+            // Длинный массив случайных призов (создается только 1 раз!)
+            const initialReel = Array.from({ length: 200 }, () => shuffle(prizes)).flat();
+            setReelItems(initialReel);
         }
-    }, [prizes, isInitialized]);
+    }, [prizes]);
 
-    // 2. СПИН
     useEffect(() => {
-        if (!isInitialized || 
+        if (reelItems.length === 0 || 
             !winningPrize || 
             containerWidth === 0 || 
-            lastSpinIdRef.current === spinId ||
-            !reelRef.current) {
+            lastSpinIdRef.current === spinId) {
             return;
         }
         
         lastSpinIdRef.current = spinId;
         
-        const targetIndex = MIN_SPIN_DISTANCE + Math.floor(Math.random() * 10);
+        // Ищем выигрышный приз в существующем массиве (после MIN_SPIN_DISTANCE)
+        let targetIndex = reelItems.findIndex((item, idx) => 
+            idx >= MIN_SPIN_DISTANCE && item.name === winningPrize.name
+        );
         
-        // КЛЮЧЕВОЙ МОМЕНТ: Меняем элемент в ref напрямую
-        // React НЕ знает об этом изменении = НЕТ перерисовки DOM!
-        if (targetIndex < reelItemsRef.current.length) {
-            const imgElement = reelRef.current.children[targetIndex]?.querySelector('img');
-            if (imgElement) {
-                // Меняем только src и alt у существующего DOM элемента
-                imgElement.src = winningPrize.icon;
-                imgElement.alt = winningPrize.name;
-            }
-        }
-        
-        // Сбрасываем позицию
-        if (reelRef.current) {
-            reelRef.current.style.transition = 'none';
-            reelRef.current.style.transform = 'translateX(0px)';
+        // Если не нашли - берем первое вхождение после MIN_SPIN_DISTANCE
+        if (targetIndex === -1) {
+            targetIndex = MIN_SPIN_DISTANCE + Math.floor(Math.random() * 20);
         }
         
         const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
         
-        // Запускаем анимацию
+        // Сброс позиции без анимации
+        setIsAnimating(false);
+        setTransform('translateX(0px)');
+        
+        // Запуск анимации
         setTimeout(() => {
-            if (reelRef.current) {
-                setIsAnimating(true);
-                reelRef.current.style.transition = `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.1, 0.25, 1)`;
-                reelRef.current.style.transform = `translateX(${finalPosition}px)`;
-            }
+            setIsAnimating(true);
+            setTransform(`translateX(${finalPosition}px)`);
 
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
             
@@ -105,14 +87,6 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                 
                 setTimeout(() => {
                     onSpinEnd();
-                    
-                    // Возврат в начало
-                    setTimeout(() => {
-                        if (reelRef.current) {
-                            reelRef.current.style.transition = 'none';
-                            reelRef.current.style.transform = 'translateX(0px)';
-                        }
-                    }, 300);
                 }, POST_ANIMATION_DELAY);
             }, ANIMATION_DURATION);
         }, 50);
@@ -120,29 +94,20 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
         return () => {
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
         };
-    }, [winningPrize, spinId, containerWidth, isInitialized, onSpinEnd]);
-
-    if (!isInitialized) {
-        return (
-            <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-red-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-gray-400">Загрузка...</div>
-                </div>
-            </div>
-        );
-    }
+    }, [winningPrize, spinId, containerWidth, reelItems, onSpinEnd]);
 
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-red-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
             <div
-                ref={reelRef}
                 className="absolute top-0 left-0 h-full flex"
                 style={{
-                    transform: 'translateX(0px)',
-                    transition: 'none',
+                    transform: transform,
+                    transition: isAnimating
+                        ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.1, 0.25, 1)`
+                        : 'none',
                 }}
             >
-                {reelItemsRef.current.map((prize, index) => (
+                {reelItems.map((prize, index) => (
                     <div 
                         key={index}
                         className="h-full flex items-center justify-center p-2 flex-shrink-0" 

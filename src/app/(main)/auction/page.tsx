@@ -376,7 +376,6 @@ export default function ShopPage() {
 
     setIsSpinning(true);
     setError('');
-    setWinningPrize(null);
     hasSpunRef.current = true;
     isProcessingPrizeRef.current = false;
 
