@@ -22,7 +22,6 @@ const shuffle = (array: Prize[]): Prize[] => {
 
 const REEL_ITEM_WIDTH = 115;
 const ANIMATION_DURATION = 6000;
-const MIN_SPIN_DISTANCE = 40; 
 const POST_ANIMATION_DELAY = 1000;
 
 export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: HorizontalTextSlotMachineProps) {
@@ -33,122 +32,84 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     const [transform, setTransform] = useState('translateX(0px)');
     const [isAnimating, setIsAnimating] = useState(false);
     
-    // Храним ID последнего спина, чтобы не запускать дважды
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSpinIdRef = useRef<number>(spinId);
-    // Храним индекс элемента, который сейчас ПО ЦЕНТРУ
-    const lastWinnerIndexRef = useRef<number>(2); // По умолчанию 2 (середина начального массива из 5)
-    
-    const spinTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // 1. НАСТРОЙКА ШИРИНЫ И НАЧАЛЬНОГО ПОЛОЖЕНИЯ
     useLayoutEffect(() => {
-        if (!containerRef.current || prizes.length === 0) return;
+        if (containerRef.current) {
+            setContainerWidth(containerRef.current.offsetWidth);
+        }
+    }, []);
 
-        const updateSize = () => {
-            if(containerRef.current) setContainerWidth(containerRef.current.offsetWidth);
-        };
-        updateSize();
-        window.addEventListener('resize', updateSize);
-
-        // Генерируем случайный старт один раз при загрузке
-        if (reelItems.length === 0) {
-            const initialReel = Array.from({ length: 10 }, () => shuffle(prizes)).flat();
-            setReelItems(initialReel);
-            
-            // Сразу выставляем позицию так, чтобы элемент [2] был по центру.
-            // Это наша "Точка отсчета" для будущих спинов.
-            const centerIndex = 2;
-            lastWinnerIndexRef.current = centerIndex;
-            const width = containerRef.current.offsetWidth;
-            const initialPos = (width / 2) - (centerIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
-            
-            setTransform(`translateX(${initialPos}px)`);
+    // --- ШАГ 1: ГЕНЕРАЦИЯ БАРАБАНА ---
+    // Мы создаем функцию, которая ВСЕГДА ставит первые 5 призов из списка в начало.
+    // Остальное - случайно.
+    const generateReel = () => {
+        if (prizes.length === 0) return [];
+        
+        // 1. Берем первые 5 штук жестко (чтобы начало всегда совпадало)
+        const fixedStart = prizes.slice(0, 5);
+        
+        // 2. Если призов меньше 5, добиваем повторами
+        while (fixedStart.length < 5 && prizes.length > 0) {
+            fixedStart.push(prizes[fixedStart.length % prizes.length]);
         }
 
-        return () => window.removeEventListener('resize', updateSize);
+        // 3. Генерируем длинный хвост (20 повторов перемешанных)
+        const randomPart = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
+
+        return [...fixedStart, ...randomPart];
+    };
+
+    // При загрузке страницы создаем ленту
+    useEffect(() => {
+        if (prizes.length > 0) {
+            setReelItems(generateReel());
+        }
     }, [prizes]);
 
-    // 2. ЛОГИКА СПИНА
+    // --- ЛОГИКА СПИНА ---
     useEffect(() => {
-        // Проверки: ширина есть? приз есть? это новый спин?
-        if (containerWidth === 0 || !winningPrize || spinId === lastSpinIdRef.current) {
-            return;
-        }
-        
+        if (spinId === lastSpinIdRef.current || !winningPrize || containerWidth === 0) return;
         lastSpinIdRef.current = spinId;
 
-        // --- ЭТАП 1: ПОДГОТОВКА "МОСТА" (БЕСШОВНОСТЬ) ---
+        // 1. Генерируем новую ленту (начало у нее будет ТАКОЕ ЖЕ, как сейчас на экране)
+        const newReel = generateReel();
         
-        // Берем индекс, на котором мы остановились в прошлый раз (или 2 при старте)
-        const prevIndex = lastWinnerIndexRef.current;
-        
-        // Нам нужно взять кусок массива вокруг этого индекса (например, 2 слева и 2 справа)
-        // чтобы пользователь увидел ТО ЖЕ САМОЕ начало.
-        let startBridge: Prize[] = [];
-        
-        // Защита от выхода за границы массива
-        if (reelItems.length > 0) {
-            const safeStart = Math.max(0, prevIndex - 2);
-            const safeEnd = Math.min(reelItems.length, safeStart + 5);
-            startBridge = reelItems.slice(safeStart, safeEnd);
-        }
-        
-        // Если вдруг массив пуст или ошибка, заполняем рандомом (фоллбэк)
-        if (startBridge.length < 5) {
-            startBridge = [...startBridge, ...prizes.slice(0, 5 - startBridge.length)];
-        }
-
-        // Создаем новую ленту: [МОСТ] + [КУЧА НОВЫХ ПРИЗОВ]
-        const randomPart = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
-        const newReel = [...startBridge, ...randomPart];
-        
-        // Вставляем выигрыш
-        const targetIndex = MIN_SPIN_DISTANCE + Math.floor(Math.random() * 10);
+        // 2. Вставляем выигрыш далеко вправо (позиция 40-50)
+        const targetIndex = 40 + Math.floor(Math.random() * 10);
         if (targetIndex < newReel.length) {
             newReel[targetIndex] = { ...winningPrize };
         }
 
-        // --- ЭТАП 2: МГНОВЕННЫЙ СБРОС (RESET) ---
-
-        // В новой ленте наш старый центр (который был prevIndex) теперь находится
-        // под индексом 2 (так как мы взяли срез начиная с prevIndex-2).
-        const resetIndex = 2; 
-        const resetPos = (containerWidth / 2) - (resetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
-
-        const finalPos = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
-
-        // 1. Выключаем анимацию и подменяем ленту
+        // 3. СБРОС: Ставим новую ленту и возвращаем в 0px
+        // Так как начало ленты идентично предыдущей, глаз не заметит подмены.
         setIsAnimating(false);
         setReelItems(newReel);
-        setTransform(`translateX(${resetPos}px)`); // Ставим в "старую" позицию
+        setTransform('translateX(0px)');
 
-        // --- ЭТАП 3: ЗАПУСК АНИМАЦИИ С ЗАДЕРЖКОЙ ---
-        
-        // Ждем 50мс, чтобы браузер успел отрисовать новую ленту в стартовой позиции.
-        // Если не подождать, браузер "проглотит" смену координат и анимации не будет.
+        // 4. ЗАПУСК: Рассчитываем, куда ехать
+        const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
+
+        // Даем браузеру 50мс отрисовать "Сброс", потом включаем анимацию
         setTimeout(() => {
-            setIsAnimating(true); // Включаем плавность
-            setTransform(`translateX(${finalPos}px)`); // Поехали к выигрышу!
-            
-            // Запоминаем, где мы остановимся, для СЛЕДУЮЩЕГО раза
-            lastWinnerIndexRef.current = targetIndex;
+            setIsAnimating(true);
+            setTransform(`translateX(${finalPosition}px)`);
         }, 50);
 
-        // --- ЭТАП 4: ЗАВЕРШЕНИЕ ---
-        if (spinTimeoutRef.current) clearTimeout(spinTimeoutRef.current);
-        
-        spinTimeoutRef.current = setTimeout(() => {
+        // 5. ЗАВЕРШЕНИЕ
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+            setIsAnimating(false); // Выключаем плавность после остановки
             setTimeout(() => {
                 onSpinEnd();
             }, POST_ANIMATION_DELAY);
-        }, ANIMATION_DURATION + 50); // +50мс учитываем задержку старта
+        }, ANIMATION_DURATION);
 
         return () => {
-            if (spinTimeoutRef.current) clearTimeout(spinTimeoutRef.current);
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
         };
-
-    }, [spinId, containerWidth, winningPrize, prizes, onSpinEnd]); 
-    // reelItems удален из зависимостей, чтобы не триггерить повторно при setReelItems
+    }, [spinId, containerWidth, winningPrize, prizes, onSpinEnd]);
 
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-red-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
@@ -156,7 +117,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                 className="absolute top-0 left-0 h-full flex"
                 style={{
                     transform: transform,
-                    // Transition включается только через 50мс после сброса
+                    // Плавность работает только когда isAnimating = true
                     transition: isAnimating
                         ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.1, 0.25, 1)`
                         : 'none',
@@ -164,7 +125,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             >
                 {reelItems.map((prize, index) => (
                     <div
-                        key={`${index}-${prize.name}`} // Индекс в ключе обязателен для правильного переиспользования DOM
+                        key={`${index}-${prize.name}`}
                         className="h-full flex items-center justify-center p-2 flex-shrink-0"
                         style={{ width: REEL_ITEM_WIDTH }}
                     >
@@ -179,7 +140,6 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                                         alt={prize.name}
                                         className="max-w-full max-h-full object-contain"
                                         loading="eager"
-                                        draggable={false}
                                     />
                                 </div>
                             )}
