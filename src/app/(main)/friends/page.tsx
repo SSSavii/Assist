@@ -31,8 +31,13 @@ const GlobalStyles = () => (
       crossOrigin="anonymous"
     />
     
-    {/* Preload главного изображения */}
-    <link rel="preload" href="/images/friends-header.png" as="image" />
+    {/* Preload главного изображения с высоким приоритетом */}
+    <link 
+      rel="preload" 
+      href="/images/friends-header.png" 
+      as="image" 
+      fetchPriority="high"
+    />
     
     <style jsx global>{`
       * {
@@ -257,6 +262,8 @@ export default function FriendsPage() {
                   width={343} 
                   height={300}
                   priority
+                  quality={100}
+                  loading="eager"
                   style={{
                     width: '100%',
                     height: 'auto',

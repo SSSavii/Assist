@@ -33,6 +33,32 @@ const GlobalStyles = () => (
       crossOrigin="anonymous"
     />
     
+    {/* Preload иконки кристаллов */}
+    <link
+      rel="preload"
+      href="/images/322.png"
+      as="image"
+      fetchPriority="high"
+    />
+    
+    {/* Preload всех изображений призов */}
+    <link rel="preload" href="/prizes/3000-aplus.png" as="image" />
+    <link rel="preload" href="/prizes/closed-event.png" as="image" />
+    <link rel="preload" href="/prizes/individual-60min.png" as="image" />
+    <link rel="preload" href="/prizes/breakfast.png" as="image" />
+    <link rel="preload" href="/prizes/2000-aplus.png" as="image" />
+    <link rel="preload" href="/prizes/entrepreneur-analysis.png" as="image" />
+    <link rel="preload" href="/prizes/lifehacks.png" as="image" />
+    <link rel="preload" href="/prizes/lottery-10min.png" as="image" />
+    <link rel="preload" href="/prizes/weekly-call.png" as="image" />
+    <link rel="preload" href="/prizes/1000-aplus.png" as="image" />
+    <link rel="preload" href="/prizes/resume.png" as="image" />
+    <link rel="preload" href="/prizes/500-aplus.png" as="image" />
+    <link rel="preload" href="/prizes/team-analysis.png" as="image" />
+    <link rel="preload" href="/prizes/checklist.png" as="image" />
+    <link rel="preload" href="/prizes/100-aplus.png" as="image" />
+    <link rel="preload" href="/prizes/250-aplus.png" as="image" />
+    
     <style jsx global>{`
       * {
         box-sizing: border-box;
@@ -572,6 +598,7 @@ export default function ShopPage() {
                         alt="Crystal" 
                         width={25} 
                         height={25}
+                        priority
                         style={{ 
                           filter: 'drop-shadow(0px 2px 6px rgba(0, 0, 0, 0.25))'
                         }}
