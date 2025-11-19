@@ -516,10 +516,8 @@ export default function HomePage() {
             <div className="balance-amount">{user.balance_crystals}</div>
 
             <p className="balance-description">
-              <span className="description-text">
-                Кликай, зарабатывай плюсы, <br />и меняй их в{" "}
-              </span>
-              <span className="description-bold">аукционе знакомств</span>
+              Кликай, зарабатывай плюсы,<br />
+              и меняй их в <span className="description-bold">аукционе знакомств</span>
             </p>
           </section>
 
@@ -821,7 +819,7 @@ export default function HomePage() {
           }
           
           .balance-description {
-            width: 240px;
+            width: 260px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 400;
             font-size: 18px;
@@ -830,10 +828,6 @@ export default function HomePage() {
             line-height: 21px;
             letter-spacing: -0.34px;
             margin: 0;
-          }
-          
-          .description-text {
-            letter-spacing: -0.05px;
           }
           
           .description-bold {

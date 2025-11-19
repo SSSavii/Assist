@@ -92,7 +92,6 @@ type Prize = {
   id: number;
   chance: string;
   chanceColor: string;
-  points: string;
   items: string[];
 };
 
@@ -126,8 +125,8 @@ export default function PrizesPage() {
       id: 1,
       chance: 'Супер редкий шанс',
       chanceColor: '#FFCA37',
-      points: '3000 A+',
       items: [
+        '3000 A+',
         'Завтрак с предпринимателем (онлайн-формат или офлайн при наличии слотов)',
         'Индивидуальный разбор 60 минут от предпринимателя',
         'Приглашение на закрытое мероприятие/митап'
@@ -137,8 +136,8 @@ export default function PrizesPage() {
       id: 2,
       chance: 'Очень маленький шанс',
       chanceColor: '#FF6A6A',
-      points: '2000 A+',
       items: [
+        '2000 A+',
         'Разбор 1 запроса от предпринимателя с высокой выручкой',
         'Пакет практических лайфхаков (видеоурок/гайд)'
       ]
@@ -147,8 +146,8 @@ export default function PrizesPage() {
       id: 3,
       chance: 'Маленький шанс',
       chanceColor: '#E895FF',
-      points: '1000 A+',
       items: [
+        '1000 A+',
         'Розыгрыш онлайн-мини-разбора (10 минут)',
         'Приглашение на еженедельный созвон с командой АССИСТ+ (с возможным разбором)',
         'Разбор резюме'
@@ -158,8 +157,8 @@ export default function PrizesPage() {
       id: 4,
       chance: 'Хороший шанс',
       chanceColor: '#9EA4FF',
-      points: '500 A+',
       items: [
+        '500 A+',
         'Разбор запроса от команды'
       ]
     },
@@ -167,7 +166,6 @@ export default function PrizesPage() {
       id: 5,
       chance: 'Отличный шанс',
       chanceColor: '#F1F1F1',
-      points: '',
       items: [
         '1 тематический чек-лист (без повторов). После 10 чек-листов — 250 A+',
         '250 A+',
@@ -202,11 +200,6 @@ export default function PrizesPage() {
                 </div>
                 
                 <div className="prize-description">
-                  {prize.points && (
-                    <>
-                      <div className="prize-points">{prize.points}</div>
-                    </>
-                  )}
                   <ul className="prize-list">
                     {prize.items.map((item, index) => (
                       <li key={index} className="prize-list-item">{item}</li>
@@ -334,11 +327,6 @@ export default function PrizesPage() {
             order: 1;
             align-self: stretch;
             flex-grow: 0;
-          }
-
-          .prize-points {
-            font-weight: 500;
-            margin-bottom: 4px;
           }
 
           .prize-list {
