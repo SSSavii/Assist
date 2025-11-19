@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
-import { useEffect, useState, useRef, useLayoutEffect, useMemo } from 'react';
+import { useEffect, useState, useRef, useLayoutEffect } from 'react';
 
 type Prize = { name: string; icon: string };
 
@@ -23,62 +22,61 @@ const shuffle = (array: Prize[]): Prize[] => {
 
 const REEL_ITEM_WIDTH = 115;
 const ANIMATION_DURATION = 6000;
+const MIN_SPIN_DISTANCE = 40;
 const POST_ANIMATION_DELAY = 1000;
 
 export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: HorizontalTextSlotMachineProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
     
-    // --- ЖЕЛЕЗОБЕТОННОЕ НАЧАЛО ---
-    // Мы вычисляем "frozenStart" только ОДИН РАЗ.
-    // Даже если prizes изменятся, это начало останется старым, чтобы не было скачков.
-    const [frozenStart, setFrozenStart] = useState<Prize[]>([]);
-
     const [reelItems, setReelItems] = useState<Prize[]>([]);
     const [transform, setTransform] = useState('translateX(0px)');
     const [isAnimating, setIsAnimating] = useState(false);
-    
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const lastSpinIdRef = useRef<number>(spinId);
+    const [isInitialized, setIsInitialized] = useState(false);
+    const lastSpinIdRef = useRef<number>(-1);
 
-    // 1. ИНИЦИАЛИЗАЦИЯ ЗАМОРОЖЕННОГО НАЧАЛА
-    useLayoutEffect(() => {
-        if (prizes.length > 0 && frozenStart.length === 0) {
-            // Берем случайные 7 картинок для старта
-            const start = shuffle(prizes).slice(0, 7);
-            // Если мало призов, дополняем
-            while (start.length < 7 && prizes.length > 0) {
-                start.push(prizes[start.length % prizes.length]);
+    // !!! ГЛАВНОЕ ИЗМЕНЕНИЕ !!!
+    // Храним "Шаблон начала" (первые 5-7 картинок).
+    // Генерируем его ОДИН РАЗ при загрузке и больше никогда не меняем.
+    const startPatternRef = useRef<Prize[]>([]);
+
+    // Функция для создания ленты.
+    // Она берет startPatternRef + случайный хвост.
+    // Благодаря этому начало ленты ВСЕГДА байт-в-байт совпадает с тем, что на экране.
+    const generateConsistentReel = (allPrizes: Prize[]) => {
+        // Если шаблон пуст (первый запуск), создаем его случайно
+        if (startPatternRef.current.length === 0 && allPrizes.length > 0) {
+            const randomStart = shuffle(allPrizes).slice(0, 7); // Берем 7 случайных
+            // Если призов мало, добиваем дублями
+            while (randomStart.length < 7 && allPrizes.length > 0) {
+                randomStart.push(allPrizes[randomStart.length % allPrizes.length]);
             }
-            setFrozenStart(start);
+            startPatternRef.current = randomStart;
         }
-    }, [prizes]); // Зависит от prizes, но внутри проверка length === 0, так что сработает 1 раз
 
-    useLayoutEffect(() => {
-        if (containerRef.current) {
-            setContainerWidth(containerRef.current.offsetWidth);
-        }
-    }, []);
-
-    // ФУНКЦИЯ-КОНСТРУКТОР ЛЕНТЫ
-    // Всегда приклеивает frozenStart в начало
-    const buildReel = (startItems: Prize[], allPrizes: Prize[]) => {
-        const randomPart = Array.from({ length: 25 }, () => shuffle(allPrizes)).flat();
-        return [...startItems, ...randomPart];
+        // Строим ленту: [ШАБЛОН] + [СЛУЧАЙНЫЙ ХВОСТ]
+        const randomPart = Array.from({ length: 20 }, () => shuffle(allPrizes)).flat();
+        return [...startPatternRef.current, ...randomPart];
     };
 
-    // 2. СОЗДАНИЕ ПЕРВОЙ ЛЕНТЫ (как только frozenStart готов)
-    useEffect(() => {
-        if (frozenStart.length > 0 && reelItems.length === 0) {
-            const initialReel = buildReel(frozenStart, prizes);
-            setReelItems(initialReel);
+    // 1. ИНИЦИАЛИЗАЦИЯ
+    useLayoutEffect(() => {
+        if (containerRef.current) {
+            const width = containerRef.current.offsetWidth;
+            setContainerWidth(width);
+            
+            if (prizes.length > 0) {
+                const initialReel = generateConsistentReel(prizes);
+                setReelItems(initialReel);
+                setIsInitialized(true);
+            }
         }
-    }, [frozenStart, prizes]);
+    }, [prizes]);
 
-    // 3. ЛОГИКА СПИНА
+    // 2. ЛОГИКА СПИНА
     useEffect(() => {
-        // Базовые проверки
-        if (frozenStart.length === 0 || 
+        if (!isInitialized || 
             !winningPrize || 
             containerWidth === 0 || 
             lastSpinIdRef.current === spinId) {
@@ -86,61 +84,61 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
         }
         
         lastSpinIdRef.current = spinId;
-
-        // СТРОИМ ЛЕНТУ ДЛЯ СПИНА
-        // 1. Начало берем из frozenStart (оно 100% совпадает с тем, что на экране)
-        // 2. Хвост случайный
-        const spinReel = buildReel(frozenStart, prizes);
         
-        // Вставляем выигрыш далеко вправо
-        const targetIndex = 45 + Math.floor(Math.random() * 5); // 45-50
-        if (targetIndex < spinReel.length) {
-            spinReel[targetIndex] = { ...winningPrize };
-        }
-
-        // СБРОС
-        // Мы подменяем массив. Но так как первые 7 элементов (frozenStart) идентичны,
-        // React не перерисует их, и визуального скачка не будет.
-        setIsAnimating(false);
-        setReelItems(spinReel);
-        setTransform('translateX(0px)');
-
-        const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
-
-        // ЗАПУСК
-        setTimeout(() => {
-            setIsAnimating(true);
-            setTransform(`translateX(${finalPosition}px)`);
-
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        // Генерируем ленту. Начало у неё будет ИДЕНТИЧНО startPatternRef.
+        const newReel = generateConsistentReel(prizes);
+        
+        const targetIndex = MIN_SPIN_DISTANCE + Math.floor(Math.random() * 10);
+        
+        if (targetIndex < newReel.length) {
+            newReel[targetIndex] = { ...winningPrize };
             
-            timeoutRef.current = setTimeout(() => {
-                setIsAnimating(false);
-                setTimeout(() => {
-                    onSpinEnd();
-                }, POST_ANIMATION_DELAY);
-            }, ANIMATION_DURATION);
-        }, 50); // 50мс задержка для отрисовки DOM
+            // Обновляем стейт. 
+            // Т.к. первые 7 элементов newReel и текущего reelItems совпадают ссылочно (через Ref),
+            // React их не трогает -> Нет мигания.
+            setReelItems(newReel);
+            
+            // СБРОС В НОЛЬ (Мгновенно)
+            setIsAnimating(false);
+            setTransform('translateX(0px)');
+
+            const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
+            
+            // ЗАПУСК (С задержкой 50мс для надежности)
+            setTimeout(() => {
+                setIsAnimating(true);
+                setTransform(`translateX(${finalPosition}px)`);
+
+                if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                
+                timeoutRef.current = setTimeout(() => {
+                    setIsAnimating(false);
+                    setTimeout(() => {
+                        onSpinEnd();
+                        // ЗДЕСЬ ВАЖНО:
+                        // Когда родитель обновит winningPrize (подготовка к след. игре),
+                        // сработает useEffect ниже (пункт 3) и вернет барабан в начало.
+                    }, POST_ANIMATION_DELAY);
+                }, ANIMATION_DURATION);
+            }, 50);
+        }
 
         return () => {
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
         };
-    }, [spinId, containerWidth, winningPrize, frozenStart, onSpinEnd, prizes]);
+    }, [winningPrize, spinId, containerWidth, isInitialized, onSpinEnd, prizes]);
 
-    // 4. ЛОГИКА ВОЗВРАТА (После спина)
+    // 3. ВОЗВРАТ В НАЧАЛО (ПРИ СМЕНЕ WINNING PRIZE)
+    // Это происходит, когда мы закрываем модалку и получаем новый приз для следующей игры.
     useEffect(() => {
-        // Если winningPrize изменился (или стал null), и мы не крутимся сейчас...
-        // Возвращаем барабан в начало.
-        // Снова используем frozenStart, чтобы вернуться к знакомой картинке.
-        if (frozenStart.length > 0 && !isAnimating) {
-             // При желании здесь можно сгенерировать НОВЫЙ frozenStart, если ты хочешь разнообразия 
-             // после каждого раунда. Но пока оставим старый для стабильности.
-             setTransform('translateX(0px)');
-             // Опционально: обновить хвост
-             const resetReel = buildReel(frozenStart, prizes);
-             setReelItems(resetReel);
+        // Если мы не крутимся и есть инициализация
+        if (!isAnimating && isInitialized && prizes.length > 0) {
+            // Возвращаем барабан к виду "Шаблон + новый хвост"
+            const resetReel = generateConsistentReel(prizes);
+            setReelItems(resetReel);
+            setTransform('translateX(0px)'); 
         }
-    }, [winningPrize]); // Реагируем на смену приза (подготовку к новому раунду)
+    }, [winningPrize]); 
 
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-red-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
@@ -155,8 +153,8 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             >
                 {reelItems.map((prize, index) => (
                     <div
-                        // Важно: используем index в ключе, чтобы React не пытался умничать с перемещением элементов
-                        key={`${index}-${prize.name}`} 
+                        // Index в ключе важен для предотвращения пересоздания DOM элементов
+                        key={`${index}-${prize.name}`}
                         className="h-full flex items-center justify-center p-2 flex-shrink-0"
                         style={{ width: REEL_ITEM_WIDTH }}
                     >
