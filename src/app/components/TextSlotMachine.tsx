@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
-import { useEffect, useState, useRef, useLayoutEffect } from 'react';
+import { useEffect, useState, useRef, useLayoutEffect, useMemo } from 'react';
 
 type Prize = { name: string; icon: string };
 
@@ -28,29 +29,30 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
     
-    // Текущее состояние ленты на экране
+    // --- ЖЕЛЕЗОБЕТОННОЕ НАЧАЛО ---
+    // Мы вычисляем "frozenStart" только ОДИН РАЗ.
+    // Даже если prizes изменятся, это начало останется старым, чтобы не было скачков.
+    const [frozenStart, setFrozenStart] = useState<Prize[]>([]);
+
     const [reelItems, setReelItems] = useState<Prize[]>([]);
     const [transform, setTransform] = useState('translateX(0px)');
     const [isAnimating, setIsAnimating] = useState(false);
     
-    // ХРАНИЛИЩЕ "МАСТЕР-ЛЕНТЫ"
-    // Это та лента, которую мы сгенерировали при входе. Мы будем всегда возвращаться к ней.
-    const [masterReel, setMasterReel] = useState<Prize[]>([]);
-
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const lastSpinIdRef = useRef<number>(-1);
+    const lastSpinIdRef = useRef<number>(spinId);
 
-    // 1. ИНИЦИАЛИЗАЦИЯ (Один раз при загрузке)
+    // 1. ИНИЦИАЛИЗАЦИЯ ЗАМОРОЖЕННОГО НАЧАЛА
     useLayoutEffect(() => {
-        if (prizes.length > 0 && masterReel.length === 0) {
-            // Генерируем длинную ленту (25 циклов, чтобы хватило с запасом)
-            const initialReel = Array.from({ length: 25 }, () => shuffle(prizes)).flat();
-            
-            // Сохраняем её в "Мастер" и сразу показываем на экране
-            setMasterReel(initialReel);
-            setReelItems(initialReel);
+        if (prizes.length > 0 && frozenStart.length === 0) {
+            // Берем случайные 7 картинок для старта
+            const start = shuffle(prizes).slice(0, 7);
+            // Если мало призов, дополняем
+            while (start.length < 7 && prizes.length > 0) {
+                start.push(prizes[start.length % prizes.length]);
+            }
+            setFrozenStart(start);
         }
-    }, [prizes]); // masterReel в зависимости не добавляем, чтобы не пересоздавать
+    }, [prizes]); // Зависит от prizes, но внутри проверка length === 0, так что сработает 1 раз
 
     useLayoutEffect(() => {
         if (containerRef.current) {
@@ -58,21 +60,25 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
         }
     }, []);
 
-    // 2. ЛОГИКА СБРОСА (Возврат в начало)
-    // Если winningPrize меняется (например, мы закрыли модалку и готовимся к новой игре),
-    // мы возвращаем барабан к состоянию "Мастер-ленты".
+    // ФУНКЦИЯ-КОНСТРУКТОР ЛЕНТЫ
+    // Всегда приклеивает frozenStart в начало
+    const buildReel = (startItems: Prize[], allPrizes: Prize[]) => {
+        const randomPart = Array.from({ length: 25 }, () => shuffle(allPrizes)).flat();
+        return [...startItems, ...randomPart];
+    };
+
+    // 2. СОЗДАНИЕ ПЕРВОЙ ЛЕНТЫ (как только frozenStart готов)
     useEffect(() => {
-        if (masterReel.length > 0) {
-            // Мгновенно возвращаем всё как было при загрузке
-            setIsAnimating(false);
-            setTransform('translateX(0px)');
-            setReelItems(masterReel); 
+        if (frozenStart.length > 0 && reelItems.length === 0) {
+            const initialReel = buildReel(frozenStart, prizes);
+            setReelItems(initialReel);
         }
-    }, [winningPrize, masterReel]); 
+    }, [frozenStart, prizes]);
 
     // 3. ЛОГИКА СПИНА
     useEffect(() => {
-        if (masterReel.length === 0 || 
+        // Базовые проверки
+        if (frozenStart.length === 0 || 
             !winningPrize || 
             containerWidth === 0 || 
             lastSpinIdRef.current === spinId) {
@@ -81,29 +87,27 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
         
         lastSpinIdRef.current = spinId;
 
-        // --- САМОЕ ВАЖНОЕ ---
-        // Мы НЕ генерируем новую ленту. Мы берем копию Мастер-ленты.
-        const spinReel = [...masterReel];
+        // СТРОИМ ЛЕНТУ ДЛЯ СПИНА
+        // 1. Начало берем из frozenStart (оно 100% совпадает с тем, что на экране)
+        // 2. Хвост случайный
+        const spinReel = buildReel(frozenStart, prizes);
         
-        // Выбираем индекс для победы (40-50)
-        const targetIndex = 40 + Math.floor(Math.random() * 10);
-        
-        // Подменяем ТОЛЬКО один элемент далеко справа.
-        // Первые 40 элементов остаются ИДЕНТИЧНЫМИ тем, что сейчас на экране.
+        // Вставляем выигрыш далеко вправо
+        const targetIndex = 45 + Math.floor(Math.random() * 5); // 45-50
         if (targetIndex < spinReel.length) {
             spinReel[targetIndex] = { ...winningPrize };
         }
 
-        // Обновляем состояние.
-        // React увидит, что первые элементы не изменились, и не будет их трогать.
-        // Скачка быть не должно.
+        // СБРОС
+        // Мы подменяем массив. Но так как первые 7 элементов (frozenStart) идентичны,
+        // React не перерисует их, и визуального скачка не будет.
         setIsAnimating(false);
         setReelItems(spinReel);
         setTransform('translateX(0px)');
 
         const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
 
-        // Запускаем анимацию с микро-задержкой
+        // ЗАПУСК
         setTimeout(() => {
             setIsAnimating(true);
             setTransform(`translateX(${finalPosition}px)`);
@@ -114,16 +118,29 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                 setIsAnimating(false);
                 setTimeout(() => {
                     onSpinEnd();
-                    // После этого вызова, когда родитель обновит данные, 
-                    // сработает useEffect №2 и вернет барабан к masterReel.
                 }, POST_ANIMATION_DELAY);
             }, ANIMATION_DURATION);
-        }, 50);
+        }, 50); // 50мс задержка для отрисовки DOM
 
         return () => {
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
         };
-    }, [spinId, containerWidth, winningPrize, masterReel, onSpinEnd]);
+    }, [spinId, containerWidth, winningPrize, frozenStart, onSpinEnd, prizes]);
+
+    // 4. ЛОГИКА ВОЗВРАТА (После спина)
+    useEffect(() => {
+        // Если winningPrize изменился (или стал null), и мы не крутимся сейчас...
+        // Возвращаем барабан в начало.
+        // Снова используем frozenStart, чтобы вернуться к знакомой картинке.
+        if (frozenStart.length > 0 && !isAnimating) {
+             // При желании здесь можно сгенерировать НОВЫЙ frozenStart, если ты хочешь разнообразия 
+             // после каждого раунда. Но пока оставим старый для стабильности.
+             setTransform('translateX(0px)');
+             // Опционально: обновить хвост
+             const resetReel = buildReel(frozenStart, prizes);
+             setReelItems(resetReel);
+        }
+    }, [winningPrize]); // Реагируем на смену приза (подготовку к новому раунду)
 
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-red-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
@@ -138,7 +155,8 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             >
                 {reelItems.map((prize, index) => (
                     <div
-                        key={`${index}-${prize.name}`} // Используем index, так как порядок жестко зафиксирован
+                        // Важно: используем index в ключе, чтобы React не пытался умничать с перемещением элементов
+                        key={`${index}-${prize.name}`} 
                         className="h-full flex items-center justify-center p-2 flex-shrink-0"
                         style={{ width: REEL_ITEM_WIDTH }}
                     >
@@ -153,6 +171,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                                         alt={prize.name}
                                         className="max-w-full max-h-full object-contain"
                                         loading="eager"
+                                        draggable={false}
                                     />
                                 </div>
                             )}
