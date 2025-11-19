@@ -147,12 +147,12 @@ export default function OfflineEventsPage() {
     {
       id: 2,
       title: "Спорт",
-      link: "https://t.me/+6flpcSdc4sg5OTAy"
+      link: "https://t.me/c/2782276287/343"
     },
     {
       id: 3,
       title: "Running club",
-      link: "https://t.me/+6flpcSdc4sg5OTAy"
+      link: "https://t.me/c/2782276287/190"
     }
   ];
 

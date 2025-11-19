@@ -134,19 +134,19 @@ const ALL_PRIZES: Prize[] = [
   { name: 'Завтрак с предпринимателем', type: 'impossible', probability: 0, canWin: false, deliveryType: 'manual', image: '/prizes/breakfast.png' },
   
   // Очень маленький шанс (0.5%)
-  { name: '2000 A+', type: 'very_rare', probability: 0.166, canWin: true, deliveryType: 'instant', image: '/prizes/2000-aplus.png' },
+  { name: '2000 A+', type: 'very_rare', probability: 2, canWin: true, deliveryType: 'instant', image: '/prizes/2000-aplus.png' },
   { name: 'Разбор 1 запроса от предпринимателя с высокой выручкой', type: 'very_rare', probability: 0.167, canWin: true, deliveryType: 'manual', image: '/prizes/entrepreneur-analysis.png' },
   { name: 'Пакет практических лайфхаков', type: 'very_rare', probability: 0.167, canWin: true, deliveryType: 'bot_message', image: '/prizes/lifehacks.png' },
   
   // Маленький шанс (10%)
-  { name: 'Участие в розыгрыше на 10-ти минутный онлайн-мини-разбор', type: 'rare', probability: 2.5, canWin: true, deliveryType: 'manual', image: '/prizes/lottery-10min.png' },
-  { name: 'Участие в еженедельном созвоне с БА', type: 'rare', probability: 2.5, canWin: true, deliveryType: 'manual', image: '/prizes/weekly-call.png' },
-  { name: '1000 A+', type: 'rare', probability: 2.5, canWin: true, deliveryType: 'instant', image: '/prizes/1000-aplus.png' },
-  { name: 'Разбор вашего резюме', type: 'rare', probability: 2.5, canWin: true, deliveryType: 'manual', image: '/prizes/resume.png' },
+  { name: 'Участие в розыгрыше на 10-ти минутный онлайн-мини-разбор', type: 'rare', probability: 0.5, canWin: true, deliveryType: 'manual', image: '/prizes/lottery-10min.png' },
+  { name: 'Участие в еженедельном созвоне с БА', type: 'rare', probability: 0.5, canWin: true, deliveryType: 'manual', image: '/prizes/weekly-call.png' },
+  { name: '1000 A+', type: 'rare', probability: 8.5, canWin: true, deliveryType: 'instant', image: '/prizes/1000-aplus.png' },
+  { name: 'Разбор вашего резюме', type: 'rare', probability: 0.5, canWin: true, deliveryType: 'manual', image: '/prizes/resume.png' },
   
   // Хороший шанс (35%)
-  { name: '500 A+', type: 'common', probability: 17.5, canWin: true, deliveryType: 'instant', image: '/prizes/500-aplus.png' },
-  { name: 'Разбор запроса от команды', type: 'common', probability: 17.5, canWin: true, deliveryType: 'manual', image: '/prizes/team-analysis.png' },
+  { name: '500 A+', type: 'common', probability: 25.5, canWin: true, deliveryType: 'instant', image: '/prizes/500-aplus.png' },
+  { name: 'Разбор запроса от команды', type: 'common', probability: 5, canWin: true, deliveryType: 'manual', image: '/prizes/team-analysis.png' },
   
   // Отличный шанс (54.5%)
   { name: 'Чек-лист', type: 'excellent', probability: 18.17, canWin: true, deliveryType: 'bot_message', image: '/prizes/checklist.png' },
@@ -172,7 +172,7 @@ interface DailyLimit {
 }
 
 const CASE_COST = 500;
-const PREMIUM_ITEM_COST = 10000;
+const PREMIUM_ITEM_COST = 100000;
 
 // Функция предзагрузки изображений
 const preloadImages = (imageUrls: string[]): Promise<void[]> => {
@@ -422,7 +422,7 @@ export default function ShopPage() {
       setDailyLimit({
         remaining: limitData.remaining,
         used: limitData.used,
-        maxLimit: dailyLimit?.maxLimit || 5
+        maxLimit: dailyLimit?.maxLimit || 50
       });
 
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -593,7 +593,7 @@ export default function ShopPage() {
           {!user?.bot_started && (
             <button onClick={handleOpenBot} className="bot-warning">
               <p className="warning-title">Внимание!</p>
-              <p className="warning-text">Запустите бота для получения призов</p>
+              <p className="warning-text">Запустите бота для получения призов и возможности крутить рулетку</p>
             </button>
           )}
 

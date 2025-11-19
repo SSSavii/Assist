@@ -146,8 +146,8 @@ export default function PodcastsPage() {
     },
     {
       id: 2,
-      title: "Подкаст 2",
-      link: "https://t.me/+6flpcSdc4sg5OTAy"
+      title: "Научиться мыслить как предприниматель",
+      link: "https://t.me/c/2782276287/287"
     }
   ];
 
