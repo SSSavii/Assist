@@ -22,61 +22,66 @@ const shuffle = (array: Prize[]): Prize[] => {
 
 const REEL_ITEM_WIDTH = 115;
 const ANIMATION_DURATION = 6000;
-const MIN_SPIN_DISTANCE = 40;
 const POST_ANIMATION_DELAY = 1000;
 
 export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: HorizontalTextSlotMachineProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
+    
     const [reelItems, setReelItems] = useState<Prize[]>([]);
     const [transform, setTransform] = useState('translateX(0px)');
     const [isAnimating, setIsAnimating] = useState(false);
     
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const [isInitialized, setIsInitialized] = useState(false);
     const lastSpinIdRef = useRef<number>(-1);
 
-    // ИЗМЕНЕНИЕ 1: Храним "Лицо" слота (первые 5 картинок) в рефе, чтобы оно не менялось во время сессии
-    const startSequenceRef = useRef<Prize[]>([]);
+    // ИЗМЕНЕНИЕ: Сохраняем один "Статичный" перемешанный набор призов при входе.
+    // Он будет служить источником для "неизменяемого начала".
+    const [staticPrizes, setStaticPrizes] = useState<Prize[]>([]);
 
-    // Функция генерации ленты. Теперь она принимает фиксированное начало как аргумент.
-    const generateReelWithFixedStart = (startSequence: Prize[], allPrizes: Prize[]) => {
-        // 1. Берем наше запомненное начало
-        const fixedStart = [...startSequence];
-        
-        // 2. Остальное - случайная каша
-        const randomPart = Array.from({ length: 20 }, () => shuffle(allPrizes)).flat();
-        
-        return [...fixedStart, ...randomPart];
-    };
+    // 1. При загрузке один раз перемешиваем призы и запоминаем их навсегда для этой сессии.
+    useLayoutEffect(() => {
+        if (prizes.length > 0 && staticPrizes.length === 0) {
+            setStaticPrizes(shuffle(prizes));
+        }
+    }, [prizes]); // staticPrizes не добавляем в зависимости, чтобы не зациклить
 
     useLayoutEffect(() => {
         if (containerRef.current) {
-            const width = containerRef.current.offsetWidth;
-            setContainerWidth(width);
-            
-            // ИЗМЕНЕНИЕ 2: Если "Лицо" еще не выбрано - выбираем 5 случайных призов
-            if (startSequenceRef.current.length === 0 && prizes.length > 0) {
-                // Перемешиваем копию призов и берем первые 5
-                const randomStart = shuffle(prizes).slice(0, 5);
-                // Если призов очень мало (меньше 5), дублируем их
-                while (randomStart.length < 5 && prizes.length > 0) {
-                     randomStart.push(prizes[randomStart.length % prizes.length]);
-                }
-                startSequenceRef.current = randomStart;
-            }
-
-            // Создаем первую ленту с этим случайным началом
-            if (startSequenceRef.current.length > 0) {
-                const initialReel = generateReelWithFixedStart(startSequenceRef.current, prizes);
-                setReelItems(initialReel);
-                setIsInitialized(true);
-            }
+            setContainerWidth(containerRef.current.offsetWidth);
         }
-    }, [prizes]);
+    }, []);
 
+    // ФУНКЦИЯ ГЕНЕРАЦИИ (Вернулись к логике Версии 1, но используем sourceArray)
+    const generateReel = (sourceArray: Prize[]) => {
+        if (sourceArray.length === 0) return [];
+
+        // Берем первые 5 элементов ИЗ НАШЕГО СТАТИЧНОГО СПИСКА.
+        // Так как staticPrizes не меняется, эти 5 элементов ВСЕГДА будут одними и теми же.
+        const fixedStart = sourceArray.slice(0, 5);
+
+        // Добиваем до 5, если мало призов
+        while (fixedStart.length < 5 && sourceArray.length > 0) {
+            fixedStart.push(sourceArray[fixedStart.length % sourceArray.length]);
+        }
+
+        // Хвост генерируем случайно каждый раз
+        const randomPart = Array.from({ length: 20 }, () => shuffle(sourceArray)).flat();
+
+        return [...fixedStart, ...randomPart];
+    };
+
+    // 2. Инициализация барабана (как только staticPrizes готов)
     useEffect(() => {
-        if (!isInitialized || 
+        if (staticPrizes.length > 0 && reelItems.length === 0) {
+            setReelItems(generateReel(staticPrizes));
+        }
+    }, [staticPrizes]);
+
+    // 3. ЛОГИКА СПИНА
+    useEffect(() => {
+        // Ждем, пока будет готов staticPrizes, ширина и т.д.
+        if (staticPrizes.length === 0 || 
             !winningPrize || 
             containerWidth === 0 || 
             lastSpinIdRef.current === spinId) {
@@ -84,44 +89,43 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
         }
         
         lastSpinIdRef.current = spinId;
-        
-        // ИЗМЕНЕНИЕ 3: Генерируем новую ленту, используя ТО ЖЕ САМОЕ начало, что и при загрузке
-        const newReel = generateReelWithFixedStart(startSequenceRef.current, prizes);
-        
-        const targetIndex = MIN_SPIN_DISTANCE + Math.floor(Math.random() * 10);
-        
-        if (targetIndex < newReel.length) {
-            // Вставляем выигрыш
-            newReel[targetIndex] = { ...winningPrize };
-            
-            // Обновляем стейт (визуально ничего не дернется, так как начало startSequenceRef неизменно)
-            setReelItems(newReel);
-            
-            const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
-            
-            setTimeout(() => {
-                setIsAnimating(true);
-                setTransform(`translateX(${finalPosition}px)`);
 
-                if (timeoutRef.current) {
-                    clearTimeout(timeoutRef.current);
-                }
-                
-                timeoutRef.current = setTimeout(() => {
-                    setIsAnimating(false);
-                    setTimeout(() => {
-                        onSpinEnd();
-                    }, POST_ANIMATION_DELAY);
-                }, ANIMATION_DURATION);
-            }, 100);
+        // Генерируем новую ленту, используя staticPrizes.
+        // Начало будет ГАРАНТИРОВАННО таким же, как сейчас на экране.
+        const newReel = generateReel(staticPrizes);
+        
+        // Вставляем выигрыш (далеко справа)
+        const targetIndex = 40 + Math.floor(Math.random() * 10);
+        if (targetIndex < newReel.length) {
+            newReel[targetIndex] = { ...winningPrize };
         }
 
+        // СБРОС (Визуально незаметен, т.к. newReel[0..4] === reelItems[0..4])
+        setIsAnimating(false);
+        setReelItems(newReel);
+        setTransform('translateX(0px)');
+
+        const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
+
+        // Запуск через 50мс
+        setTimeout(() => {
+            setIsAnimating(true);
+            setTransform(`translateX(${finalPosition}px)`);
+
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            
+            timeoutRef.current = setTimeout(() => {
+                setIsAnimating(false);
+                setTimeout(() => {
+                    onSpinEnd();
+                }, POST_ANIMATION_DELAY);
+            }, ANIMATION_DURATION);
+        }, 50);
+
         return () => {
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
         };
-    }, [winningPrize, spinId, containerWidth, isInitialized, onSpinEnd, prizes]);
+    }, [spinId, containerWidth, winningPrize, staticPrizes, onSpinEnd]);
 
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-red-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
