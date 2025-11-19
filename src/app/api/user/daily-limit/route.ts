@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/init-database';
 import { validateTelegramHash } from '@/lib/telegram-auth';
 
-const DAILY_CASE_LIMIT = 50;
+const DAILY_CASE_LIMIT = 5;
 
 interface TelegramUser {
   id: number;
