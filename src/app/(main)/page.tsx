@@ -819,14 +819,14 @@ export default function HomePage() {
           }
           
           .balance-description {
-            width: 260px;
+            width: 280px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 400;
-            font-size: 18px;
+            font-size: 16px;
             text-align: center;
             color: #000000;
-            line-height: 21px;
-            letter-spacing: -0.34px;
+            line-height: 19px;
+            letter-spacing: -0.30px;
             margin: 0;
           }
           
@@ -1143,6 +1143,11 @@ export default function HomePage() {
             .main-container {
               padding: 20px 0px 0px;
               padding-bottom: 70px;
+            }
+            
+            .balance-description {
+              font-size: 15px;
+              line-height: 18px;
             }
             
             .task-card {
