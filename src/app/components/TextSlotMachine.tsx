@@ -56,39 +56,41 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
         
         lastSpinIdRef.current = spinId;
         
-        // ШАГ 1: Сбрасываем позицию барабана в начало БЕЗ анимации
-        setIsAnimating(false);
-        setTransform('translateX(0px)');
-        
-        // ШАГ 2: Генерируем новый барабан с выигрышем
+        // ШАГ 1: Генерируем новый барабан с выигрышным призом
         const newReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
         const targetIndex = MIN_SPIN_DISTANCE + Math.floor(Math.random() * 10);
         
         if (targetIndex < newReel.length) {
             newReel[targetIndex] = { ...winningPrize };
             
-            // ШАГ 3: Обновляем барабан (теперь это не видно, т.к. барабан в позиции 0)
-            setReelItems(newReel);
-            
             const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
             
-            // ШАГ 4: Запускаем анимацию с небольшой задержкой
-            // Задержка нужна, чтобы React успел отрендерить новые элементы
-            setTimeout(() => {
-                setIsAnimating(true);
-                setTransform(`translateX(${finalPosition}px)`);
+            // ШАГ 2: Выключаем transition и сбрасываем позицию
+            setIsAnimating(false);
+            setTransform('translateX(0px)');
+            setReelItems(newReel);
+            
+            // ШАГ 3: Используем двойной requestAnimationFrame
+            // Первый RAF - ждем пока браузер применит изменения DOM
+            requestAnimationFrame(() => {
+                // Второй RAF - гарантируем что прошел полный цикл рендеринга
+                requestAnimationFrame(() => {
+                    // Теперь запускаем анимацию
+                    setIsAnimating(true);
+                    setTransform(`translateX(${finalPosition}px)`);
 
-                if (timeoutRef.current) {
-                    clearTimeout(timeoutRef.current);
-                }
-                
-                timeoutRef.current = setTimeout(() => {
-                    setIsAnimating(false);
-                    setTimeout(() => {
-                        onSpinEnd();
-                    }, POST_ANIMATION_DELAY);
-                }, ANIMATION_DURATION);
-            }, 50); // Уменьшили с 100ms до 50ms для более быстрого старта
+                    if (timeoutRef.current) {
+                        clearTimeout(timeoutRef.current);
+                    }
+                    
+                    timeoutRef.current = setTimeout(() => {
+                        setIsAnimating(false);
+                        setTimeout(() => {
+                            onSpinEnd();
+                        }, POST_ANIMATION_DELAY);
+                    }, ANIMATION_DURATION);
+                });
+            });
         }
 
         return () => {
