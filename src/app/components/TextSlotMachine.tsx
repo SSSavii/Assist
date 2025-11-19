@@ -20,7 +20,6 @@ const shuffle = (array: Prize[]): Prize[] => {
     return newArray;
 };
 
-// ИЗМЕНЕНО: вернули расстояние ближе к изначальному (было 120, делаем 110)
 const REEL_ITEM_WIDTH = 115;
 const ANIMATION_DURATION = 6000;
 const MIN_SPIN_DISTANCE = 40;
@@ -57,16 +56,24 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
         
         lastSpinIdRef.current = spinId;
         
+        // ШАГ 1: Сбрасываем позицию барабана в начало БЕЗ анимации
+        setIsAnimating(false);
+        setTransform('translateX(0px)');
+        
+        // ШАГ 2: Генерируем новый барабан с выигрышем
         const newReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
         const targetIndex = MIN_SPIN_DISTANCE + Math.floor(Math.random() * 10);
         
         if (targetIndex < newReel.length) {
             newReel[targetIndex] = { ...winningPrize };
             
+            // ШАГ 3: Обновляем барабан (теперь это не видно, т.к. барабан в позиции 0)
             setReelItems(newReel);
             
             const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
             
+            // ШАГ 4: Запускаем анимацию с небольшой задержкой
+            // Задержка нужна, чтобы React успел отрендерить новые элементы
             setTimeout(() => {
                 setIsAnimating(true);
                 setTransform(`translateX(${finalPosition}px)`);
@@ -81,7 +88,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                         onSpinEnd();
                     }, POST_ANIMATION_DELAY);
                 }, ANIMATION_DURATION);
-            }, 100);
+            }, 50); // Уменьшили с 100ms до 50ms для более быстрого старта
         }
 
         return () => {
@@ -108,16 +115,8 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                         className="h-full flex items-center justify-center p-2 flex-shrink-0"
                         style={{ width: REEL_ITEM_WIDTH }}
                     >
-                        {/* ИЗМЕНЕНО: 
-                            - добавили overflow-visible чтобы картинка могла выходить за границы
-                            - добавили relative для позиционирования
-                        */}
                         <div className="w-full h-4/5 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm overflow-visible relative">
                             {prize.icon && (
-                                /* ИЗМЕНЕНО: 
-                                   - обернули картинку в div с transform: scale(1.5)
-                                   - это увеличит картинку в 1.5 раза с сохранением пропорций
-                                */
                                 <div 
                                     className="w-full h-full flex items-center justify-center"
                                     style={{ transform: 'scale(1.25)' }}
