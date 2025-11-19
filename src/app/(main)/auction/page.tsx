@@ -422,7 +422,7 @@ export default function ShopPage() {
       setDailyLimit({
         remaining: limitData.remaining,
         used: limitData.used,
-        maxLimit: dailyLimit?.maxLimit || 50
+        maxLimit: dailyLimit?.maxLimit || 5
       });
 
       await new Promise(resolve => setTimeout(resolve, 100));
