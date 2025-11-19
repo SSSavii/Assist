@@ -20,26 +20,6 @@ const shuffle = (array: Prize[]): Prize[] => {
     return newArray;
 };
 
-// --- ВЕРСИЯ 1: ИЗМЕНЕНА ТОЛЬКО ГЕНЕРАЦИЯ ---
-// Эта функция берет первые 5 призов как есть, а остальные перемешивает.
-const generateSemiFixedReel = (allPrizes: Prize[]) => {
-    if (allPrizes.length === 0) return [];
-    
-    // 1. Берем "Фасад" - первые 5 штук (чтобы визуально начало не менялось)
-    const fixedStart = allPrizes.slice(0, 5); 
-    
-    // Если призов меньше 5, добиваем до 5 (на всякий случай)
-    while (fixedStart.length < 5 && allPrizes.length > 0) {
-        fixedStart.push(allPrizes[fixedStart.length % allPrizes.length]);
-    }
-
-    // 2. Остальное - как раньше, мешаем 20 раз
-    const randomPart = Array.from({ length: 20 }, () => shuffle(allPrizes)).flat();
-    
-    return [...fixedStart, ...randomPart];
-};
-
-// Константы из твоего кода
 const REEL_ITEM_WIDTH = 115;
 const ANIMATION_DURATION = 6000;
 const MIN_SPIN_DISTANCE = 40;
@@ -51,26 +31,51 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     const [reelItems, setReelItems] = useState<Prize[]>([]);
     const [transform, setTransform] = useState('translateX(0px)');
     const [isAnimating, setIsAnimating] = useState(false);
+    
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     const lastSpinIdRef = useRef<number>(-1);
 
-    // Инициализация (как в оригинале)
+    // ИЗМЕНЕНИЕ 1: Храним "Лицо" слота (первые 5 картинок) в рефе, чтобы оно не менялось во время сессии
+    const startSequenceRef = useRef<Prize[]>([]);
+
+    // Функция генерации ленты. Теперь она принимает фиксированное начало как аргумент.
+    const generateReelWithFixedStart = (startSequence: Prize[], allPrizes: Prize[]) => {
+        // 1. Берем наше запомненное начало
+        const fixedStart = [...startSequence];
+        
+        // 2. Остальное - случайная каша
+        const randomPart = Array.from({ length: 20 }, () => shuffle(allPrizes)).flat();
+        
+        return [...fixedStart, ...randomPart];
+    };
+
     useLayoutEffect(() => {
         if (containerRef.current) {
             const width = containerRef.current.offsetWidth;
             setContainerWidth(width);
             
-            // ИЗМЕНЕНИЕ: Используем нашу функцию с фиксированным началом
-            const initialReel = generateSemiFixedReel(prizes);
-            setReelItems(initialReel);
-            setIsInitialized(true);
+            // ИЗМЕНЕНИЕ 2: Если "Лицо" еще не выбрано - выбираем 5 случайных призов
+            if (startSequenceRef.current.length === 0 && prizes.length > 0) {
+                // Перемешиваем копию призов и берем первые 5
+                const randomStart = shuffle(prizes).slice(0, 5);
+                // Если призов очень мало (меньше 5), дублируем их
+                while (randomStart.length < 5 && prizes.length > 0) {
+                     randomStart.push(prizes[randomStart.length % prizes.length]);
+                }
+                startSequenceRef.current = randomStart;
+            }
+
+            // Создаем первую ленту с этим случайным началом
+            if (startSequenceRef.current.length > 0) {
+                const initialReel = generateReelWithFixedStart(startSequenceRef.current, prizes);
+                setReelItems(initialReel);
+                setIsInitialized(true);
+            }
         }
     }, [prizes]);
 
-    // Логика спина (как в оригинале)
     useEffect(() => {
-        // Проверки из твоего кода
         if (!isInitialized || 
             !winningPrize || 
             containerWidth === 0 || 
@@ -80,8 +85,8 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
         
         lastSpinIdRef.current = spinId;
         
-        // ИЗМЕНЕНИЕ: Генерируем новую ленту, но начало у неё такое же (первые 5 призов)
-        const newReel = generateSemiFixedReel(prizes);
+        // ИЗМЕНЕНИЕ 3: Генерируем новую ленту, используя ТО ЖЕ САМОЕ начало, что и при загрузке
+        const newReel = generateReelWithFixedStart(startSequenceRef.current, prizes);
         
         const targetIndex = MIN_SPIN_DISTANCE + Math.floor(Math.random() * 10);
         
@@ -89,12 +94,11 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             // Вставляем выигрыш
             newReel[targetIndex] = { ...winningPrize };
             
-            // Обновляем массив (визуально начало не изменится, так как оно фиксировано)
+            // Обновляем стейт (визуально ничего не дернется, так как начало startSequenceRef неизменно)
             setReelItems(newReel);
             
             const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
             
-            // Таймер запуска анимации (как в оригинале - 100мс)
             setTimeout(() => {
                 setIsAnimating(true);
                 setTransform(`translateX(${finalPosition}px)`);
