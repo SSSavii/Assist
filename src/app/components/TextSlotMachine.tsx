@@ -24,18 +24,18 @@ const REEL_ITEM_WIDTH = 115;
 const ANIMATION_DURATION = 6000;
 const MIN_SPIN_DISTANCE = 40;
 const POST_ANIMATION_DELAY = 1000;
+// Барабан ВСЕГДА начинается со сдвига влево (первые 10 элементов скрыты градиентом)
+const START_OFFSET = -10 * REEL_ITEM_WIDTH; // -1150px
 
 export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: HorizontalTextSlotMachineProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
     const [reelItems, setReelItems] = useState<Prize[]>([]);
-    const [transform, setTransform] = useState('translateX(0px)');
+    const [transform, setTransform] = useState(`translateX(${START_OFFSET}px)`);
     const [isAnimating, setIsAnimating] = useState(false);
-    const [finalPosition, setFinalPosition] = useState(0);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     const lastSpinIdRef = useRef<number>(-1);
-    const lastWinningPrizeRef = useRef<Prize | null>(null);
 
     useLayoutEffect(() => {
         if (containerRef.current) {
@@ -45,72 +45,56 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
         }
     }, []);
 
-    // Эффект 1: Подготовка барабана когда приходит новый winningPrize
     useEffect(() => {
-        if (!isInitialized || !containerWidth || !winningPrize) return;
-        
-        // Проверяем, изменился ли выигрышный приз
-        if (lastWinningPrizeRef.current?.name === winningPrize.name && 
-            lastWinningPrizeRef.current?.icon === winningPrize.icon) {
-            return; // Тот же приз, ничего не делаем
+        if (!isInitialized || 
+            !winningPrize || 
+            containerWidth === 0 || 
+            lastSpinIdRef.current === spinId) {
+            return;
         }
         
-        lastWinningPrizeRef.current = winningPrize;
+        lastSpinIdRef.current = spinId;
         
-        // Генерируем НОВЫЙ барабан с выигрышным призом
+        // Генерируем новый барабан
         const newReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
         const targetIndex = MIN_SPIN_DISTANCE + Math.floor(Math.random() * 10);
         
         if (targetIndex < newReel.length) {
             newReel[targetIndex] = { ...winningPrize };
             
-            // Вычисляем конечную позицию для анимации
-            const calculatedFinalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
+            const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
             
-            // Устанавливаем новый барабан БЕЗ анимации
+            // Выключаем анимацию и возвращаем в стартовую позицию
             setIsAnimating(false);
+            setTransform(`translateX(${START_OFFSET}px)`);
             setReelItems(newReel);
-            setTransform('translateX(0px)'); // Барабан в начальной позиции
-            setFinalPosition(calculatedFinalPosition); // Сохраняем конечную позицию
-        }
-    }, [winningPrize, prizes, containerWidth, isInitialized]);
-
-    // Эффект 2: Запуск анимации когда меняется spinId (клик на кнопку)
-    useEffect(() => {
-        if (!isInitialized || 
-            !winningPrize || 
-            containerWidth === 0 || 
-            lastSpinIdRef.current === spinId ||
-            reelItems.length === 0) {
-            return;
-        }
-        
-        lastSpinIdRef.current = spinId;
-        
-        // Запускаем ТОЛЬКО анимацию (барабан уже готов!)
-        requestAnimationFrame(() => {
-            setIsAnimating(true);
-            setTransform(`translateX(${finalPosition}px)`);
-
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
             
-            timeoutRef.current = setTimeout(() => {
-                setIsAnimating(false);
-                
-                setTimeout(() => {
-                    onSpinEnd(); // Родитель обновит winningPrize → сработает Эффект 1
-                }, POST_ANIMATION_DELAY);
-            }, ANIMATION_DURATION);
-        });
+            // Запускаем анимацию
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    setIsAnimating(true);
+                    setTransform(`translateX(${finalPosition}px)`);
+
+                    if (timeoutRef.current) {
+                        clearTimeout(timeoutRef.current);
+                    }
+                    
+                    timeoutRef.current = setTimeout(() => {
+                        setIsAnimating(false);
+                        setTimeout(() => {
+                            onSpinEnd();
+                        }, POST_ANIMATION_DELAY);
+                    }, ANIMATION_DURATION);
+                });
+            });
+        }
 
         return () => {
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
             }
         };
-    }, [spinId, isInitialized, winningPrize, containerWidth, finalPosition, reelItems.length, onSpinEnd]);
+    }, [winningPrize, spinId, containerWidth, isInitialized, onSpinEnd, prizes]);
 
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-red-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
@@ -147,7 +131,8 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                     </div>
                 ))}
             </div>
-            <div className="absolute top-0 left-0 h-full w-1/3 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+            {/* Левый градиент шире - скрывает первые 10 элементов */}
+            <div className="absolute top-0 left-0 h-full w-1/2 bg-gradient-to-r from-white via-white to-transparent z-10 pointer-events-none" />
             <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
             <div className="absolute top-1/2 left-1/2 w-0.5 h-4/5 bg-red-600 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full" />
         </div>
