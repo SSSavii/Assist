@@ -31,74 +31,86 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     const [reelItems, setReelItems] = useState<Prize[]>([]);
     const [transform, setTransform] = useState('translateX(0px)');
     const [isAnimating, setIsAnimating] = useState(false);
+    const [finalPosition, setFinalPosition] = useState(0);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     const lastSpinIdRef = useRef<number>(-1);
+    const lastWinningPrizeRef = useRef<Prize | null>(null);
 
     useLayoutEffect(() => {
         if (containerRef.current) {
             const width = containerRef.current.offsetWidth;
             setContainerWidth(width);
-            
-            const initialReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
-            setReelItems(initialReel);
             setIsInitialized(true);
         }
-    }, [prizes]);
+    }, []);
 
+    // Эффект 1: Подготовка барабана когда приходит новый winningPrize
     useEffect(() => {
-        if (!isInitialized || 
-            !winningPrize || 
-            containerWidth === 0 || 
-            lastSpinIdRef.current === spinId) {
-            return;
+        if (!isInitialized || !containerWidth || !winningPrize) return;
+        
+        // Проверяем, изменился ли выигрышный приз
+        if (lastWinningPrizeRef.current?.name === winningPrize.name && 
+            lastWinningPrizeRef.current?.icon === winningPrize.icon) {
+            return; // Тот же приз, ничего не делаем
         }
         
-        lastSpinIdRef.current = spinId;
+        lastWinningPrizeRef.current = winningPrize;
         
-        // ШАГ 1: Генерируем новый барабан с выигрышным призом
+        // Генерируем НОВЫЙ барабан с выигрышным призом
         const newReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
         const targetIndex = MIN_SPIN_DISTANCE + Math.floor(Math.random() * 10);
         
         if (targetIndex < newReel.length) {
             newReel[targetIndex] = { ...winningPrize };
             
-            const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
+            // Вычисляем конечную позицию для анимации
+            const calculatedFinalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
             
-            // ШАГ 2: Выключаем transition и сбрасываем позицию
+            // Устанавливаем новый барабан БЕЗ анимации
             setIsAnimating(false);
-            setTransform('translateX(0px)');
             setReelItems(newReel);
-            
-            // ШАГ 3: Используем двойной requestAnimationFrame
-            // Первый RAF - ждем пока браузер применит изменения DOM
-            requestAnimationFrame(() => {
-                // Второй RAF - гарантируем что прошел полный цикл рендеринга
-                requestAnimationFrame(() => {
-                    // Теперь запускаем анимацию
-                    setIsAnimating(true);
-                    setTransform(`translateX(${finalPosition}px)`);
-
-                    if (timeoutRef.current) {
-                        clearTimeout(timeoutRef.current);
-                    }
-                    
-                    timeoutRef.current = setTimeout(() => {
-                        setIsAnimating(false);
-                        setTimeout(() => {
-                            onSpinEnd();
-                        }, POST_ANIMATION_DELAY);
-                    }, ANIMATION_DURATION);
-                });
-            });
+            setTransform('translateX(0px)'); // Барабан в начальной позиции
+            setFinalPosition(calculatedFinalPosition); // Сохраняем конечную позицию
         }
+    }, [winningPrize, prizes, containerWidth, isInitialized]);
+
+    // Эффект 2: Запуск анимации когда меняется spinId (клик на кнопку)
+    useEffect(() => {
+        if (!isInitialized || 
+            !winningPrize || 
+            containerWidth === 0 || 
+            lastSpinIdRef.current === spinId ||
+            reelItems.length === 0) {
+            return;
+        }
+        
+        lastSpinIdRef.current = spinId;
+        
+        // Запускаем ТОЛЬКО анимацию (барабан уже готов!)
+        requestAnimationFrame(() => {
+            setIsAnimating(true);
+            setTransform(`translateX(${finalPosition}px)`);
+
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+            
+            timeoutRef.current = setTimeout(() => {
+                setIsAnimating(false);
+                
+                setTimeout(() => {
+                    onSpinEnd(); // Родитель обновит winningPrize → сработает Эффект 1
+                }, POST_ANIMATION_DELAY);
+            }, ANIMATION_DURATION);
+        });
 
         return () => {
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
             }
         };
-    }, [winningPrize, spinId, containerWidth, isInitialized, onSpinEnd, prizes]);
+    }, [spinId, isInitialized, winningPrize, containerWidth, finalPosition, reelItems.length, onSpinEnd]);
 
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-red-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
