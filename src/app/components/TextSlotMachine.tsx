@@ -24,77 +24,70 @@ const REEL_ITEM_WIDTH = 115;
 const ANIMATION_DURATION = 6000;
 const MIN_SPIN_DISTANCE = 40;
 const POST_ANIMATION_DELAY = 1000;
-// Барабан ВСЕГДА начинается со сдвига влево (первые 10 элементов скрыты градиентом)
-const START_OFFSET = -10 * REEL_ITEM_WIDTH; // -1150px
 
 export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: HorizontalTextSlotMachineProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
     const [reelItems, setReelItems] = useState<Prize[]>([]);
-    const [transform, setTransform] = useState(`translateX(${START_OFFSET}px)`);
+    const [transform, setTransform] = useState('translateX(0px)');
     const [isAnimating, setIsAnimating] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const [isInitialized, setIsInitialized] = useState(false);
-    const lastSpinIdRef = useRef<number>(-1);
+    const hasSpunRef = useRef(false);
 
+    // Инициализация - создаём барабан ОДИН РАЗ при загрузке
     useLayoutEffect(() => {
-        if (containerRef.current) {
+        if (containerRef.current && prizes.length > 0) {
             const width = containerRef.current.offsetWidth;
             setContainerWidth(width);
-            setIsInitialized(true);
+            
+            // Создаём большой барабан с перемешанными призами
+            const initialReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
+            setReelItems(initialReel);
         }
-    }, []);
+    }, [prizes]);
 
+    // Запуск анимации при клике на кнопку
     useEffect(() => {
-        if (!isInitialized || 
+        if (hasSpunRef.current || // Уже крутили
             !winningPrize || 
             containerWidth === 0 || 
-            lastSpinIdRef.current === spinId) {
+            reelItems.length === 0) {
             return;
         }
         
-        lastSpinIdRef.current = spinId;
+        hasSpunRef.current = true;
         
-        // Генерируем новый барабан
-        const newReel = Array.from({ length: 20 }, () => shuffle(prizes)).flat();
+        // Находим случайную позицию в барабане и вставляем туда выигрыш
         const targetIndex = MIN_SPIN_DISTANCE + Math.floor(Math.random() * 10);
+        const updatedReel = [...reelItems];
+        updatedReel[targetIndex] = { ...winningPrize };
+        setReelItems(updatedReel);
         
-        if (targetIndex < newReel.length) {
-            newReel[targetIndex] = { ...winningPrize };
+        const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
+        
+        // Запускаем анимацию
+        setTimeout(() => {
+            setIsAnimating(true);
+            setTransform(`translateX(${finalPosition}px)`);
             
-            const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
             
-            // Выключаем анимацию и возвращаем в стартовую позицию
-            setIsAnimating(false);
-            setTransform(`translateX(${START_OFFSET}px)`);
-            setReelItems(newReel);
-            
-            // Запускаем анимацию
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    setIsAnimating(true);
-                    setTransform(`translateX(${finalPosition}px)`);
-
-                    if (timeoutRef.current) {
-                        clearTimeout(timeoutRef.current);
-                    }
-                    
-                    timeoutRef.current = setTimeout(() => {
-                        setIsAnimating(false);
-                        setTimeout(() => {
-                            onSpinEnd();
-                        }, POST_ANIMATION_DELAY);
-                    }, ANIMATION_DURATION);
-                });
-            });
-        }
+            timeoutRef.current = setTimeout(() => {
+                setIsAnimating(false);
+                setTimeout(() => {
+                    onSpinEnd();
+                }, POST_ANIMATION_DELAY);
+            }, ANIMATION_DURATION);
+        }, 50);
 
         return () => {
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
             }
         };
-    }, [winningPrize, spinId, containerWidth, isInitialized, onSpinEnd, prizes]);
+    }, [winningPrize, containerWidth, reelItems, onSpinEnd]);
 
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-red-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
@@ -131,8 +124,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                     </div>
                 ))}
             </div>
-            {/* Левый градиент шире - скрывает первые 10 элементов */}
-            <div className="absolute top-0 left-0 h-full w-1/2 bg-gradient-to-r from-white via-white to-transparent z-10 pointer-events-none" />
+            <div className="absolute top-0 left-0 h-full w-1/3 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
             <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
             <div className="absolute top-1/2 left-1/2 w-0.5 h-4/5 bg-red-600 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full" />
         </div>
