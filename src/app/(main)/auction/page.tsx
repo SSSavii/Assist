@@ -174,6 +174,19 @@ interface DailyLimit {
 const CASE_COST = 500;
 const PREMIUM_ITEM_COST = 10000;
 
+// Функция предзагрузки изображений
+const preloadImages = (imageUrls: string[]): Promise<void[]> => {
+  const promises = imageUrls.map((url) => {
+    return new Promise<void>((resolve, reject) => {
+      const img = new window.Image();
+      img.src = url;
+      img.onload = () => resolve();
+      img.onerror = () => resolve(); // Resolve даже при ошибке, чтобы не блокировать загрузку
+    });
+  });
+  return Promise.all(promises);
+};
+
 export default function ShopPage() {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -182,10 +195,23 @@ export default function ShopPage() {
   const [winningPrize, setWinningPrize] = useState<Prize | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
   const [spinKey, setSpinKey] = useState(0);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const hasSpunRef = useRef(false);
   const isProcessingPrizeRef = useRef(false);
+
+  // Предзагрузка всех изображений
+  useEffect(() => {
+    const imagesToPreload = [
+      '/images/322.png',
+      ...ALL_PRIZES.map(prize => prize.image)
+    ];
+
+    preloadImages(imagesToPreload).then(() => {
+      setImagesLoaded(true);
+    });
+  }, []);
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -498,8 +524,41 @@ export default function ShopPage() {
     router.push('/auction/prizes');
   };
 
-  if (isLoading) {
-    return <div className="loading-container">Загрузка...</div>;
+  // Показываем загрузку пока не загрузились данные И изображения
+  if (isLoading || !imagesLoaded) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Загрузка...</p>
+        <style jsx>{`
+          .loading-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #FFFFFF;
+            font-family: 'Cera Pro', sans-serif;
+            color: #666666;
+            gap: 16px;
+          }
+          
+          .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #EA0000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          }
+          
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
   }
 
   const isSpinDisabled = isSpinning || 
@@ -999,16 +1058,6 @@ export default function ShopPage() {
             margin: 0;
             font-family: 'Cera Pro', sans-serif;
             font-size: 14px;
-          }
-
-          .loading-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #FFFFFF;
-            font-family: 'Cera Pro', sans-serif;
-            color: #666666;
           }
 
           @media (max-width: 375px) {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -106,13 +107,31 @@ type UserProfile = {
   cases_to_open: number;
 };
 
+// Функция предзагрузки изображения
+const preloadImage = (url: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.src = url;
+    img.onload = () => resolve();
+    img.onerror = () => resolve(); // Resolve даже при ошибке
+  });
+};
+
 export default function FriendsPage() {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0 });
   const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Предзагрузка изображения
+  useEffect(() => {
+    preloadImage('/images/friends-header.png').then(() => {
+      setImageLoaded(true);
+    });
+  }, []);
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -233,8 +252,42 @@ export default function FriendsPage() {
     router.push('/friends/condition');
   };
 
-  if (loading) {
-    return <div className="loading-container">Загрузка...</div>;
+  // Показываем загрузку пока не загрузились данные И изображение
+  if (loading || !imageLoaded) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Загрузка...</p>
+        <style jsx>{`
+          .loading-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            height: -webkit-fill-available;
+            background-color: #FFFFFF;
+            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #666666;
+            gap: 16px;
+          }
+          
+          .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ff0000ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          }
+          
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
   }
 
   if (error) {
@@ -263,7 +316,6 @@ export default function FriendsPage() {
                   height={300}
                   priority
                   quality={100}
-                  loading="eager"
                   style={{
                     width: '100%',
                     height: 'auto',
@@ -632,17 +684,6 @@ export default function FriendsPage() {
             flex-grow: 0;
             z-index: 3;
             pointer-events: none;
-          }
-
-          .loading-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            height: -webkit-fill-available;
-            background-color: #FFFFFF;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: #666666;
           }
 
           .error-container {
