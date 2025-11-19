@@ -359,6 +359,11 @@ export default function ShopPage() {
 
     if (isSpinning || hasSpunRef.current || !user) return;
 
+    if (!user.bot_started) {
+      tg?.showAlert('⚠️ Сначала запустите бота для получения призов!\n\nНажмите на красную кнопку выше.');
+      return;
+    }
+
     if (user.balance_crystals < CASE_COST) {
       tg?.showAlert(`У вас недостаточно плюсов! Требуется: ${CASE_COST} А+`);
       return;
@@ -454,11 +459,15 @@ export default function ShopPage() {
     }
 
     try {
-      await fetch('/api/bot/start-user', {
+      const response = await fetch('/api/bot/start-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ initData: tg?.initData }),
       });
+
+      if (response.ok) {
+        setUser(prev => prev ? { ...prev, bot_started: true } : null);
+      }
     } catch (error) {
       console.error('Error notifying bot:', error);
     }
@@ -563,6 +572,7 @@ export default function ShopPage() {
 
   const isSpinDisabled = isSpinning || 
                          !user || 
+                         !user.bot_started ||
                          (user?.balance_crystals ?? 0) < CASE_COST || 
                          (dailyLimit?.remaining ?? 0) <= 0;
 

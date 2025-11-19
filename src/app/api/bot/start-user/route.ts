@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateTelegramHash } from '@/lib/telegram-auth';
+import db from '@/lib/init-database';
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 
@@ -18,6 +19,19 @@ export async function POST(req: NextRequest) {
 
     if (!userId || !BOT_TOKEN) {
       return NextResponse.json({ error: 'Missing data' }, { status: 400 });
+    }
+
+    // Обновляем БД - устанавливаем bot_started = 1
+    try {
+      const updateStmt = db.prepare(`
+        UPDATE users 
+        SET bot_started = 1 
+        WHERE tg_id = ?
+      `);
+      updateStmt.run(userId);
+      console.log(`✅ Set bot_started=1 for user ${userId}`);
+    } catch (dbError) {
+      console.error('❌ Database update error:', dbError);
     }
 
     // Отправляем приветственное сообщение
