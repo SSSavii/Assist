@@ -28,23 +28,29 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
     
+    // Текущее состояние ленты на экране
     const [reelItems, setReelItems] = useState<Prize[]>([]);
     const [transform, setTransform] = useState('translateX(0px)');
     const [isAnimating, setIsAnimating] = useState(false);
     
+    // ХРАНИЛИЩЕ "МАСТЕР-ЛЕНТЫ"
+    // Это та лента, которую мы сгенерировали при входе. Мы будем всегда возвращаться к ней.
+    const [masterReel, setMasterReel] = useState<Prize[]>([]);
+
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSpinIdRef = useRef<number>(-1);
 
-    // ИЗМЕНЕНИЕ: Сохраняем один "Статичный" перемешанный набор призов при входе.
-    // Он будет служить источником для "неизменяемого начала".
-    const [staticPrizes, setStaticPrizes] = useState<Prize[]>([]);
-
-    // 1. При загрузке один раз перемешиваем призы и запоминаем их навсегда для этой сессии.
+    // 1. ИНИЦИАЛИЗАЦИЯ (Один раз при загрузке)
     useLayoutEffect(() => {
-        if (prizes.length > 0 && staticPrizes.length === 0) {
-            setStaticPrizes(shuffle(prizes));
+        if (prizes.length > 0 && masterReel.length === 0) {
+            // Генерируем длинную ленту (25 циклов, чтобы хватило с запасом)
+            const initialReel = Array.from({ length: 25 }, () => shuffle(prizes)).flat();
+            
+            // Сохраняем её в "Мастер" и сразу показываем на экране
+            setMasterReel(initialReel);
+            setReelItems(initialReel);
         }
-    }, [prizes]); // staticPrizes не добавляем в зависимости, чтобы не зациклить
+    }, [prizes]); // masterReel в зависимости не добавляем, чтобы не пересоздавать
 
     useLayoutEffect(() => {
         if (containerRef.current) {
@@ -52,36 +58,21 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
         }
     }, []);
 
-    // ФУНКЦИЯ ГЕНЕРАЦИИ (Вернулись к логике Версии 1, но используем sourceArray)
-    const generateReel = (sourceArray: Prize[]) => {
-        if (sourceArray.length === 0) return [];
-
-        // Берем первые 5 элементов ИЗ НАШЕГО СТАТИЧНОГО СПИСКА.
-        // Так как staticPrizes не меняется, эти 5 элементов ВСЕГДА будут одними и теми же.
-        const fixedStart = sourceArray.slice(0, 5);
-
-        // Добиваем до 5, если мало призов
-        while (fixedStart.length < 5 && sourceArray.length > 0) {
-            fixedStart.push(sourceArray[fixedStart.length % sourceArray.length]);
-        }
-
-        // Хвост генерируем случайно каждый раз
-        const randomPart = Array.from({ length: 20 }, () => shuffle(sourceArray)).flat();
-
-        return [...fixedStart, ...randomPart];
-    };
-
-    // 2. Инициализация барабана (как только staticPrizes готов)
+    // 2. ЛОГИКА СБРОСА (Возврат в начало)
+    // Если winningPrize меняется (например, мы закрыли модалку и готовимся к новой игре),
+    // мы возвращаем барабан к состоянию "Мастер-ленты".
     useEffect(() => {
-        if (staticPrizes.length > 0 && reelItems.length === 0) {
-            setReelItems(generateReel(staticPrizes));
+        if (masterReel.length > 0) {
+            // Мгновенно возвращаем всё как было при загрузке
+            setIsAnimating(false);
+            setTransform('translateX(0px)');
+            setReelItems(masterReel); 
         }
-    }, [staticPrizes]);
+    }, [winningPrize, masterReel]); 
 
     // 3. ЛОГИКА СПИНА
     useEffect(() => {
-        // Ждем, пока будет готов staticPrizes, ширина и т.д.
-        if (staticPrizes.length === 0 || 
+        if (masterReel.length === 0 || 
             !winningPrize || 
             containerWidth === 0 || 
             lastSpinIdRef.current === spinId) {
@@ -90,24 +81,29 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
         
         lastSpinIdRef.current = spinId;
 
-        // Генерируем новую ленту, используя staticPrizes.
-        // Начало будет ГАРАНТИРОВАННО таким же, как сейчас на экране.
-        const newReel = generateReel(staticPrizes);
+        // --- САМОЕ ВАЖНОЕ ---
+        // Мы НЕ генерируем новую ленту. Мы берем копию Мастер-ленты.
+        const spinReel = [...masterReel];
         
-        // Вставляем выигрыш (далеко справа)
+        // Выбираем индекс для победы (40-50)
         const targetIndex = 40 + Math.floor(Math.random() * 10);
-        if (targetIndex < newReel.length) {
-            newReel[targetIndex] = { ...winningPrize };
+        
+        // Подменяем ТОЛЬКО один элемент далеко справа.
+        // Первые 40 элементов остаются ИДЕНТИЧНЫМИ тем, что сейчас на экране.
+        if (targetIndex < spinReel.length) {
+            spinReel[targetIndex] = { ...winningPrize };
         }
 
-        // СБРОС (Визуально незаметен, т.к. newReel[0..4] === reelItems[0..4])
+        // Обновляем состояние.
+        // React увидит, что первые элементы не изменились, и не будет их трогать.
+        // Скачка быть не должно.
         setIsAnimating(false);
-        setReelItems(newReel);
+        setReelItems(spinReel);
         setTransform('translateX(0px)');
 
         const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
 
-        // Запуск через 50мс
+        // Запускаем анимацию с микро-задержкой
         setTimeout(() => {
             setIsAnimating(true);
             setTransform(`translateX(${finalPosition}px)`);
@@ -118,6 +114,8 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
                 setIsAnimating(false);
                 setTimeout(() => {
                     onSpinEnd();
+                    // После этого вызова, когда родитель обновит данные, 
+                    // сработает useEffect №2 и вернет барабан к masterReel.
                 }, POST_ANIMATION_DELAY);
             }, ANIMATION_DURATION);
         }, 50);
@@ -125,7 +123,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
         return () => {
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
         };
-    }, [spinId, containerWidth, winningPrize, staticPrizes, onSpinEnd]);
+    }, [spinId, containerWidth, winningPrize, masterReel, onSpinEnd]);
 
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-red-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
@@ -140,7 +138,7 @@ export default function HorizontalTextSlotMachine({ prizes, winningPrize, onSpin
             >
                 {reelItems.map((prize, index) => (
                     <div
-                        key={`${prize.name}-${index}`}
+                        key={`${index}-${prize.name}`} // Используем index, так как порядок жестко зафиксирован
                         className="h-full flex items-center justify-center p-2 flex-shrink-0"
                         style={{ width: REEL_ITEM_WIDTH }}
                     >
