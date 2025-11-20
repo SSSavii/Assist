@@ -64,21 +64,21 @@ export async function POST(req: NextRequest) {
     if (action === 'check') {
       // Проверяем текущий лимит
       const limitStmt = db.prepare(`
-        SELECT count, max_limit 
+        SELECT count
         FROM daily_limits 
         WHERE user_id = ? AND limit_type = 'cases' AND date = ?
       `);
-      const limit = limitStmt.get(user.id, today) as { count: number; max_limit: number } | undefined;
+      const limit = limitStmt.get(user.id, today) as { count: number } | undefined;
 
-      const remaining = limit 
-        ? Math.max(0, limit.max_limit - limit.count)
-        : DAILY_CASE_LIMIT;
+      // ✅ ИСПРАВЛЕНИЕ: Всегда используем константу DAILY_CASE_LIMIT
+      const used = limit?.count || 0;
+      const remaining = Math.max(0, DAILY_CASE_LIMIT - used);
 
-      console.log(`[SUCCESS] Daily limit check: used ${limit?.count || 0}, remaining ${remaining}`);
+      console.log(`[SUCCESS] Daily limit check: used ${used}, remaining ${remaining}`);
 
       return NextResponse.json({ 
         remaining,
-        used: limit?.count || 0,
+        used,
         maxLimit: DAILY_CASE_LIMIT
       });
     }
@@ -87,26 +87,28 @@ export async function POST(req: NextRequest) {
       // Используем одну попытку
       const transaction = db.transaction(() => {
         const limitStmt = db.prepare(`
-          SELECT count, max_limit 
+          SELECT count
           FROM daily_limits 
           WHERE user_id = ? AND limit_type = 'cases' AND date = ?
         `);
-        const limit = limitStmt.get(user.id, today) as { count: number; max_limit: number } | undefined;
+        const limit = limitStmt.get(user.id, today) as { count: number } | undefined;
 
         if (limit) {
-          if (limit.count >= limit.max_limit) {
+          // ✅ ИСПРАВЛЕНИЕ: Проверяем по константе
+          if (limit.count >= DAILY_CASE_LIMIT) {
             throw new Error('Daily limit reached');
           }
 
           const updateStmt = db.prepare(`
             UPDATE daily_limits 
-            SET count = count + 1 
+            SET count = count + 1, max_limit = ?
             WHERE user_id = ? AND limit_type = 'cases' AND date = ?
           `);
-          updateStmt.run(user.id, today);
+          // ✅ Обновляем max_limit на константу
+          updateStmt.run(DAILY_CASE_LIMIT, user.id, today);
 
           return { 
-            remaining: limit.max_limit - limit.count - 1,
+            remaining: DAILY_CASE_LIMIT - limit.count - 1,
             used: limit.count + 1
           };
         } else {
