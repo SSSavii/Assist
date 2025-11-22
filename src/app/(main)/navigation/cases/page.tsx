@@ -173,7 +173,7 @@ export default function CasesPage() {
         {
           id: 1,
           title: "",
-          link: "@ass1stplus_bot"
+          link: "https://t.me/ass1stplus_bot"
         }
       ]
     }
