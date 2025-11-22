@@ -146,8 +146,8 @@ export default function OfflineEventsPage() {
     },
     {
       id: 2,
-      title: "Спорт",
-      link: "https://t.me/c/2782276287/343"
+      title: "Сквош",
+      link: "https://t.me/c/2782276287/312"
     },
     {
       id: 3,

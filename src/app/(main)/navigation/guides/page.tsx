@@ -163,6 +163,41 @@ export default function GuidesPage() {
           id: 3,
           title: "Успешная презентация проекта",
           link: "https://t.me/c/2782276287/212"
+        },
+        {
+          id: 4,
+          title: "Что ждут от бизнес-ассистентов",
+          link: "#"
+        },
+        {
+          id: 5,
+          title: "Как оставаться продуктивным",
+          link: "https://t.me/c/2782276287/251"
+        },
+        {
+          id: 6,
+          title: "Мозговые штурмы Стива Джобса",
+          link: "https://t.me/c/2782276287/278"
+        },
+        {
+          id: 7,
+          title: "Метод для запоминания текста",
+          link: "https://t.me/c/2782276287/280"
+        },
+        {
+          id: 8,
+          title: "Советы от HR",
+          link: "https://t.me/c/2782276287/309"
+        },
+        {
+          id: 9,
+          title: "Советы для нетворкинга",
+          link: "https://t.me/c/2782276287/335"
+        },
+        {
+          id: 10,
+          title: "Как улучшить продуктивность",
+          link: "https://t.me/c/2782276287/347"
         }
       ]
     },
@@ -174,6 +209,21 @@ export default function GuidesPage() {
           id: 1,
           title: "10 ошибок\nбизнес-ассистентов",
           link: "https://t.me/c/2782276287/219"
+        },
+        {
+          id: 2,
+          title: "5 ошибок в деловой переписке",
+          link: "https://t.me/c/2782276287/245"
+        },
+        {
+          id: 3,
+          title: "Как улучшить свое резюме",
+          link: "https://t.me/c/2782276287/316"
+        },
+        {
+          id: 4,
+          title: "Уроки от основателя Starbucks",
+          link: "https://t.me/c/2782276287/331"
         }
       ]
     }
@@ -446,7 +496,7 @@ export default function GuidesPage() {
             cursor: pointer;
             transition: transform 0.1s ease-in-out;
             -webkit-tap-highlight-color: transparent;
-            min-height: 80px;
+            min-height: 56px;
             box-sizing: border-box;
           }
 

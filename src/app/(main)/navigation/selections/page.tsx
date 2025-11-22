@@ -146,18 +146,28 @@ export default function SelectionsPage() {
     },
     {
       id: 2,
-      title: "Подборка мероприятий\nна сентябрь",
-      link: "https://t.me/c/2782276287/193"
-    },
-    {
-      id: 3,
       title: "Ютуб-каналы\nдля саморазвития",
       link: "https://t.me/c/2782276287/232"
     },
     {
+      id: 3,
+      title: "Топ 100 книг",
+      link: "https://t.me/c/2782276287/357"
+    },
+    {
       id: 4,
-      title: "Книги о бизнесе",
-      link: "https://t.me/+6flpcSdc4sg5OTAy"
+      title: "Фильмы от нашей команды",
+      link: "https://t.me/c/2782276287/363"
+    },
+    {
+      id: 5,
+      title: "4 нейросети для работы",
+      link: "https://t.me/c/2782276287/273"
+    },
+    {
+      id: 6,
+      title: "Нейронки для продуктивной работы",
+      link: "https://t.me/c/2782276287/355"
     }
   ];
 

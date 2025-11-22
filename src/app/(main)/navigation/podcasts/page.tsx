@@ -146,7 +146,7 @@ export default function PodcastsPage() {
     },
     {
       id: 2,
-      title: "Научиться мыслить как предприниматель",
+      title: "Как мыслят предприниматели?",
       link: "https://t.me/c/2782276287/287"
     }
   ];

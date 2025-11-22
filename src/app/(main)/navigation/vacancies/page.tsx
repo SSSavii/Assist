@@ -145,11 +145,6 @@ export default function VacanciesPage() {
       title: "Наш бот\nдля подбора вакансий",
       link: "https://t.me/your_vacancy_bot",
       isBot: true
-    },
-    {
-      id: 2,
-      title: "Денис Орлов,\n«Ваш реставратор»",
-      link: "https://t.me/c/2782276287/231"
     }
   ];
 

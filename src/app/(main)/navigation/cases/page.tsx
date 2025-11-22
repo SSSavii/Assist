@@ -162,7 +162,7 @@ export default function CasesPage() {
         {
           id: 3,
           title: "Матвей Глаголев,\nБА Игоря Лихонина",
-          link: "https://t.me/assist_plus_channel/125"
+          link: "https://t.me/c/2782276287/252"
         }
       ]
     },
