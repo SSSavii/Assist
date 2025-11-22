@@ -173,7 +173,7 @@ export default function CasesPage() {
         {
           id: 1,
           title: "",
-          link: "https://t.me/assist_plus_channel/126"
+          link: "@ass1stplus_bot"
         }
       ]
     }
