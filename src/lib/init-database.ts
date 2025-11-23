@@ -126,7 +126,7 @@ db.transaction(() => {
   insertTask.run({ 
     id: 1, 
     task_key: 'subscribe_channel', 
-    title: 'Подпишись на Ассист+', 
+    title: 'Подпишись на АССИСТ+', 
     description: 'Подпишись на наш канал и получи бонус',
     reward_crystals: 100,
     task_type: 'manual'

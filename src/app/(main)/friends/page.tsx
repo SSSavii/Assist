@@ -238,7 +238,7 @@ export default function FriendsPage() {
     const appName = 'assist_plus';
 
     const referralLink = `https://t.me/${botUsername}/${appName}?startapp=ref${user.tg_id}`;
-    const shareText = `Привет! Запусти мини-приложение "Ассист+" и получай бонусы!`;
+    const shareText = `Привет! Запусти мини-приложение "АССИСТ+" и получай бонусы!`;
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
 
     tg.openTelegramLink(shareUrl);
