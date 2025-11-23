@@ -325,7 +325,7 @@ export default function HomePage() {
     const appName = 'assist_plus';
     
     const referralLink = `https://t.me/${botUsername}/${appName}?startapp=ref${userId}`;
-    const shareText = `Привет! Запусти мини-приложение "Ассист+" и получай бонусы!`;
+    const shareText = `Привет! Запусти мини-приложение "АССИСТ+" и получай бонусы!`;
     
     try {
       const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
@@ -406,7 +406,7 @@ export default function HomePage() {
     {
       id: 1,
       points: 100,
-      title: "Подпишись на Ассист+",
+      title: "Подпишись на АССИСТ+",
       checkButtonText: "Проверить",
       actionButtonText: "Подписаться",
       action: handleSubscribeToChannel,
@@ -474,7 +474,7 @@ export default function HomePage() {
                   <div className="logo-image-container">
                     <img
                       className="logo-image"
-                      alt="Ассист+ логотип"
+                      alt="АССИСТ+ логотип"
                       src="/svg4122-a7pi.svg"
                       onError={() => setLogoError(true)}
                     />
