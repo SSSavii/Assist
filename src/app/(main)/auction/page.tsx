@@ -1,10 +1,140 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import HorizontalTextSlotMachine from '@/app/components/TextSlotMachine';
+
+// --- КОМПОНЕНТ РУЛЕТКИ (ВСТАВЛЕН СЮДА ДЛЯ УДОБСТВА) ---
+
+type ReelPrize = { name: string; icon: string };
+
+interface HorizontalTextSlotMachineProps {
+    prizes: ReelPrize[];
+    winningPrize: ReelPrize | null;
+    onSpinEnd: () => void;
+    spinId: number;
+}
+
+const shuffle = (array: ReelPrize[]): ReelPrize[] => {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[j], newArray[i]] = [newArray[i], newArray[j]];
+    }
+    return newArray;
+};
+
+const REEL_ITEM_WIDTH = 115;
+const ANIMATION_DURATION = 6000;
+const MIN_SPIN_DISTANCE = 40;
+const POST_ANIMATION_DELAY = 1000;
+
+function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: HorizontalTextSlotMachineProps) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [containerWidth, setContainerWidth] = useState(0);
+    
+    const [reelItems, setReelItems] = useState<ReelPrize[]>([]);
+    
+    const [transform, setTransform] = useState('translateX(0px)');
+    const [isAnimating, setIsAnimating] = useState(false);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const lastSpinIdRef = useRef<number>(-1);
+
+    useLayoutEffect(() => {
+        if (containerRef.current && prizes.length > 0 && reelItems.length === 0) {
+            const width = containerRef.current.offsetWidth;
+            setContainerWidth(width);
+            
+            const initialReel = Array.from({ length: 200 }, () => shuffle(prizes)).flat();
+            setReelItems(initialReel);
+        }
+    }, [prizes]);
+
+    useEffect(() => {
+        if (reelItems.length === 0 || 
+            !winningPrize || 
+            containerWidth === 0 || 
+            lastSpinIdRef.current === spinId) {
+            return;
+        }
+        
+        lastSpinIdRef.current = spinId;
+        
+        let targetIndex = reelItems.findIndex((item, idx) => 
+            idx >= MIN_SPIN_DISTANCE && item.name === winningPrize.name
+        );
+        
+        if (targetIndex === -1) {
+            targetIndex = MIN_SPIN_DISTANCE + Math.floor(Math.random() * 20);
+        }
+        
+        const finalPosition = (containerWidth / 2) - (targetIndex * REEL_ITEM_WIDTH) - (REEL_ITEM_WIDTH / 2);
+        
+        setIsAnimating(false);
+        setTransform('translateX(0px)');
+        
+        setTimeout(() => {
+            setIsAnimating(true);
+            setTransform(`translateX(${finalPosition}px)`);
+
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            
+            timeoutRef.current = setTimeout(() => {
+                setIsAnimating(false);
+                
+                setTimeout(() => {
+                    onSpinEnd();
+                }, POST_ANIMATION_DELAY);
+            }, ANIMATION_DURATION);
+        }, 50);
+
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, [winningPrize, spinId, containerWidth, reelItems, onSpinEnd]);
+
+    return (
+        <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-red-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
+            <div
+                className="absolute top-0 left-0 h-full flex"
+                style={{
+                    transform: transform,
+                    transition: isAnimating
+                        ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.1, 0.25, 1)`
+                        : 'none',
+                }}
+            >
+                {reelItems.map((prize, index) => (
+                    <div 
+                        key={index}
+                        className="h-full flex items-center justify-center p-2 flex-shrink-0" 
+                        style={{ width: REEL_ITEM_WIDTH }}
+                    >
+                        <div className="w-full h-4/5 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm overflow-visible relative">
+                            {prize.icon && (
+                                <div className="w-full h-full flex items-center justify-center" style={{ transform: 'scale(1.25)' }}>
+                                    <img 
+                                        src={prize.icon} 
+                                        alt={prize.name} 
+                                        className="max-w-full max-h-full object-contain" 
+                                        loading="eager"
+                                        draggable={false}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+            <div className="absolute top-0 left-0 h-full w-1/3 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+            <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 w-0.5 h-4/5 bg-red-600 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full" />
+        </div>
+    );
+}
+
+// --- ОСНОВНОЙ КОМПОНЕНТ СТРАНИЦЫ ---
 
 const GlobalStyles = () => (
   <>
@@ -41,12 +171,10 @@ const GlobalStyles = () => (
       fetchPriority="high"
     />
     
-    {/* Preload всех изображений призов */}
-    <link rel="preload" href="/prizes/3000-aplus.png" as="image" />
+    {/* Preload изображений призов (удалены 3000 и 2000) */}
     <link rel="preload" href="/prizes/closed-event.png" as="image" />
     <link rel="preload" href="/prizes/individual-60min.png" as="image" />
     <link rel="preload" href="/prizes/breakfast.png" as="image" />
-    <link rel="preload" href="/prizes/2000-aplus.png" as="image" />
     <link rel="preload" href="/prizes/entrepreneur-analysis.png" as="image" />
     <link rel="preload" href="/prizes/lifehacks.png" as="image" />
     <link rel="preload" href="/prizes/lottery-10min.png" as="image" />
@@ -127,28 +255,28 @@ type Prize = {
 };
 
 const ALL_PRIZES: Prize[] = [
-  // Нереальный шанс (0%)
-  { name: '3000 A+', type: 'impossible', probability: 0, canWin: false, deliveryType: 'instant', image: '/prizes/3000-aplus.png' },
+  // Нереальный шанс
+  // Удалено: 3000 A+
   { name: 'Приглашение на закрытое мероприятие', type: 'impossible', probability: 0, canWin: false, deliveryType: 'manual', image: '/prizes/closed-event.png' },
   { name: 'Индивидуальный разбор от предпринимателя (60 минут)', type: 'impossible', probability: 0, canWin: false, deliveryType: 'manual', image: '/prizes/individual-60min.png' },
   { name: 'Завтрак с предпринимателем', type: 'impossible', probability: 0, canWin: false, deliveryType: 'manual', image: '/prizes/breakfast.png' },
   
-  // Очень маленький шанс (0.5%)
-  { name: '2000 A+', type: 'very_rare', probability: 2, canWin: true, deliveryType: 'instant', image: '/prizes/2000-aplus.png' },
+  // Очень маленький шанс
+  // Удалено: 2000 A+
   { name: 'Разбор 1 запроса от предпринимателя с высокой выручкой', type: 'very_rare', probability: 0.167, canWin: true, deliveryType: 'manual', image: '/prizes/entrepreneur-analysis.png' },
   { name: 'Пакет практических лайфхаков', type: 'very_rare', probability: 0.167, canWin: true, deliveryType: 'bot_message', image: '/prizes/lifehacks.png' },
   
-  // Маленький шанс (10%)
+  // Маленький шанс
   { name: 'Участие в розыгрыше на 10-ти минутный онлайн-мини-разбор', type: 'rare', probability: 0.5, canWin: true, deliveryType: 'manual', image: '/prizes/lottery-10min.png' },
   { name: 'Участие в еженедельном созвоне с БА', type: 'rare', probability: 0.5, canWin: true, deliveryType: 'manual', image: '/prizes/weekly-call.png' },
   { name: '1000 A+', type: 'rare', probability: 8.5, canWin: true, deliveryType: 'instant', image: '/prizes/1000-aplus.png' },
   { name: 'Разбор вашего резюме', type: 'rare', probability: 0.5, canWin: true, deliveryType: 'manual', image: '/prizes/resume.png' },
   
-  // Хороший шанс (35%)
+  // Хороший шанс
   { name: '500 A+', type: 'common', probability: 25.5, canWin: true, deliveryType: 'instant', image: '/prizes/500-aplus.png' },
   { name: 'Разбор запроса от команды', type: 'common', probability: 5, canWin: true, deliveryType: 'manual', image: '/prizes/team-analysis.png' },
   
-  // Отличный шанс (54.5%)
+  // Отличный шанс
   { name: 'Чек-лист', type: 'excellent', probability: 18.17, canWin: true, deliveryType: 'bot_message', image: '/prizes/checklist.png' },
   { name: '100 A+', type: 'excellent', probability: 18.17, canWin: true, deliveryType: 'instant', image: '/prizes/100-aplus.png' },
   { name: '250 A+', type: 'excellent', probability: 18.16, canWin: true, deliveryType: 'instant', image: '/prizes/250-aplus.png' },

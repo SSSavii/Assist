@@ -123,10 +123,9 @@ export default function PrizesPage() {
   const prizes: Prize[] = [
     {
       id: 1,
-      chance: 'Супер редкий шанс',
+      chance: 'Эксклюзивный',
       chanceColor: '#FFCA37',
       items: [
-        '3000 A+',
         'Завтрак с предпринимателем (онлайн-формат или офлайн при наличии слотов)',
         'Индивидуальный разбор 60 минут от предпринимателя',
         'Приглашение на закрытое мероприятие/митап'
@@ -134,17 +133,16 @@ export default function PrizesPage() {
     },
     {
       id: 2,
-      chance: 'Очень маленький шанс',
+      chance: 'Уникальный',
       chanceColor: '#FF6A6A',
       items: [
-        '2000 A+',
         'Разбор 1 запроса от предпринимателя с высокой выручкой',
         'Пакет практических лайфхаков (видеоурок/гайд)'
       ]
     },
     {
       id: 3,
-      chance: 'Маленький шанс',
+      chance: 'Ценный',
       chanceColor: '#E895FF',
       items: [
         '1000 A+',
@@ -155,7 +153,7 @@ export default function PrizesPage() {
     },
     {
       id: 4,
-      chance: 'Хороший шанс',
+      chance: 'Редкий',
       chanceColor: '#9EA4FF',
       items: [
         '500 A+',
@@ -164,7 +162,7 @@ export default function PrizesPage() {
     },
     {
       id: 5,
-      chance: 'Отличный шанс',
+      chance: 'Обычный',
       chanceColor: '#F1F1F1',
       items: [
         '1 тематический чек-лист (без повторов). После 10 чек-листов — 250 A+',
