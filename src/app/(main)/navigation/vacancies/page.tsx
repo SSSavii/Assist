@@ -143,7 +143,7 @@ export default function VacanciesPage() {
     {
       id: 1,
       title: "Наш бот\nдля подбора вакансий",
-      link: "https://t.me/your_vacancy_bot",
+      link: "https://t.me/ass1stplus_bot",
       isBot: true
     }
   ];

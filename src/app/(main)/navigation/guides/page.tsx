@@ -167,7 +167,7 @@ export default function GuidesPage() {
         {
           id: 4,
           title: "Что ждут от бизнес-ассистентов",
-          link: "#"
+          link: "https://t.me/c/2782276287/266"
         },
         {
           id: 5,
