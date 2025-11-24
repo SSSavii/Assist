@@ -328,9 +328,9 @@ export default function FriendsPage() {
             <div className="buttons-overlay">
               <div className="info-card">
                 <div className="info-row">
-                  <span className="info-label">Вы пригласили:  </span>
+                  <span className="info-label">Вы пригласили:</span>
                   <span className="info-value" style={{ color: '#ff0000ff' }}>
-                    {user?.referral_count || 0}
+                    &nbsp;{user?.referral_count || 0}
                   </span>
                 </div>
               </div>
@@ -361,7 +361,7 @@ export default function FriendsPage() {
                 style={{ background: 'linear-gradient(243.66deg, #ff0000ff 10.36%, #E72525 86.45%)' }}
               >
                 <span className="invite-text">Пригласить друга</span>
-                <span className="invite-bonus">+500 плюсов</span>
+                <span className="invite-bonus">500 А+ плюсов</span>
                 <div className="glow-top"></div>
                 <div className="glow-bottom"></div>
               </button>
