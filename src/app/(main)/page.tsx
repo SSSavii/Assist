@@ -325,7 +325,7 @@ export default function HomePage() {
     const appName = 'assist_plus';
     
     const referralLink = `https://t.me/${botUsername}/${appName}?startapp=ref${userId}`;
-    const shareText = `Привет! Запусти мини-приложение "АССИСТ+" и получай бонусы!`;
+    const shareText = `Привет! Запусти мини-приложение АССИСТ+ и получай бонусы!`;
     
     try {
       const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
