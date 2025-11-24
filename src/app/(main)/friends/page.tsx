@@ -352,7 +352,8 @@ export default function FriendsPage() {
               </div>
 
               <button className="rules-button" onClick={handleRulesClick}>
-                Условия участия в розыгрышах
+                <span className="rules-title">Условия участия в розыгрышах</span>
+                <span className="rules-subtext">Бонус начислим после подписки друга на тг канал</span>
               </button>
 
               <button 
@@ -567,10 +568,10 @@ export default function FriendsPage() {
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 10px 15px;
-            gap: 10px;
+            padding: 8px 15px;
+            gap: 5px;
             width: 100%;
-            height: 60px;
+            min-height: 65px;
             background: #F1F1F1;
             border-radius: 15px;
             flex: none;
@@ -580,6 +581,10 @@ export default function FriendsPage() {
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
             transition: opacity 0.2s;
+            box-sizing: border-box;
+          }
+
+          .rules-title {
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-style: normal;
             font-weight: 400;
@@ -588,7 +593,17 @@ export default function FriendsPage() {
             text-align: center;
             letter-spacing: -0.02em;
             color: #000000;
-            box-sizing: border-box;
+          }
+
+          .rules-subtext {
+            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-style: normal;
+            font-weight: 400;
+            font-size: 11px;
+            line-height: 110%;
+            text-align: center;
+            letter-spacing: -0.02em;
+            color: #808080;
           }
 
           .rules-button:active {
