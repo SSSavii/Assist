@@ -263,7 +263,7 @@ const ALL_PRIZES: Prize[] = [
   
   // Очень маленький шанс
   // Удалено: 2000 A+
-  { name: 'Разбор 1 запроса от предпринимателя с высокой выручкой', type: 'very_rare', probability: 0.167, canWin: true, deliveryType: 'manual', image: '/prizes/entrepreneur-analysis.png' },
+  { name: 'Разбор 1 запроса от предпринимателя с выручкой от 100 млн рублей в год', type: 'very_rare', probability: 0.167, canWin: true, deliveryType: 'manual', image: '/prizes/entrepreneur-analysis.png' },
   { name: 'Пакет практических лайфхаков', type: 'very_rare', probability: 0.167, canWin: true, deliveryType: 'bot_message', image: '/prizes/lifehacks.png' },
   
   // Маленький шанс
