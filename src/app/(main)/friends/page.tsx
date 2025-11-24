@@ -361,7 +361,7 @@ export default function FriendsPage() {
                 style={{ background: 'linear-gradient(243.66deg, #ff0000ff 10.36%, #E72525 86.45%)' }}
               >
                 <span className="invite-text">Пригласить друга</span>
-                <span className="invite-bonus">500 А+ плюсов</span>
+                <span className="invite-bonus">500 А+</span>
                 <div className="glow-top"></div>
                 <div className="glow-bottom"></div>
               </button>
