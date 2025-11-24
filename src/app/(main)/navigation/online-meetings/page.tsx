@@ -67,7 +67,7 @@ const GlobalStyles = () => (
 
 interface MeetingItem {
   id: number;
-  title: string;
+  content: React.ReactNode;
   link: string;
 }
 
@@ -141,12 +141,24 @@ export default function OnlineMeetingsPage() {
   const meetings: MeetingItem[] = [
     {
       id: 1,
-      title: "Эфир с Иваном Абрамовым\n1 августа",
+      content: (
+        <>
+          <span style={{ fontWeight: 700 }}>То, что так давно хотел узнать</span> (1 августа)
+          <br />
+          Вопрос-ответ с Иваном Абрамовым
+        </>
+      ),
       link: "https://t.me/c/2782276287/93"
     },
     {
       id: 2,
-      title: "Эфир с Иваном Абрамовым\n24 августа",
+      content: (
+        <>
+          <span style={{ fontWeight: 700 }}>Ответы, которых ты еще не слышал</span> (24 августа)
+          <br />
+          Вопрос-ответ с Иваном Абрамовым
+        </>
+      ),
       link: "https://t.me/c/2782276287/122"
     }
   ];
@@ -187,7 +199,7 @@ export default function OnlineMeetingsPage() {
                     className="mini-card"
                     onClick={() => handleItemClick(item.link)}
                   >
-                    <span className="card-text">{item.title}</span>
+                    <span className="card-text">{item.content}</span>
                     <div className="card-arrow">
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M3 1L9 6L3 11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -389,13 +401,11 @@ export default function OnlineMeetingsPage() {
             font-weight: 500;
             font-size: 20px;
             line-height: 120%;
-            display: flex;
-            align-items: flex-end;
+            display: block;
             letter-spacing: -0.02em;
             color: #FFFFFF;
             flex: 1;
             text-align: left;
-            white-space: pre-line;
           }
 
           /* Стрелка */
