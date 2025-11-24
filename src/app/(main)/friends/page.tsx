@@ -328,7 +328,7 @@ export default function FriendsPage() {
             <div className="buttons-overlay">
               <div className="info-card">
                 <div className="info-row">
-                  <span className="info-label">Вы пригласили: </span>
+                  <span className="info-label">Вы пригласили:  </span>
                   <span className="info-value" style={{ color: '#ff0000ff' }}>
                     {user?.referral_count || 0}
                   </span>
