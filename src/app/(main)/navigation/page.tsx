@@ -244,7 +244,7 @@ export default function NavigationPage() {
               <div className="header-top">
                 <h1 className="page-title">Навигация</h1>
                 <button className="back-button" onClick={handleBackClick}>
-                  назад
+                  Назад
                 </button>
               </div>
 
@@ -374,7 +374,7 @@ export default function NavigationPage() {
             flex-grow: 0;
           }
 
-          /* назад */
+          /* Назад */
           .back-button {
             margin: 0;
             width: auto;

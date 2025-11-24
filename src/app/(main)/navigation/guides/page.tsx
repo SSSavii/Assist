@@ -251,7 +251,7 @@ export default function GuidesPage() {
             <header className="page-header">
               <h1 className="page-title">Гайды и лайфхаки</h1>
               <button className="back-button" onClick={handleBackClick}>
-                назад
+                Назад
               </button>
             </header>
 
@@ -379,7 +379,7 @@ export default function GuidesPage() {
             flex-grow: 0;
           }
 
-          /* назад */
+          /* Назад */
           .back-button {
             margin: 0;
             width: auto;

@@ -193,7 +193,7 @@ export default function SelectionsPage() {
             <header className="page-header">
               <h1 className="page-title">Подборки</h1>
               <button className="back-button" onClick={handleBackClick}>
-                назад
+                Назад
               </button>
             </header>
 
@@ -316,7 +316,7 @@ export default function SelectionsPage() {
             flex-grow: 0;
           }
 
-          /* назад */
+          /* Назад */
           .back-button {
             margin: 0;
             width: auto;

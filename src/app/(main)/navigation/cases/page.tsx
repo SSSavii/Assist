@@ -201,7 +201,7 @@ export default function CasesPage() {
             <header className="page-header">
               <h1 className="page-title">Кейсы</h1>
               <button className="back-button" onClick={handleBackClick}>
-                назад
+                Назад
               </button>
             </header>
 
@@ -329,7 +329,7 @@ export default function CasesPage() {
             flex-grow: 0;
           }
 
-          /* назад */
+          /* Назад */
           .back-button {
             margin: 0;
             width: auto;

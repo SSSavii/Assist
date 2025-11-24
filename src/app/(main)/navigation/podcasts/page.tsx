@@ -173,7 +173,7 @@ export default function PodcastsPage() {
             <header className="page-header">
               <h1 className="page-title">Подкасты</h1>
               <button className="back-button" onClick={handleBackClick}>
-                назад
+                Назад
               </button>
             </header>
 
@@ -296,7 +296,7 @@ export default function PodcastsPage() {
             flex-grow: 0;
           }
 
-          /* назад */
+          /* Назад */
           .back-button {
             margin: 0;
             width: auto;
