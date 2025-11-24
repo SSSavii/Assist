@@ -738,7 +738,7 @@ export default function HomePage() {
             position: relative;
             width: 176px;
             height: 27px;
-            margin-top: 1px;
+            margin-top: -6px;
             margin-left: -2px;
           }
           

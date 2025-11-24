@@ -422,23 +422,26 @@ async function checkAndFinishAuctions() {
   }
 }
 
-// Проверка и сброс ежемесячных рефералов (на всякий случай, если автоматический розыгрыш не сработал)
+// ИСПРАВЛЕНО: Проверка и сброс ежемесячных рефералов
 async function checkAndResetMonthlyReferrals() {
   try {
     const now = new Date();
+    // Формат: YYYY-MM (например, 2024-11)
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     
+    // Ищем пользователей, у которых last_referral_reset отличается от текущего месяца
+    // Или если он NULL, но есть накопленные рефералы (на всякий случай)
     const checkResetStmt = db.prepare(`
-      SELECT id, tg_id, first_name, last_name, username, current_month_referrals, last_referral_reset
+      SELECT id 
       FROM users
       WHERE current_month_referrals > 0 
-      AND (last_referral_reset IS NULL OR last_referral_reset < ?)
+      AND (last_referral_reset IS NULL OR last_referral_reset != ?)
     `);
     
-    const usersToReset = checkResetStmt.all(`${currentMonth}-01`);
+    const usersToReset = checkResetStmt.all(currentMonth);
     
     if (usersToReset.length > 0) {
-      console.log(`[LOTTERY] Сброс месячных рефералов для ${usersToReset.length} пользователей`);
+      console.log(`[LOTTERY] Сброс месячных рефералов для ${usersToReset.length} пользователей (новый месяц: ${currentMonth})`);
       
       const resetStmt = db.prepare(`
         UPDATE users 
