@@ -72,6 +72,7 @@ export async function sendPrizeToUser(userId, prizeName, messageType, checklistF
   try {
     let messageText = '';
     
+    // Отправка Чек-листов
     if (messageType === 'checklist' && checklistFileName) {
       const checklistPath = path.join(process.cwd(), 'public', 'checklists', checklistFileName);
       
@@ -84,7 +85,22 @@ export async function sendPrizeToUser(userId, prizeName, messageType, checklistF
       
       await bot.sendDocument(userId, checklistPath, { caption });
       return true;
-    } else if (messageType === 'checklist_bonus') {
+    } 
+    // НОВОЕ: Отправка Плейбука (Лайфхаки)
+    else if (messageType === 'playbook' && checklistFileName) {
+        const filePath = path.join(process.cwd(), 'public', 'checklists', checklistFileName); // Файл лежит там же, в public/checklists
+        
+        if (!fs.existsSync(filePath)) {
+          console.error(`[SEND PRIZE] Плейбук не найден: ${filePath}`);
+          throw new Error('Playbook file not found');
+        }
+  
+        const caption = `🎉 Поздравляем! Вы выиграли: *${prizeName}*\n\n📄 Держите ваш файл с лайфхаками!`;
+        
+        await bot.sendDocument(userId, filePath, { caption, parse_mode: 'Markdown' });
+        return true;
+    }
+    else if (messageType === 'checklist_bonus') {
       messageText = `🎉🎉🎉 *Поздравляем!*\n\n` +
                    `Вы получили все 10 чек-листов!\n\n` +
                    `🎁 Бонус: *+250 A+* начислены на ваш баланс!`;

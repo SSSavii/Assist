@@ -30,6 +30,8 @@ const CHECKLISTS = [
   'Топ_книг_для_развития_бизнес_мышления.pdf'
 ];
 
+const PLAYBOOK_FILENAME = 'PlayBook ассистента.pdf';
+
 export async function POST(req: NextRequest) {
   console.log(`\n--- [${new Date().toISOString()}] Received /api/bot/send-prize request ---`);
   
@@ -39,19 +41,16 @@ export async function POST(req: NextRequest) {
     const { initData, prizeName, messageType } = await req.json();
     
     if (!initData) {
-      console.error('[ERROR] initData is missing from request body');
       return NextResponse.json({ error: 'initData is required' }, { status: 400 });
     }
 
     const botToken = process.env.BOT_TOKEN;
     if (!botToken) {
-      console.error('[ERROR] BOT_TOKEN is not defined in environment variables');
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
     const isValid = validateTelegramHash(initData, botToken);
     if (!isValid) {
-      console.warn('[WARN] Hash validation failed. Request rejected.');
       return NextResponse.json({ error: 'Invalid data: hash validation failed' }, { status: 403 });
     }
 
@@ -60,7 +59,6 @@ export async function POST(req: NextRequest) {
     const tgUserId = userData.id;
 
     if (!tgUserId) {
-      console.error('[ERROR] User ID is missing in initData');
       return NextResponse.json({ error: 'Invalid user data in initData' }, { status: 400 });
     }
 
@@ -77,12 +75,24 @@ export async function POST(req: NextRequest) {
     const userName = `${user.first_name}${user.last_name ? ' ' + user.last_name : ''}`;
     const userUsername = user.username || '';
 
-    // Обработка чек-листов
-    if (prizeName === 'Чек-лист' || messageType === 'checklist') {
+    // 1. ОБРАБОТКА ПЛЕЙБУКА (ЛАЙФХАКИ)
+    if (prizeName === 'Пакет практических лайфхаков') {
+        const result = await sendPrizeToUser(tgUserId, prizeName, 'playbook', PLAYBOOK_FILENAME);
+        
+        if (result && result.error === 'bot_not_started') {
+          return NextResponse.json({ 
+            error: 'Пожалуйста, сначала запустите бота!',
+            botNotStarted: true 
+          }, { status: 400 });
+        }
+        
+        console.log(`[SUCCESS] Playbook sent to user ${tgUserId}`);
+    }
+    // 2. ОБРАБОТКА ЧЕК-ЛИСТОВ
+    else if (prizeName === 'Чек-лист' || messageType === 'checklist') {
       const checklistIndex = user.checklists_received;
       
       if (checklistIndex < CHECKLISTS.length) {
-        // Отправляем чек-лист
         const checklistFileName = CHECKLISTS[checklistIndex];
         const result = await sendPrizeToUser(tgUserId, prizeName, 'checklist', checklistFileName);
         
@@ -93,41 +103,54 @@ export async function POST(req: NextRequest) {
           }, { status: 400 });
         }
 
-        // Увеличиваем счетчик чек-листов
         const updateStmt = db.prepare('UPDATE users SET checklists_received = checklists_received + 1 WHERE tg_id = ?');
         updateStmt.run(tgUserId);
-
+        
         console.log(`[SUCCESS] Checklist ${checklistIndex + 1}/10 sent to user ${tgUserId}`);
       } else {
-        // Пользователь получил все 10 чек-листов, даем 250 A+
         const updateBalanceStmt = db.prepare('UPDATE users SET balance_crystals = balance_crystals + 250 WHERE tg_id = ?');
         updateBalanceStmt.run(tgUserId);
-
-        await sendPrizeToUser(tgUserId, '250 A+', 'checklist_bonus');
         
+        await sendPrizeToUser(tgUserId, '250 A+', 'checklist_bonus');
         console.log(`[SUCCESS] All checklists received, 250 A+ awarded to user ${tgUserId}`);
       }
-    } else {
-      // Обычная обработка других призов
+    } 
+    // 3. ОБРАБОТКА ДРУГИХ ПРИЗОВ
+    else {
+      // Сначала пытаемся отправить сообщение пользователю
       const result = await sendPrizeToUser(tgUserId, prizeName, messageType);
       
-      if (result && result.error === 'bot_not_started') {
+      // Проверяем, не заблокирован ли бот
+      const isBotBlocked = result && result.error === 'bot_not_started';
+
+      // Уведомляем админов о выигрыше (кроме мгновенных призов, чек-листов и плейбука)
+      // ДЕЛАЕМ ЭТО ДАЖЕ ЕСЛИ БОТ ЗАБЛОКИРОВАН
+      if (messageType !== 'instant' && messageType !== 'checklist') {
+        const isRare = prizeName.includes('Завтрак') || 
+                       prizeName.includes('Индивидуальный разбор') || 
+                       prizeName.includes('закрытое мероприятие') ||
+                       prizeName.includes('Разбор'); 
+
+        const prizeType = isRare ? 'rare' : 'common';
+        
+        // Добавляем пометку для админа, если бот заблокирован
+        const adminPrizeNote = isBotBlocked 
+            ? `${prizeName} (⚠️ БОТ ЗАБЛОКИРОВАН ПОЛЬЗОВАТЕЛЕМ)` 
+            : prizeName;
+
+        await notifyAdminsAboutWinning(tgUserId, userName, userUsername, adminPrizeNote, prizeType);
+      }
+
+      // Если бот заблокирован, возвращаем ошибку на фронтенд
+      if (isBotBlocked) {
         return NextResponse.json({ 
-          error: 'Пожалуйста, сначала запустите бота!',
+          error: 'Приз выигран, но бот заблокирован. Перезапустите бота!',
           botNotStarted: true 
         }, { status: 400 });
       }
-
-      // Уведомляем админов о выигрыше (кроме мгновенных призов и чек-листов)
-      if (messageType !== 'instant' && messageType !== 'checklist') {
-        const prizeType = prizeName.includes('Завтрак') || 
-                         prizeName.includes('Индивидуальный разбор') || 
-                         prizeName.includes('закрытое мероприятие') ? 'rare' : 'common';
-        await notifyAdminsAboutWinning(tgUserId, userName, userUsername, prizeName, prizeType);
-      }
     }
 
-    console.log(`[SUCCESS] Prize message sent successfully to user ${tgUserId}`);
+    console.log(`[SUCCESS] Prize process completed for user ${tgUserId}`);
     
     return NextResponse.json({ 
       success: true,
