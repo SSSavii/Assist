@@ -172,7 +172,7 @@ interface DailyLimit {
 }
 
 const CASE_COST = 500;
-const PREMIUM_ITEM_COST = 100000;
+const PREMIUM_ITEM_COST = 40000;
 
 // Функция предзагрузки изображений
 const preloadImages = (imageUrls: string[]): Promise<void[]> => {
