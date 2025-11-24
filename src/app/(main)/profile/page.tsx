@@ -122,6 +122,13 @@ export default function ProfilePage() {
     }
   };
 
+  const handleRandomCoffeeClick = () => {
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.openTelegramLink('https://t.me/c/2782276287/324');
+    }
+  };
+
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -253,8 +260,8 @@ export default function ProfilePage() {
         <ProfileLink
           icon={Pencil}
           iconBgColor="bg-blue-500"
-          text="Добавить описание"
-          href="/profile/edit-bio"
+          text="Random coffee"
+          onClick={handleRandomCoffeeClick}
         />
 
         <ProfileLink
