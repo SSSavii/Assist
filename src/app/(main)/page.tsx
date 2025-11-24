@@ -790,8 +790,8 @@ export default function HomePage() {
           }
           
           .balance-container {
-            width: 114px;
-            height: 114px;
+            width: 120px;
+            height: 120px;
             position: relative;
             cursor: pointer;
             margin-top: -6px;
@@ -802,14 +802,12 @@ export default function HomePage() {
             position: absolute;
             top: 0;
             left: 0;
-            width: 114px;
-            height: 114px;
-            border-radius: 24px;
-            box-shadow: 
-              4px 4px 8px rgba(0, 0, 0, 0.25),
-              inset 3px 3px 8px #ffffff,
-              inset -3px -4px 16px rgba(0, 0, 0, 0.3);
-            background: linear-gradient(144deg, #D9D9D9 0%, #CDCDCD 100%);
+            width: 120px;
+            height: 120px;
+            border-radius: 20px;
+            box-shadow: 0px 3px 10px 1px rgba(0, 0, 0, 0.15), inset -1px -1px 5px rgba(0, 0, 0, 0.35), inset 2px 2px 5px #FFFFFF;
+            background: linear-gradient(133.36deg, #E3E3E3 39.04%, #E1E1E1 97.42%);
+            border: 0.5px solid rgba(0, 0, 0, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
