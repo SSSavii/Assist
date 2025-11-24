@@ -5,10 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Users,
   ChevronRight,
   UserCircle,
-  Pencil,
   Wallet,
   Gift,
   Calendar,
@@ -31,20 +29,35 @@ interface Winning {
 }
 
 interface ProfileLinkProps {
-  icon: React.ElementType;
-  iconBgColor: string;
+  icon?: React.ElementType; // Делаем необязательным, так как может быть картинка
+  imageSrc?: string;        // Добавляем проп для картинки
+  iconBgColor?: string;     // Необязателен, если есть картинка
   text: string;
   subText?: string;
   href?: string;
   onClick?: () => void;
 }
 
-function ProfileLink({ icon: Icon, iconBgColor, text, subText, href, onClick }: ProfileLinkProps) {
+function ProfileLink({ icon: Icon, imageSrc, iconBgColor, text, subText, href, onClick }: ProfileLinkProps) {
   const content = (
     <>
-      <div className={`p-2 rounded-md ${iconBgColor}`}>
-        <Icon className="h-5 w-5 text-white" />
-      </div>
+      {/* Если передана картинка, показываем её, иначе показываем иконку с фоном */}
+      {imageSrc ? (
+        <div className="relative h-10 w-10 flex-shrink-0">
+          <Image 
+            src={imageSrc} 
+            alt={text}
+            width={40}
+            height={40}
+            className="object-contain"
+          />
+        </div>
+      ) : (
+        <div className={`p-2 rounded-md ${iconBgColor}`}>
+          {Icon && <Icon className="h-5 w-5 text-white" />}
+        </div>
+      )}
+      
       <span className="ml-4 font-semibold flex-grow">{text}</span>
       {subText && <span className="text-gray-500 mr-2">{subText}</span>}
       <ChevronRight className="h-5 w-5 text-gray-400" />
@@ -126,6 +139,20 @@ export default function ProfilePage() {
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.openTelegramLink('https://t.me/c/2782276287/324');
+    }
+  };
+
+  const handleSupportClick = () => {
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.openTelegramLink('https://t.me/KISLVVS');
+    }
+  };
+
+  const handleCooperationClick = () => {
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.openTelegramLink('https://t.me/lesya_syeva');
     }
   };
 
@@ -250,6 +277,7 @@ export default function ProfilePage() {
       </div>
 
       <div className="w-full max-w-md mt-10 space-y-3">
+        {/* Баланс */}
         <BalanceDisplay 
             icon={Wallet}
             iconBgColor="bg-green-500"
@@ -257,18 +285,32 @@ export default function ProfilePage() {
             balance={user.balance_crystals}
         />
 
+        {/* Random Coffee - Картинка Frame 30.png */}
         <ProfileLink
-          icon={Pencil}
-          iconBgColor="bg-blue-500"
+          imageSrc="/profile/Frame 30.png"
           text="Random coffee"
           onClick={handleRandomCoffeeClick}
         />
 
+        {/* Сообщество - Картинка Frame 30-2.png */}
         <ProfileLink
-          icon={Users}
-          iconBgColor="bg-orange-500"
+          imageSrc="/profile/Frame 30-2.png"
           text="Сообщество АССИСТ+"
           onClick={handleCommunityClick}
+        />
+
+        {/* Поддержка - Картинка Frame 30-3.png */}
+        <ProfileLink
+          imageSrc="/profile/Frame 30-3.png"
+          text="Поддержка"
+          onClick={handleSupportClick}
+        />
+
+        {/* Сотрудничество - Картинка Frame 30-4.png */}
+        <ProfileLink
+          imageSrc="/profile/Frame 30-4.png"
+          text="Сотрудничество"
+          onClick={handleCooperationClick}
         />
 
         {/* Кнопка навигации по каналу АССИСТ+ */}
