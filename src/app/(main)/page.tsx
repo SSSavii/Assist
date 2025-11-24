@@ -780,8 +780,8 @@ export default function HomePage() {
 
           .balance-arrow {
             position: absolute;
-            left: calc(50% - 110px); /* Смещение влево от центра */
-            top: 45px; /* Смещение сверху */
+            left: calc(50% - 110px);
+            top: 105px;
             width: 28.4px;
             height: 62.03px;
             z-index: 3;
