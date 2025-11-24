@@ -529,7 +529,7 @@ export default function HomePage() {
 
             <p className="balance-description">
               <span className="description-bold">Кликай на кнопку выше</span>, зарабатывай <br />
-              плюсы, и меняй их в <span className="description-bold">магазине</span>
+              плюсы и меняй их в <span className="description-bold">магазине</span>
             </p>
           </section>
 
