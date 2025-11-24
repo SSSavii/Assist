@@ -325,7 +325,7 @@ export default function HomePage() {
     const appName = 'assist_plus';
     
     const referralLink = `https://t.me/${botUsername}/${appName}?startapp=ref${userId}`;
-    const shareText = `Привет! Запусти мини-приложение АССИСТ+ и получай бонусы!`;
+    const shareText = `Привет! Запусти мини-приложение "АССИСТ+" и получай бонусы!`;
     
     try {
       const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
@@ -495,6 +495,18 @@ export default function HomePage() {
           </header>
 
           <section className="balance-section">
+            {/* Стрелка */}
+            <svg 
+              width="30" 
+              height="66" 
+              viewBox="0 0 30 66" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+              className="balance-arrow"
+            >
+              <path d="M5.48642 65.5451C5.58692 65.8023 5.8769 65.9293 6.1341 65.8288C6.39131 65.7283 6.51834 65.4383 6.41783 65.1811L5.95213 65.3631L5.48642 65.5451ZM29.8569 4.0976C30.0556 3.90583 30.0612 3.5893 29.8694 3.39061L26.7443 0.152786C26.5525 -0.0459032 26.236 -0.0515086 26.0373 0.140266C25.8386 0.33204 25.833 0.648573 26.0248 0.847262L28.8027 3.72533L25.9246 6.50323C25.7259 6.695 25.7203 7.01154 25.9121 7.21022C26.1039 7.40891 26.4204 7.41452 26.6191 7.22275L29.8569 4.0976ZM5.95213 65.3631L6.41783 65.1811C-0.145329 48.3852 -0.45165 33.0033 3.91768 21.9096C8.27709 10.841 17.2886 4.0215 29.5008 4.23777L29.5097 3.73785L29.5185 3.23792C16.8458 3.0135 7.4831 10.1281 2.98725 21.5431C-1.49868 32.9329 -1.1413 48.584 5.48642 65.5451L5.95213 65.3631Z" fill="black"/>
+            </svg>
+
             <div 
               className="balance-container"
               onClick={handleEarnCrystals}
@@ -516,8 +528,8 @@ export default function HomePage() {
             <div className="balance-amount">{user.balance_crystals}</div>
 
             <p className="balance-description">
-              Кликай, зарабатывай плюсы,<br />
-              и меняй их в <span className="description-bold">магазине</span>
+              <span className="description-bold">Кликай на кнопку выше</span>, зарабатывай <br />
+              плюсы, и меняй их в <span className="description-bold">магазине</span>
             </p>
           </section>
 
@@ -757,12 +769,24 @@ export default function HomePage() {
           }
 
           .balance-section {
+            position: relative; /* Важно для абсолютного позиционирования стрелки */
             gap: 15px;
             display: flex;
             padding: 5px 0 12px;
             align-self: stretch;
             align-items: center;
             flex-direction: column;
+          }
+
+          .balance-arrow {
+            position: absolute;
+            left: calc(50% - 110px); /* Смещение влево от центра */
+            top: 45px; /* Смещение сверху */
+            width: 28.4px;
+            height: 62.03px;
+            z-index: 3;
+            transform: rotate(1.01deg);
+            pointer-events: none;
           }
           
           .balance-container {
@@ -805,35 +829,40 @@ export default function HomePage() {
           }
           
           .balance-amount {
-            background: rgba(255, 255, 255, 0.8);
-            padding: 6px 12px;
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 7px 10px;
+            border-radius: 30px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 700;
             font-size: 20px;
-            color: #000000;
-            border: 1px solid #b4b4b4;
-            line-height: 16.2px;
-            letter-spacing: -0.60px;
+            color: #0D0D0D;
+            border: 1px solid #B4B4B4;
+            line-height: 81%;
+            letter-spacing: -0.03em;
             margin-top: -5px;
+            min-width: 53px;
+            height: 27px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
           }
           
           .balance-description {
-            width: 280px;
+            width: 281px;
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 400;
-            font-size: 16px;
+            font-size: 14px;
             text-align: center;
-            color: #000000;
-            line-height: 19px;
-            letter-spacing: -0.30px;
+            color: #0D0D0D;
+            line-height: 110%;
+            letter-spacing: -0.03em;
             margin: 0;
           }
           
           .description-bold {
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 700;
-            letter-spacing: -0.05px;
           }
 
           .tasks-section {
@@ -1146,8 +1175,8 @@ export default function HomePage() {
             }
             
             .balance-description {
-              font-size: 15px;
-              line-height: 18px;
+              font-size: 14px;
+              line-height: 110%;
             }
             
             .task-card {
