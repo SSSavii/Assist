@@ -517,8 +517,30 @@ export default function HomePage() {
 
             <p className="balance-description">
               Кликай, зарабатывай плюсы,<br />
-              и меняй их в <span className="description-bold">аукционе знакомств</span>
+              и меняй их в <span className="description-bold">магазине</span>
             </p>
+          </section>
+
+          <section className="navigation-section">
+            <button
+              className={`navigation-button ${isNavigationPressed ? 'pressed' : ''}`}
+              onClick={handleNavigationClick}
+              onMouseDown={() => setIsNavigationPressed(true)}
+              onMouseUp={() => setIsNavigationPressed(false)}
+              onMouseLeave={() => setIsNavigationPressed(false)}
+              onTouchStart={() => setIsNavigationPressed(true)}
+              onTouchEnd={() => setIsNavigationPressed(false)}
+            >
+              <div className="navigation-text">
+                <div>Навигация</div>
+                <div>по каналу АССИСТ+</div>
+              </div>
+              <div className="navigation-arrow">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 1L9 6L3 11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </button>
           </section>
 
           <section className="tasks-section">
@@ -592,28 +614,6 @@ export default function HomePage() {
                 ))}
               </div>
             </div>
-          </section>
-
-          <section className="navigation-section">
-            <button
-              className={`navigation-button ${isNavigationPressed ? 'pressed' : ''}`}
-              onClick={handleNavigationClick}
-              onMouseDown={() => setIsNavigationPressed(true)}
-              onMouseUp={() => setIsNavigationPressed(false)}
-              onMouseLeave={() => setIsNavigationPressed(false)}
-              onTouchStart={() => setIsNavigationPressed(true)}
-              onTouchEnd={() => setIsNavigationPressed(false)}
-            >
-              <div className="navigation-text">
-                <div>Навигация</div>
-                <div>по каналу АССИСТ+</div>
-              </div>
-              <div className="navigation-arrow">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 1L9 6L3 11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-            </button>
           </section>
         </main>
 
@@ -1040,7 +1040,7 @@ export default function HomePage() {
           
           .button-text {
             font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-weight: 300;
+            font-weight: 500;
             font-size: 13px;
             color: #0D0D0D;
             line-height: 13px;
