@@ -179,45 +179,45 @@ export default function NavigationPage() {
   const navigationCards: NavigationCard[] = [
     {
       id: 1,
-      title: "Кейсы",
-      image: "/images/cases.png",
-      route: "/navigation/cases"
-    },
-    {
-      id: 2,
-      title: "Подборки",
-      image: "/images/selections.png",
-      route: "/navigation/selections"
-    },
-    {
-      id: 3,
-      title: "Мероприятия",
-      image: "/images/events.png",
-      route: "/navigation/events"
-    },
-    {
-      id: 4,
-      title: "Записи онлайн встреч",
-      image: "/images/online-meetings.png",
-      route: "/navigation/online-meetings"
-    },
-    {
-      id: 5,
-      title: "Оффлайн мероприятия",
-      image: "/images/offline-events.png",
-      route: "/navigation/offline-events"
-    },
-    {
-      id: 6,
       title: "Гайды и лайфхаки",
       image: "/images/guides.png",
       route: "/navigation/guides"
     },
     {
-      id: 7,
+      id: 2,
       title: "Вакансии",
       image: "/images/vacancies.png",
       route: "/navigation/vacancies"
+    },
+    {
+      id: 3,
+      title: "Кейсы",
+      image: "/images/cases.png",
+      route: "/navigation/cases"
+    },
+    {
+      id: 4,
+      title: "Подборки",
+      image: "/images/selections.png",
+      route: "/navigation/selections"
+    },
+    {
+      id: 5,
+      title: "Мероприятия",
+      image: "/images/events.png",
+      route: "/navigation/events"
+    },
+    {
+      id: 6,
+      title: "Записи онлайн встреч",
+      image: "/images/online-meetings.png",
+      route: "/navigation/online-meetings"
+    },
+    {
+      id: 7,
+      title: "Оффлайн мероприятия",
+      image: "/images/offline-events.png",
+      route: "/navigation/offline-events"
     },
     {
       id: 8,
