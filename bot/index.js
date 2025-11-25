@@ -24,16 +24,15 @@ if (!BOT_TOKEN || !TELEGRAM_ADMIN_IDS) {
   process.exit(1);
 }
 
-// --- ИСПРАВЛЕНИЕ 1: Защита от дублей и битых ID ---
+// --- ИСПРАВЛЕНИЕ 1: Надежный парсинг ID админов ---
 const adminIds = [
   ...new Set(
     TELEGRAM_ADMIN_IDS.split(',')
       .map(id => {
-        // Оставляем только цифры, убираем пробелы и мусор типа ">"
-        const cleanId = id.replace(/[^0-9]/g, '');
+        const cleanId = id.replace(/[^0-9]/g, ''); 
         return parseInt(cleanId, 10);
       })
-      .filter(id => !isNaN(id) && id > 0) // Убираем NaN и пустые
+      .filter(id => !isNaN(id) && id > 0)
   )
 ];
 
@@ -41,8 +40,7 @@ const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
 console.log(`✅ Бот запущен. Админы: [${adminIds.join(', ')}].`);
 
-// --- ИСПРАВЛЕНИЕ 2: Функция для экранирования текста в Markdown ---
-// Нужна, чтобы никнеймы с "_" (например @my_name) не ломали бота
+// --- ИСПРАВЛЕНИЕ 2: Экранирование Markdown (защита от падения бота) ---
 const escapeMarkdown = (text) => {
   if (!text) return '';
   return String(text).replace(/[_*[\]`]/g, '\\$&');
@@ -67,15 +65,14 @@ const LOTTERY_LEVELS = [
 // Функция для уведомления админов о выигрыше
 export async function notifyAdminsAboutWinning(userId, userName, userUsername, prizeName, prizeType) {
   try {
-    // --- ИСПРАВЛЕНИЕ: Экранируем данные пользователя ---
-    const safeUserName = escapeMarkdown(userName);
-    const safePrizeName = escapeMarkdown(prizeName);
-    const safeUserUsername = userUsername ? escapeMarkdown(userUsername) : null;
+    const safeName = escapeMarkdown(userName);
+    const safePrize = escapeMarkdown(prizeName);
+    const safeUsername = userUsername ? escapeMarkdown(userUsername) : 'не указан';
 
     const message = `🎁 *Новый выигрыш!*\n\n` +
-                   `👤 *Пользователь:* ${safeUserName}\n` +
-                   `📱 *Username:* ${safeUserUsername ? '@' + safeUserUsername : 'не указан'}\n` +
-                   `🎯 *Приз:* ${safePrizeName}\n` +
+                   `👤 *Пользователь:* ${safeName}\n` +
+                   `📱 *Username:* @${safeUsername}\n` +
+                   `🎯 *Приз:* ${safePrize}\n` +
                    `📦 *Тип:* ${prizeType === 'rare' ? 'Редкий' : 'Обычный'}\n\n` +
                    `💬 *ID пользователя:* \`${userId}\``;
 
@@ -96,32 +93,22 @@ export async function sendPrizeToUser(userId, prizeName, messageType, checklistF
   try {
     let messageText = '';
     
-    // Отправка Чек-листов
     if (messageType === 'checklist' && checklistFileName) {
       const checklistPath = path.join(process.cwd(), 'public', 'checklists', checklistFileName);
       
       if (!fs.existsSync(checklistPath)) {
-        console.error(`[SEND PRIZE] Чек-лист не найден: ${checklistPath}`);
         throw new Error('Checklist file not found');
       }
 
       const caption = `🎉 Поздравляем! Вы получили чек-лист!\n\n📄 ${checklistFileName.replace('.pdf', '')}`;
-      
       await bot.sendDocument(userId, checklistPath, { caption });
       return true;
     } 
-    // НОВОЕ: Отправка Плейбука (Лайфхаки)
     else if (messageType === 'playbook' && checklistFileName) {
-        const filePath = path.join(process.cwd(), 'public', 'checklists', checklistFileName); 
+        const filePath = path.join(process.cwd(), 'public', 'checklists', checklistFileName);
+        if (!fs.existsSync(filePath)) throw new Error('Playbook file not found');
         
-        if (!fs.existsSync(filePath)) {
-          console.error(`[SEND PRIZE] Плейбук не найден: ${filePath}`);
-          throw new Error('Playbook file not found');
-        }
-  
-        // Экранируем название приза
         const caption = `🎉 Поздравляем! Вы выиграли: *${escapeMarkdown(prizeName)}*\n\n📄 Держите ваш файл с лайфхаками!`;
-        
         await bot.sendDocument(userId, filePath, { caption, parse_mode: 'Markdown' });
         return true;
     }
@@ -130,7 +117,6 @@ export async function sendPrizeToUser(userId, prizeName, messageType, checklistF
                    `Вы получили все 10 чек-листов!\n\n` +
                    `🎁 Бонус: *+250 A+* начислены на ваш баланс!`;
     } else if (messageType === 'manual_contact') {
-      // Экранируем название приза
       messageText = `🎉 Поздравляем! Вы выиграли: *${escapeMarkdown(prizeName)}*\n\n` +
                    `✨ С вами свяжутся в ближайшее время для организации вашего приза!`;
     }
@@ -149,7 +135,8 @@ export async function sendPrizeToUser(userId, prizeName, messageType, checklistF
   }
 }
 
-// НОВАЯ ФУНКЦИЯ: Проведение автоматического розыгрыша
+// --- ЛОГИКА РОЗЫГРЫШЕЙ ---
+
 async function conductMonthlyLottery() {
   console.log('\n====================================');
   console.log('🎰 НАЧАЛО ЕЖЕМЕСЯЧНОГО РОЗЫГРЫША');
@@ -158,7 +145,6 @@ async function conductMonthlyLottery() {
   const results = [];
   
   try {
-    // Проводим розыгрыши для каждого уровня
     for (const lottery of LOTTERY_LEVELS) {
       console.log(`\n--- Розыгрыш уровня ${lottery.level}+ ---`);
       
@@ -170,8 +156,6 @@ async function conductMonthlyLottery() {
       
       const participants = participantsStmt.all(lottery.level);
       
-      console.log(`Участников: ${participants.length}, Нужно для розыгрыша: ${lottery.level}`);
-      
       if (participants.length === 0) {
         results.push({
           level: lottery.level,
@@ -180,11 +164,9 @@ async function conductMonthlyLottery() {
           participants: 0,
           winners: []
         });
-        console.log(`❌ Нет участников`);
         continue;
       }
       
-      // Выбираем победителей
       let winners = [];
       const maxWinners = Math.min(lottery.winners, participants.length);
       const shuffled = [...participants].sort(() => Math.random() - 0.5);
@@ -198,13 +180,6 @@ async function conductMonthlyLottery() {
         winners: winners
       });
       
-      console.log(`✅ Выбрано победителей: ${winners.length}`);
-      winners.forEach((w, i) => {
-        const name = `${w.first_name}${w.last_name ? ' ' + w.last_name : ''}`;
-        console.log(`   ${i + 1}. ${name} (@${w.username || 'нет'}) - ${w.current_month_referrals} рефералов`);
-      });
-      
-      // Отправляем сообщения победителям
       for (const winner of winners) {
         try {
           await bot.sendMessage(
@@ -215,48 +190,30 @@ async function conductMonthlyLottery() {
             `С вами свяжутся в ближайшее время для организации вручения приза!`,
             { parse_mode: 'Markdown' }
           );
-          console.log(`   ✉️ Уведомление отправлено победителю ${winner.tg_id}`);
         } catch (error) {
           console.error(`   ❌ Не удалось уведомить победителя ${winner.tg_id}:`, error.message);
         }
       }
       
-      // Небольшая задержка между розыгрышами
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
     
-    // Уведомляем админов о результатах
     await notifyAdminsAboutLotteryResults(results);
-    
-    // Отправляем сводку всем пользователям
     await notifyAllUsersAboutResults(results);
     
-    // Сбрасываем месячные счётчики
+    // ВАЖНО: Сброс происходит ТОЛЬКО здесь, раз в месяц
     await resetMonthlyCounters();
     
-    console.log('\n====================================');
-    console.log('✅ РОЗЫГРЫШ ЗАВЕРШЁН');
-    console.log('====================================\n');
+    console.log('\n✅ РОЗЫГРЫШ ЗАВЕРШЁН');
     
   } catch (error) {
-    console.error('[LOTTERY] Критическая ошибка при проведении розыгрыша:', error);
-    
-    // Уведомляем админов об ошибке
+    console.error('[LOTTERY] Критическая ошибка:', error);
     for (const adminId of adminIds) {
-      try {
-        await bot.sendMessage(
-          adminId,
-          `❌ *ОШИБКА В РОЗЫГРЫШЕ*\n\n${error.message}`,
-          { parse_mode: 'Markdown' }
-        );
-      } catch (e) {
-        console.error('Не удалось уведомить админа об ошибке:', e);
-      }
+      bot.sendMessage(adminId, `❌ *ОШИБКА В РОЗЫГРЫШЕ*\n\n${error.message}`, { parse_mode: 'Markdown' }).catch(() => {});
     }
   }
 }
 
-// Уведомление админов о результатах
 async function notifyAdminsAboutLotteryResults(results) {
   let message = `📊 *ИТОГИ ЕЖЕМЕСЯЧНОГО РОЗЫГРЫША*\n\n`;
   
@@ -273,50 +230,34 @@ async function notifyAdminsAboutLotteryResults(results) {
       result.winners.forEach((winner, index) => {
         const name = escapeMarkdown(`${winner.first_name}${winner.last_name ? ' ' + winner.last_name : ''}`);
         const username = winner.username ? `@${escapeMarkdown(winner.username)}` : 'нет username';
-        message += `${index + 1}. ${name} (${username})\n`;
-        message += `   ID: \`${winner.tg_id}\` | Рефералов: ${winner.current_month_referrals}\n`;
+        message += `${index + 1}. ${name} (${username}) [${winner.current_month_referrals}]\n`;
       });
       message += '\n';
     }
   }
   
   for (const adminId of adminIds) {
-    try {
-      await bot.sendMessage(adminId, message, { parse_mode: 'Markdown' });
-    } catch (error) {
-      console.error(`Не удалось отправить итоги админу ${adminId}:`, error.message);
-    }
+     if (message.length > 4000) {
+         const chunks = message.match(/[\s\S]{1,4000}/g) || [];
+         for (const chunk of chunks) await bot.sendMessage(adminId, chunk, { parse_mode: 'Markdown' });
+     } else {
+         await bot.sendMessage(adminId, message, { parse_mode: 'Markdown' });
+     }
   }
 }
 
-// Уведомление всех пользователей о результатах
 async function notifyAllUsersAboutResults(results) {
-  console.log('\n--- Отправка сводки всем пользователям ---');
-  
-  // Получаем всех пользователей, которые запустили бота
-  const usersStmt = db.prepare(`
-    SELECT tg_id, first_name 
-    FROM users 
-    WHERE bot_started = 1
-  `);
+  const usersStmt = db.prepare(`SELECT tg_id FROM users WHERE bot_started = 1`);
   const users = usersStmt.all();
   
-  console.log(`Найдено пользователей для уведомления: ${users.length}`);
-  
-  // Формируем сообщение
   let message = `🎉 *ИТОГИ ЕЖЕМЕСЯЧНОГО РОЗЫГРЫША*\n\n`;
-  
   let hasWinners = false;
   
   for (const result of results) {
-    if (result.status === 'no_participants') {
-      message += `📋 *${result.level}+ приглашений*\n`;
-      message += `❌ Недостаточно участников\n\n`;
-    } else {
+    if (result.status !== 'no_participants') {
       hasWinners = true;
       message += `📋 *${result.level}+ приглашений*\n`;
       message += `🎁 Приз: ${escapeMarkdown(result.name)}\n`;
-      message += `👥 Участников: ${result.participants}\n`;
       message += `🏆 Победители:\n`;
       
       result.winners.forEach((winner, index) => {
@@ -327,48 +268,26 @@ async function notifyAllUsersAboutResults(results) {
     }
   }
   
-  if (!hasWinners) {
-    message += `\n💬 В этом месяце не было достаточно участников ни в одном розыгрыше.\n`;
-  }
+  if (!hasWinners) message += `\n💬 В этом месяце не было достаточно участников ни в одном розыгрыше.\n`;
   
-  message += `\n🔄 Счётчики обнулены. Новый розыгрыш уже начался!\n`;
-  message += `Приглашай друзей и участвуй в следующем месяце! 🚀`;
+  message += `\n🔄 Счётчики обнулены. Новый розыгрыш уже начался!\nПриглашай друзей и участвуй в следующем месяце! 🚀`;
   
-  // Отправляем сообщения порциями (чтобы не заблокировать бота)
   let sent = 0;
-  let failed = 0;
-  
   for (const user of users) {
     try {
       await bot.sendMessage(user.tg_id, message, { parse_mode: 'Markdown' });
       sent++;
-      
-      // Задержка чтобы не превысить лимиты Telegram API (30 сообщений в секунду)
-      if (sent % 25 === 0) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-    } catch (error) {
-      failed++;
-      if (error.response?.body?.error_code === 403) {
-        // Пользователь заблокировал бота - это нормально
-        console.log(`Пользователь ${user.tg_id} заблокировал бота`);
-      } else {
-        console.error(`Ошибка отправки пользователю ${user.tg_id}:`, error.message);
-      }
-    }
+      if (sent % 25 === 0) await new Promise(resolve => setTimeout(resolve, 1000));
+    } catch (error) {}
   }
-  
-  console.log(`✅ Отправлено сообщений: ${sent}`);
-  console.log(`❌ Не удалось отправить: ${failed}`);
 }
 
-// Сброс месячных счётчиков
 async function resetMonthlyCounters() {
   console.log('\n--- Сброс месячных счётчиков ---');
-  
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   
+  // Сбрасываем всех, у кого > 0
   const resetStmt = db.prepare(`
     UPDATE users 
     SET current_month_referrals = 0, last_referral_reset = ?
@@ -385,36 +304,22 @@ async function checkAndRunLottery() {
   const day = now.getDate();
   const hours = now.getHours();
   
-  // Запускаем розыгрыш в первый день месяца в 00:00-00:59
+  // Запускаем розыгрыш ТОЛЬКО 1-го числа месяца в 00:00 (или первый запуск в этот час)
   if (day === 1 && hours === 0) {
-    // Проверяем, не запускали ли уже в этом часе
     const lastRunKey = `lottery_run_${now.getFullYear()}_${now.getMonth()}`;
     
-    // Используем простую проверку через БД
-    const checkStmt = db.prepare(`
-      SELECT COUNT(*) as count FROM lotteries 
-      WHERE name = ? AND created_at >= datetime('now', '-1 hour')
-    `);
+    const checkStmt = db.prepare(`SELECT COUNT(*) as count FROM lotteries WHERE name = ? AND created_at >= datetime('now', '-1 hour')`);
     const check = checkStmt.get(lastRunKey);
     
     if (check.count === 0) {
       console.log(`\n🎰 Запуск автоматического розыгрыша (${now.toISOString()})`);
       
-      // Создаём запись о запуске розыгрыша
-      const insertStmt = db.prepare(`
+      db.prepare(`
         INSERT INTO lotteries (name, description, start_date, end_date, required_referrals, status)
         VALUES (?, ?, ?, ?, 1, 'FINISHED')
-      `);
-      insertStmt.run(
-        lastRunKey,
-        'Автоматический ежемесячный розыгрыш',
-        now.toISOString(),
-        now.toISOString(),
-      );
+      `).run(lastRunKey, 'Автоматический ежемесячный розыгрыш', now.toISOString(), now.toISOString());
       
       await conductMonthlyLottery();
-    } else {
-      console.log(`Розыгрыш уже был запущен в этом часе`);
     }
   }
 }
@@ -423,437 +328,175 @@ async function checkAndRunLottery() {
 async function checkAndFinishAuctions() {
   try {
     const now = new Date().toISOString();
-    const findExpiredLots = db.prepare(`
+    const expiredLots = db.prepare(`
       SELECT l.id, l.title, l.winner_id, u.first_name, u.last_name, u.username AS tg_username
       FROM Lots l
       LEFT JOIN users u ON l.winner_id = u.id
       WHERE l.status = 'ACTIVE' AND l.expires_at <= ?
-    `);
-    const expiredLots = findExpiredLots.all(now);
+    `).all(now);
 
     if (expiredLots.length > 0) {
-      console.log(`[AUCTION CHECKER] Найдено ${expiredLots.length} истекших аукционов.`);
-    }
-
-    const updateStmt = db.prepare(`UPDATE Lots SET status = 'FINISHED' WHERE id = ?`);
-    const finishTransaction = db.transaction((lots) => {
-        for (const lot of lots) {
-            updateStmt.run(lot.id);
-            let notificationMessage;
-            // Экранируем данные
-            const safeTitle = escapeMarkdown(lot.title);
-            
-            if (lot.winner_id && lot.first_name) {
-                const safeName = escapeMarkdown(`${lot.first_name}${lot.last_name ? ` ${lot.last_name}` : ''}`);
-                const safeUsername = lot.tg_username ? `@${escapeMarkdown(lot.tg_username)}` : 'нет username';
+        const updateStmt = db.prepare(`UPDATE Lots SET status = 'FINISHED' WHERE id = ?`);
+        const finishTransaction = db.transaction((lots) => {
+            for (const lot of lots) {
+                updateStmt.run(lot.id);
+                let notificationMessage;
+                const safeTitle = escapeMarkdown(lot.title);
                 
-                notificationMessage = `🎉 *Аукцион завершен!*\n\n*Лот:* "${safeTitle}" (ID: ${lot.id})\n*Победитель:* ${safeName}\n*Telegram:* ${safeUsername}\n\nПожалуйста, свяжитесь с победителем.`;
-            } else {
-                notificationMessage = `⌛️ *Аукцион завершен без победителя.*\n\n*Лот:* "${safeTitle}" (ID: ${lot.id})`;
+                if (lot.winner_id && lot.first_name) {
+                    const safeName = escapeMarkdown(`${lot.first_name}${lot.last_name ? ` ${lot.last_name}` : ''}`);
+                    const safeUsername = lot.tg_username ? `@${escapeMarkdown(lot.tg_username)}` : 'нет username';
+                    notificationMessage = `🎉 *Аукцион завершен!*\n\n*Лот:* "${safeTitle}" (ID: ${lot.id})\n*Победитель:* ${safeName}\n*Telegram:* ${safeUsername}\n\nПожалуйста, свяжитесь с победителем.`;
+                } else {
+                    notificationMessage = `⌛️ *Аукцион завершен без победителя.*\n\n*Лот:* "${safeTitle}" (ID: ${lot.id})`;
+                }
+                adminIds.forEach(adminId => bot.sendMessage(adminId, notificationMessage, { parse_mode: 'Markdown' }).catch(() => {}));
             }
-            adminIds.forEach(adminId => {
-                bot.sendMessage(adminId, notificationMessage, { parse_mode: 'Markdown' }).catch(err => {
-                    console.error(`[AUCTION CHECKER] Не удалось отправить сообщение админу ${adminId} о лоте ${lot.id}:`, err.response?.body || err.message);
-                });
-            });
-        }
-    });
-
-    if (expiredLots.length > 0) {
+        });
         finishTransaction(expiredLots);
     }
-
   } catch (error) {
-    console.error('[AUCTION CHECKER] Фатальная ошибка при проверке аукционов:', error);
-  }
-}
-
-// ИСПРАВЛЕНО: Проверка и сброс ежемесячных рефералов
-async function checkAndResetMonthlyReferrals() {
-  try {
-    const now = new Date();
-    // Формат: YYYY-MM (например, 2024-11)
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    
-    // Ищем пользователей, у которых last_referral_reset отличается от текущего месяца
-    // Или если он NULL, но есть накопленные рефералы (на всякий случай)
-    const checkResetStmt = db.prepare(`
-      SELECT id 
-      FROM users
-      WHERE current_month_referrals > 0 
-      AND (last_referral_reset IS NULL OR last_referral_reset != ?)
-    `);
-    
-    const usersToReset = checkResetStmt.all(currentMonth);
-    
-    if (usersToReset.length > 0) {
-      console.log(`[LOTTERY] Сброс месячных рефералов для ${usersToReset.length} пользователей (новый месяц: ${currentMonth})`);
-      
-      const resetStmt = db.prepare(`
-        UPDATE users 
-        SET current_month_referrals = 0, last_referral_reset = ?
-        WHERE id = ?
-      `);
-      
-      const resetTransaction = db.transaction((users) => {
-        for (const user of users) {
-          resetStmt.run(currentMonth, user.id);
-        }
-      });
-      
-      resetTransaction(usersToReset);
-    }
-  } catch (error) {
-    console.error('[LOTTERY] Ошибка при сбросе месячных рефералов:', error);
+    console.error('[AUCTION CHECKER] Ошибка:', error);
   }
 }
 
 // Запуск фоновых задач
 setInterval(checkAndFinishAuctions, 60000); // Каждую минуту
-setInterval(checkAndRunLottery, 3600000); // Каждый час - проверка розыгрыша
-setInterval(checkAndResetMonthlyReferrals, 3600000); // Каждый час - проверка сброса
-console.log('✅ Фоновые задачи запущены (аукционы + розыгрыши).');
-
-// Проверяем сразу при запуске
+setInterval(checkAndRunLottery, 3600000); // Каждый час
+console.log('✅ Фоновые задачи запущены.');
+// Проверка при запуске (на случай если сервер перезагрузился 1-го числа в 00:xx)
 setTimeout(() => checkAndRunLottery(), 5000);
 
 // ===== КОМАНДЫ БОТА =====
 
-// Команда /start - доступна всем
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
-  const username = msg.from.username || '';
-  const firstName = msg.from.first_name || 'Пользователь';
-  const lastName = msg.from.last_name || '';
   
   try {
     const checkUser = db.prepare('SELECT id, bot_started FROM users WHERE tg_id = ?');
     const existingUser = checkUser.get(userId);
     
     if (existingUser) {
-      if (!existingUser.bot_started) {
-        const updateStmt = db.prepare('UPDATE users SET bot_started = 1 WHERE tg_id = ?');
-        updateStmt.run(userId);
-        console.log(`[BOT START] Пользователь ${userId} активировал бота`);
-      }
+      if (!existingUser.bot_started) db.prepare('UPDATE users SET bot_started = 1 WHERE tg_id = ?').run(userId);
     } else {
-      const insertStmt = db.prepare(`
-        INSERT INTO users (tg_id, username, first_name, last_name, bot_started)
-        VALUES (?, ?, ?, ?, 1)
-      `);
-      insertStmt.run(userId, username, firstName, lastName);
-      console.log(`[BOT START] Новый пользователь ${userId} зарегистрирован`);
+      db.prepare(`INSERT INTO users (tg_id, username, first_name, last_name, bot_started) VALUES (?, ?, ?, ?, 1)`)
+        .run(userId, msg.from.username || '', msg.from.first_name || 'Пользователь', msg.from.last_name || '');
     }
     
-    const welcomeText = `👋 *Добро пожаловать в бота АССИСТ+!*\n\n` +
-                   `Я буду присылать тебе уведомления о:\n` +
-                   `— выигрышах в рулетке\n` +
-                   `— новых розыгрышах\n` +
-                   `— важных событиях\n\n` +
-                   `Теперь ты можешь полноценно пользоваться нашим приложением 🤍`;
-    
+    const welcomeText = `👋 *Добро пожаловать в бота АССИСТ+!*\n\nТеперь ты можешь полноценно пользоваться нашим приложением 🤍`;
     bot.sendMessage(chatId, welcomeText, { parse_mode: 'Markdown' });
   } catch (error) {
-    console.error('[BOT START] Ошибка при регистрации пользователя:', error);
-    bot.sendMessage(chatId, '❌ Произошла ошибка. Попробуйте позже.');
+    console.error('[BOT START] Ошибка:', error);
   }
 });
 
-// Команда /help
 bot.onText(/\/help/, (msg) => {
   const chatId = msg.chat.id;
-  const isAdmin = checkAdmin(msg);
-  
-  let helpText = `*📖 Помощь - Бот АССИСТ+*\n\n` +
-                 `Доступные команды:\n` +
-                 `/start - Активировать бота\n` +
-                 `/help - Показать эту справку\n`;
-  
-  if (isAdmin) {
-    helpText += `\n*👑 Команды администратора:*\n` +
-                `/admin - Панель управления\n` +
-                `/lottery - Управление розыгрышами\n` +
-                `/participants <уровень> - Список участников (1/5/10/25/50)\n` +
-                `/draw <уровень> - Провести розыгрыш вручную\n` +
-                `/runlottery - Запустить полный розыгрыш сейчас\n` +
-                `/reset_month - Сбросить месячные счетчики`;
+  let helpText = `*📖 Помощь - Бот АССИСТ+*\n\n/start - Активировать бота\n/help - Показать эту справку\n`;
+  if (checkAdmin(msg)) {
+    helpText += `\n*👑 Админ:*\n/admin - Панель\n/lottery - Розыгрыши\n/participants <ур> - Список\n/runlottery - Запуск\n/reset_month - Сброс\n/fix_stats - Восстановить рефералов`;
   }
-  
   bot.sendMessage(chatId, helpText, { parse_mode: 'Markdown' });
 });
 
-// Команда /admin - только для админов
 bot.onText(/\/admin/, async (msg) => {
-  if (!checkAdmin(msg)) {
-    bot.sendMessage(msg.chat.id, "⛔️ У вас нет прав для использования этой команды.");
-    return;
-  }
-  
-  const chatId = msg.chat.id;
+  if (!checkAdmin(msg)) return;
   
   try {
-    const statsStmt = db.prepare(`
+    const stats = db.prepare(`
       SELECT 
         COUNT(*) as total_users,
         SUM(CASE WHEN bot_started = 1 THEN 1 ELSE 0 END) as active_users,
         SUM(CASE WHEN current_month_referrals >= 1 THEN 1 ELSE 0 END) as lottery_1,
-        SUM(CASE WHEN current_month_referrals >= 5 THEN 1 ELSE 0 END) as lottery_5,
-        SUM(CASE WHEN current_month_referrals >= 10 THEN 1 ELSE 0 END) as lottery_10,
-        SUM(CASE WHEN current_month_referrals >= 25 THEN 1 ELSE 0 END) as lottery_25,
-        SUM(CASE WHEN current_month_referrals >= 50 THEN 1 ELSE 0 END) as lottery_50
+        SUM(CASE WHEN current_month_referrals >= 5 THEN 1 ELSE 0 END) as lottery_5
       FROM users
-    `);
+    `).get();
     
-    const stats = statsStmt.get();
-    
-    const message = `*👑 Админ-панель*\n\n` +
-                   `📊 *Статистика:*\n` +
-                   `Всего пользователей: ${stats.total_users}\n` +
-                   `Активировали бота: ${stats.active_users}\n\n` +
-                   `🎰 *Участники розыгрышей (в этом месяце):*\n` +
-                   `1+ реферал: ${stats.lottery_1} чел.\n` +
-                   `5+ рефералов: ${stats.lottery_5} чел.\n` +
-                   `10+ рефералов: ${stats.lottery_10} чел.\n` +
-                   `25+ рефералов: ${stats.lottery_25} чел.\n` +
-                   `50+ рефералов: ${stats.lottery_50} чел.\n\n` +
-                   `*Команды:*\n` +
-                   `/lottery - Управление розыгрышами\n` +
-                   `/participants <уровень> - Список участников\n` +
-                   `/runlottery - Запустить полный розыгрыш`;
-    
-    bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+    const message = `*👑 Админ-панель*\n\n📊 Всего: ${stats.total_users}\nАктивных: ${stats.active_users}\n\n🎰 Участники:\n1+: ${stats.lottery_1}\n5+: ${stats.lottery_5}`;
+    bot.sendMessage(msg.chat.id, message, { parse_mode: 'Markdown' });
   } catch (error) {
-    console.error('[ADMIN] Ошибка:', error);
-    bot.sendMessage(chatId, '❌ Ошибка при получении статистики');
+    bot.sendMessage(msg.chat.id, '❌ Ошибка');
   }
 });
 
-// Команда /participants - список участников розыгрыша
 bot.onText(/\/participants (\d+)/, async (msg, match) => {
-  if (!checkAdmin(msg)) {
-    bot.sendMessage(msg.chat.id, "⛔️ У вас нет прав для использования этой команды.");
-    return;
-  }
-  
+  if (!checkAdmin(msg)) return;
   const chatId = msg.chat.id;
   const level = parseInt(match[1]);
   
-  if (![1, 5, 10, 25, 50].includes(level)) {
-    bot.sendMessage(chatId, `❌ Уровень должен быть одним из: 1, 5, 10, 25, 50`);
-    return;
-  }
+  if (![1, 5, 10, 25, 50].includes(level)) return bot.sendMessage(chatId, `❌ Уровень: 1, 5, 10, 25, 50`);
   
   try {
-    const participantsStmt = db.prepare(`
-      SELECT tg_id, first_name, last_name, username, current_month_referrals, referral_count_subscribed
-      FROM users
-      WHERE current_month_referrals >= ?
-      ORDER BY current_month_referrals DESC
-    `);
-    
-    const participants = participantsStmt.all(level);
-    
-    if (participants.length === 0) {
-      bot.sendMessage(chatId, `Участников с ${level}+ рефералами в этом месяце пока нет.`);
-      return;
-    }
-    
-    let message = `*🎰 Участники розыгрыша (${level}+ рефералов в этом месяце):*\n\n`;
-    message += `Всего участников: ${participants.length}\n\n`;
-    
-    participants.forEach((p, index) => {
-      // --- ИСПРАВЛЕНИЕ: Экранируем имя и юзернейм ---
-      const name = escapeMarkdown(`${p.first_name}${p.last_name ? ' ' + p.last_name : ''}`);
-      const username = p.username ? `@${escapeMarkdown(p.username)}` : 'нет username';
-      
-      message += `${index + 1}. ${name} (${username})\n`;
-      message += `   В этом месяце: ${p.current_month_referrals} | Всего подписались: ${p.referral_count_subscribed || 0}\n\n`;
-    });
-    
-    if (message.length > 4000) {
-      const chunks = message.match(/[\s\S]{1,4000}/g) || [];
-      for (const chunk of chunks) {
-        await bot.sendMessage(chatId, chunk, { parse_mode: 'Markdown' });
-      }
-    } else {
-      bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
-    }
-  } catch (error) {
-    console.error('[PARTICIPANTS] Ошибка:', error);
-    bot.sendMessage(chatId, '❌ Ошибка при получении списка участников');
-  }
-});
-
-// Команда /lottery - управление розыгрышами
-bot.onText(/\/lottery/, async (msg) => {
-  if (!checkAdmin(msg)) {
-    bot.sendMessage(msg.chat.id, "⛔️ У вас нет прав для использования этой команды.");
-    return;
-  }
-  
-  const chatId = msg.chat.id;
-  
-  const message = `*🎰 Управление розыгрышами*\n\n` +
-                 `Розыгрыши проводятся *автоматически* в начале каждого месяца.\n\n` +
-                 `*Уровни призов:*\n` +
-                 `• 1+ друг - Чек-лист (до 10 победителей)\n` +
-                 `• 5+ друзей - Разбор резюме (1 победитель)\n` +
-                 `• 10+ друзей - Книга + рекомендации (1 победитель)\n` +
-                 `• 25+ друзей - Мини-разбор (1 победитель)\n` +
-                 `• 50+ друзей - Встреча в Сколково (1 победитель)\n\n` +
-                 `*Важно:* Учитываются только рефералы *текущего месяца*!\n\n` +
-                 `*Команды:*\n` +
-                 `/participants <уровень> - Список участников\n` +
-                 `/runlottery - Запустить розыгрыш вручную\n` +
-                 `/reset_month - Сбросить месячные счетчики`;
-  
-  bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
-});
-
-// НОВАЯ КОМАНДА: Запуск полного розыгрыша вручную
-bot.onText(/\/runlottery/, async (msg) => {
-  if (!checkAdmin(msg)) {
-    bot.sendMessage(msg.chat.id, "⛔️ У вас нет прав для использования этой команды.");
-    return;
-  }
-  
-  const chatId = msg.chat.id;
-  
-  bot.sendMessage(chatId, '🎰 Запускаю полный розыгрыш...');
-  
-  await conductMonthlyLottery();
-  
-  bot.sendMessage(chatId, '✅ Розыгрыш завершён! Проверьте результаты выше.');
-});
-
-// Команда /draw - провести розыгрыш одного уровня вручную
-bot.onText(/\/draw (\d+)/, async (msg, match) => {
-  if (!checkAdmin(msg)) {
-    bot.sendMessage(msg.chat.id, "⛔️ У вас нет прав для использования этой команды.");
-    return;
-  }
-  
-  const chatId = msg.chat.id;
-  const level = parseInt(match[1]);
-  
-  if (![1, 5, 10, 25, 50].includes(level)) {
-    bot.sendMessage(chatId, `❌ Уровень должен быть одним из: 1, 5, 10, 25, 50`);
-    return;
-  }
-  
-  try {
-    const participantsStmt = db.prepare(`
+    const participants = db.prepare(`
       SELECT tg_id, first_name, last_name, username, current_month_referrals
-      FROM users
-      WHERE current_month_referrals >= ?
-    `);
+      FROM users WHERE current_month_referrals >= ? ORDER BY current_month_referrals DESC
+    `).all(level);
     
-    const participants = participantsStmt.all(level);
+    if (participants.length === 0) return bot.sendMessage(chatId, `Нет участников с ${level}+.`);
     
-    if (participants.length === 0) {
-      bot.sendMessage(chatId, `❌ Нет участников с ${level}+ рефералами в этом месяце`);
-      return;
+    await bot.sendMessage(chatId, `🎰 *Участники (${level}+):* Всего: ${participants.length}`, { parse_mode: 'Markdown' });
+
+    let chunk = "";
+    for (let i = 0; i < participants.length; i++) {
+        const p = participants[i];
+        const name = `${p.first_name}${p.last_name ? ' ' + p.last_name : ''}`;
+        const username = p.username ? `@${p.username}` : 'нет';
+        const line = `${i + 1}. ${name} (${username}) | ${p.current_month_referrals}\n`;
+        
+        if (chunk.length + line.length > 3500) {
+            await bot.sendMessage(chatId, chunk);
+            chunk = "";
+        }
+        chunk += line;
     }
-    
-    const prizes = {
-      1: 'Глубокий чек-лист от «АССИСТ+»',
-      5: 'Разбор резюме и портфолио от команды «АССИСТ+»',
-      10: 'Книга + размещение канала в рекомендациях на 30 дней',
-      25: 'Закрытый мини-разбор с предпринимателем (онлайн, 60 минут, группа)',
-      50: 'Очная встреча в Сколково с секретным гостем'
-    };
-    
-    let winners = [];
-    if (level === 1) {
-      const maxWinners = Math.min(10, participants.length);
-      const shuffled = [...participants].sort(() => Math.random() - 0.5);
-      winners = shuffled.slice(0, maxWinners);
-    } else {
-      const winner = participants[Math.floor(Math.random() * participants.length)];
-      winners = [winner];
-    }
-    
-    let adminMessage = `🎉 *Розыгрыш завершен!*\n\n` +
-                       `Уровень: ${level}+ рефералов\n` +
-                       `Приз: ${prizes[level]}\n` +
-                       `Участников: ${participants.length}\n\n`;
-    
-    if (winners.length === 1) {
-      const winner = winners[0];
-      // --- ИСПРАВЛЕНИЕ: Экранирование ---
-      const winnerName = escapeMarkdown(`${winner.first_name}${winner.last_name ? ' ' + winner.last_name : ''}`);
-      const winnerUsername = winner.username ? `@${escapeMarkdown(winner.username)}` : 'нет username';
-      
-      adminMessage += `🏆 *Победитель:*\n` +
-                     `${winnerName} (${winnerUsername})\n` +
-                     `ID: \`${winner.tg_id}\`\n` +
-                     `Рефералов в этом месяце: ${winner.current_month_referrals}`;
-    } else {
-      adminMessage += `🏆 *Победители (${winners.length}):*\n\n`;
-      winners.forEach((winner, index) => {
-        // --- ИСПРАВЛЕНИЕ: Экранирование ---
-        const winnerName = escapeMarkdown(`${winner.first_name}${winner.last_name ? ' ' + winner.last_name : ''}`);
-        const winnerUsername = winner.username ? `@${escapeMarkdown(winner.username)}` : 'нет username';
-        adminMessage += `${index + 1}. ${winnerName} (${winnerUsername})\n`;
-        adminMessage += `   ID: \`${winner.tg_id}\` | Рефералов: ${winner.current_month_referrals}\n\n`;
-      });
-    }
-    
-    bot.sendMessage(chatId, adminMessage, { parse_mode: 'Markdown' });
-    
-    for (const winner of winners) {
-      try {
-        await bot.sendMessage(
-          winner.tg_id,
-          `🎉🎉🎉 *ПОЗДРАВЛЯЕМ!* 🎉🎉🎉\n\n` +
-          `Вы выиграли в розыгрыше среди пользователей с ${level}+ приглашениями!\n\n` +
-          `🎁 Ваш приз: *${escapeMarkdown(prizes[level])}*\n\n` +
-          `С вами свяжутся для организации вручения приза!`,
-          { parse_mode: 'Markdown' }
-        );
-      } catch (error) {
-        bot.sendMessage(chatId, `⚠️ Не удалось отправить сообщение победителю (ID: ${winner.tg_id})`);
-      }
-    }
-    
+    if (chunk) await bot.sendMessage(chatId, chunk);
   } catch (error) {
-    console.error('[DRAW] Ошибка:', error);
-    bot.sendMessage(chatId, '❌ Ошибка при проведении розыгрыша');
+    bot.sendMessage(chatId, '❌ Ошибка');
   }
 });
 
-// Команда /reset_month - сброс месячных счетчиков вручную
+bot.onText(/\/lottery/, async (msg) => {
+  if (!checkAdmin(msg)) return;
+  bot.sendMessage(msg.chat.id, `*🎰 Управление*\n\n/participants <ур>\n/runlottery - Запуск\n/reset_month - Сброс`, { parse_mode: 'Markdown' });
+});
+
+bot.onText(/\/runlottery/, async (msg) => {
+  if (!checkAdmin(msg)) return;
+  bot.sendMessage(msg.chat.id, '🎰 Запускаю полный розыгрыш...');
+  await conductMonthlyLottery();
+  bot.sendMessage(msg.chat.id, '✅ Розыгрыш завершён!');
+});
+
 bot.onText(/\/reset_month/, async (msg) => {
-  if (!checkAdmin(msg)) {
-    bot.sendMessage(msg.chat.id, "⛔️ У вас нет прав для использования этой команды.");
-    return;
-  }
-  
-  const chatId = msg.chat.id;
-  
+  if (!checkAdmin(msg)) return;
   try {
-    const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    
-    const resetStmt = db.prepare(`
-      UPDATE users 
-      SET current_month_referrals = 0, last_referral_reset = ?
-      WHERE current_month_referrals > 0
-    `);
-    
-    const result = resetStmt.run(currentMonth);
-    
-    bot.sendMessage(
-      chatId, 
-      `✅ Месячные счетчики сброшены для ${result.changes} пользователей\n` +
-      `Дата сброса: ${currentMonth}`,
-      { parse_mode: 'Markdown' }
-    );
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const result = db.prepare(`UPDATE users SET current_month_referrals = 0, last_referral_reset = ? WHERE current_month_referrals > 0`).run(currentMonth);
+    bot.sendMessage(msg.chat.id, `✅ Сброшено для ${result.changes} пользователей`);
   } catch (error) {
-    console.error('[RESET MONTH] Ошибка:', error);
-    bot.sendMessage(chatId, '❌ Ошибка при сбросе счетчиков');
+    bot.sendMessage(msg.chat.id, '❌ Ошибка');
   }
+});
+
+// --- НОВАЯ КОМАНДА: ВОССТАНОВЛЕНИЕ ДАННЫХ ---
+bot.onText(/\/fix_stats/, async (msg) => {
+    if (!checkAdmin(msg)) return;
+    const chatId = msg.chat.id;
+    
+    try {
+        // Устанавливаем current_month_referrals = referral_count для всех, у кого referral_count > 0
+        const result = db.prepare(`
+            UPDATE users 
+            SET current_month_referrals = referral_count 
+            WHERE referral_count > 0
+        `).run();
+        
+        bot.sendMessage(chatId, `✅ Статистика восстановлена!\nОбновлено пользователей: ${result.changes}`);
+    } catch (error) {
+        console.error(error);
+        bot.sendMessage(chatId, '❌ Ошибка при восстановлении данных');
+    }
 });
 
 export default bot;
