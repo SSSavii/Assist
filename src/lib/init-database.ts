@@ -15,6 +15,56 @@ try {
   console.warn('⚠️ Не удалось установить права доступа:', error);
 }
 
+// ============================================
+// МИГРАЦИЯ: Обновление таблицы tasks
+// ============================================
+try {
+  // Проверяем, существует ли старая таблица
+  const tableInfo = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='tasks'").get();
+  
+  if (tableInfo) {
+    console.log('🔄 Обнаружена старая таблица tasks, выполняется миграция...');
+    
+    const migrationTransaction = db.transaction(() => {
+      // 1. Создаём новую таблицу с правильным CHECK constraint
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS tasks_new (
+          id INTEGER PRIMARY KEY,
+          task_key TEXT NOT NULL UNIQUE,
+          title TEXT NOT NULL,
+          description TEXT,
+          reward_crystals INTEGER DEFAULT 0,
+          task_type TEXT DEFAULT 'manual' CHECK(task_type IN ('manual', 'auto', 'referral', 'welcome', 'milestone')),
+          milestone_required INTEGER DEFAULT 0,
+          is_active INTEGER DEFAULT 1
+        )
+      `);
+      
+      // 2. Копируем данные из старой таблицы (только валидные типы)
+      db.exec(`
+        INSERT OR IGNORE INTO tasks_new (id, task_key, title, description, reward_crystals, task_type, milestone_required, is_active)
+        SELECT id, task_key, title, description, reward_crystals, task_type, 
+               COALESCE(milestone_required, 0), COALESCE(is_active, 1)
+        FROM tasks 
+        WHERE task_type IN ('manual', 'auto', 'referral')
+      `);
+      
+      // 3. Удаляем старую таблицу
+      db.exec('DROP TABLE tasks');
+      
+      // 4. Переименовываем новую таблицу
+      db.exec('ALTER TABLE tasks_new RENAME TO tasks');
+      
+      console.log('✅ Миграция таблицы tasks завершена');
+    });
+    
+    migrationTransaction();
+  }
+} catch (error) {
+  console.log('ℹ️ Миграция не требуется или уже выполнена:', error);
+}
+// ============================================
+
 // Создание таблицы пользователей
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
@@ -102,7 +152,7 @@ db.exec(`
   )
 `);
 
-// Таблица заданий
+// Таблица заданий (с НОВЫМ CHECK constraint)
 db.exec(`
   CREATE TABLE IF NOT EXISTS tasks (
     id INTEGER PRIMARY KEY,
@@ -115,14 +165,6 @@ db.exec(`
     is_active INTEGER DEFAULT 1
   )
 `);
-
-// Добавляем поле milestone_required если его нет
-try {
-  db.exec(`ALTER TABLE tasks ADD COLUMN milestone_required INTEGER DEFAULT 0`);
-  console.log('✅ Добавлено поле milestone_required');
-} catch {
-  // Поле уже существует
-}
 
 // Вставка базовых заданий
 const insertTask = db.prepare(`
