@@ -774,7 +774,7 @@ export default function ShopPage() {
               <div className="product-item">
                 <div className="product-text">
                   <div className="product-name">Созвон с кумиром</div>
-                  <div className="product-description">30 минут личного общения</div>
+                  <div className="product-description">Мы организуем для вас встречу с предпринимателем или человеком, с которым вы хотите пообщаться</div>
                 </div>
                 
                 <div className="purchase-section">
@@ -795,9 +795,6 @@ export default function ShopPage() {
                         width={25} 
                         height={25}
                         priority
-                        style={{ 
-                          filter: 'drop-shadow(0px 2px 6px rgba(0, 0, 0, 0.25))'
-                        }}
                       />
                     </div>
                   </div>
@@ -1003,13 +1000,13 @@ export default function ShopPage() {
           .products-container {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 0px;
+            align-items: flex-start;
+            padding: 0px 0px 12px;
             gap: 10px;
-            width: 100%;
-            max-width: 343px;
+            width: 343px;
             flex: none;
             order: 5;
+            align-self: stretch;
             flex-grow: 0;
           }
 
@@ -1020,17 +1017,20 @@ export default function ShopPage() {
             padding: 24px 16px;
             gap: 16px;
             width: 100%;
+            height: 202px;
             background: #F1F1F1;
             border-radius: 16px;
             flex: none;
             order: 0;
+            align-self: stretch;
             flex-grow: 0;
             box-sizing: border-box;
           }
 
           .premium-title {
             margin: 0;
-            width: 100%;
+            width: 309px;
+            height: 16px;
             font-family: 'Cera Pro', sans-serif;
             font-style: normal;
             font-weight: 500;
@@ -1051,7 +1051,8 @@ export default function ShopPage() {
             align-items: flex-start;
             padding: 4px 0px;
             gap: 16px;
-            width: 100%;
+            width: 311px;
+            height: 122px;
             flex: none;
             order: 1;
             align-self: stretch;
@@ -1064,18 +1065,22 @@ export default function ShopPage() {
             align-items: flex-start;
             padding: 0px;
             gap: 4px;
-            flex: 1;
+            width: 182px;
+            height: 114px;
+            flex: none;
             order: 0;
             flex-grow: 1;
           }
 
           .product-name {
+            width: 182px;
+            height: 20px;
             font-family: 'Cera Pro', sans-serif;
             font-style: normal;
             font-weight: 500;
-            font-size: 16px;
+            font-size: 20px;
             line-height: 100%;
-            letter-spacing: -0.05em;
+            letter-spacing: -0.03em;
             color: #000000;
             flex: none;
             order: 0;
@@ -1084,6 +1089,8 @@ export default function ShopPage() {
           }
 
           .product-description {
+            width: 182px;
+            height: 90px;
             font-family: 'Cera Pro', sans-serif;
             font-style: normal;
             font-weight: 300;
@@ -1103,6 +1110,8 @@ export default function ShopPage() {
             align-items: flex-end;
             padding: 0px;
             gap: 8px;
+            width: 113px;
+            height: 65px;
             flex: none;
             order: 1;
             flex-grow: 0;
@@ -1115,6 +1124,8 @@ export default function ShopPage() {
             align-items: center;
             padding: 8px 32px;
             gap: 10px;
+            width: 113px;
+            height: 32px;
             background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
             border-radius: 30px;
             flex: none;
@@ -1149,12 +1160,16 @@ export default function ShopPage() {
             align-items: center;
             padding: 0px;
             gap: 10px;
+            width: 94px;
+            height: 25px;
             flex: none;
             order: 1;
             flex-grow: 0;
           }
 
           .price-value {
+            width: 59px;
+            height: 20px;
             font-family: 'Cera Pro', sans-serif;
             font-style: normal;
             font-weight: 500;
@@ -1173,6 +1188,8 @@ export default function ShopPage() {
           .crystal-icon {
             width: 25px;
             height: 25px;
+            background: #EA0000;
+            box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.25);
             flex: none;
             order: 1;
             flex-grow: 0;
