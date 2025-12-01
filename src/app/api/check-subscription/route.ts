@@ -122,39 +122,75 @@ function isTaskCompleted(userId: number, taskKey: string): boolean {
 /**
  * Записывает выполненное задание и начисляет награду
  */
-function completeTaskAndReward(userId: number, taskKey: string): { success: boolean; reward: number; newBalance: number } {
-  const taskStmt = db.prepare('SELECT id, reward_crystals FROM tasks WHERE task_key = ?');
-  const task = taskStmt.get(taskKey) as { id: number; reward_crystals: number } | undefined;
-  
-  if (!task) {
-    console.error(`Task not found: ${taskKey}`);
-    return { success: false, reward: 0, newBalance: 0 };
+function completeTaskAndReward(userId: number, taskKey: string): { success: boolean; reward: number; newBalance: number; error?: string } {
+  try {
+    console.log(`[REWARD] Starting for user ${userId}, task ${taskKey}`);
+    
+    // Получаем задание
+    const taskStmt = db.prepare('SELECT id, reward_crystals FROM tasks WHERE task_key = ?');
+    const task = taskStmt.get(taskKey) as { id: number; reward_crystals: number } | undefined;
+    
+    if (!task) {
+      console.error(`[REWARD] Task not found: ${taskKey}`);
+      return { success: false, reward: 0, newBalance: 0, error: 'Task not found' };
+    }
+
+    console.log(`[REWARD] Task found: id=${task.id}, reward=${task.reward_crystals}`);
+
+    // Проверяем, не выполнено ли уже
+    if (isTaskCompleted(userId, taskKey)) {
+      console.log(`[REWARD] Task already completed`);
+      return { success: false, reward: 0, newBalance: 0, error: 'Already completed' };
+    }
+
+    const reward = task.reward_crystals;
+
+    // Выполняем транзакцию
+    const executeReward = db.transaction(() => {
+      // Записываем выполненное задание
+      const insertTaskStmt = db.prepare(`
+        INSERT INTO user_tasks (user_id, task_id, status, completed_at) 
+        VALUES (?, ?, 'completed', CURRENT_TIMESTAMP)
+      `);
+      const insertResult = insertTaskStmt.run(userId, task.id);
+      console.log(`[REWARD] Insert task result:`, insertResult);
+
+      // Начисляем награду
+      const updateBalanceStmt = db.prepare(
+        'UPDATE users SET balance_crystals = balance_crystals + ? WHERE id = ?'
+      );
+      const updateResult = updateBalanceStmt.run(reward, userId);
+      console.log(`[REWARD] Update balance result:`, updateResult);
+
+      if (updateResult.changes === 0) {
+        throw new Error('User not found or balance not updated');
+      }
+    });
+
+    // Выполняем транзакцию
+    executeReward();
+
+    // Получаем новый баланс
+    const userStmt = db.prepare('SELECT balance_crystals FROM users WHERE id = ?');
+    const user = userStmt.get(userId) as { balance_crystals: number } | undefined;
+
+    if (!user) {
+      console.error(`[REWARD] User not found after update: ${userId}`);
+      return { success: false, reward: 0, newBalance: 0, error: 'User not found after update' };
+    }
+
+    console.log(`[REWARD] Success! New balance: ${user.balance_crystals}`);
+    return { success: true, reward, newBalance: user.balance_crystals };
+    
+  } catch (error) {
+    console.error(`[REWARD] Error:`, error);
+    return { 
+      success: false, 
+      reward: 0, 
+      newBalance: 0, 
+      error: error instanceof Error ? error.message : String(error) 
+    };
   }
-
-  const reward = task.reward_crystals;
-
-  const transaction = db.transaction(() => {
-    // Записываем выполненное задание
-    const insertTaskStmt = db.prepare(`
-      INSERT OR IGNORE INTO user_tasks (user_id, task_id, status) 
-      VALUES (?, ?, 'completed')
-    `);
-    insertTaskStmt.run(userId, task.id);
-
-    // Начисляем награду
-    const updateBalanceStmt = db.prepare(
-      'UPDATE users SET balance_crystals = balance_crystals + ? WHERE id = ?'
-    );
-    updateBalanceStmt.run(reward, userId);
-  });
-
-  transaction();
-
-  // Получаем новый баланс
-  const userStmt = db.prepare('SELECT balance_crystals FROM users WHERE id = ?');
-  const user = userStmt.get(userId) as { balance_crystals: number };
-
-  return { success: true, reward, newBalance: user.balance_crystals };
 }
 
 /**
@@ -169,6 +205,8 @@ function getPreviousMilestoneKey(taskKey: string): string | null {
 export async function POST(req: NextRequest) {
   try {
     const { initData, taskId } = await req.json();
+
+    console.log(`[CHECK] Request for taskId: ${taskId}`);
 
     if (!initData) {
       return NextResponse.json({ error: 'initData is required' }, { status: 400 });
@@ -211,6 +249,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    console.log(`[CHECK] User found: id=${user.id}, tg_id=${user.tg_id}`);
+
     // Маппинг taskId на task_key
     const taskKeyMap: Record<string, string> = {
       'welcome_bonus': 'welcome_bonus',
@@ -226,6 +266,7 @@ export async function POST(req: NextRequest) {
 
     // Проверяем, не выполнено ли уже
     if (isTaskCompleted(user.id, taskKey)) {
+      console.log(`[CHECK] Task already completed: ${taskKey}`);
       return NextResponse.json({ 
         success: false, 
         message: 'Задание уже выполнено' 
@@ -243,6 +284,7 @@ export async function POST(req: NextRequest) {
         // Просто выдаём награду без проверок
         isCompleted = true;
         message = 'Добро пожаловать! Получи свой стартовый бонус!';
+        console.log(`[CHECK] Welcome bonus - auto approved`);
         break;
       }
 
@@ -339,6 +381,8 @@ export async function POST(req: NextRequest) {
         // Проверяем количество рефералов
         const referralCount = user.referral_count || 0;
         
+        console.log(`[CHECK] Milestone ${taskId}: user has ${referralCount}, needs ${milestone.friends}`);
+        
         if (referralCount >= milestone.friends) {
           isCompleted = true;
           message = `Отлично! Ты пригласил ${milestone.friends} ${milestone.friends === 1 ? 'друга' : 'друзей'}!`;
@@ -352,6 +396,7 @@ export async function POST(req: NextRequest) {
 
     // Если задание выполнено — записываем и начисляем
     if (isCompleted) {
+      console.log(`[CHECK] Task completed, rewarding...`);
       const result = completeTaskAndReward(user.id, taskKey);
       
       if (result.success) {
@@ -363,12 +408,14 @@ export async function POST(req: NextRequest) {
           taskKey: taskKey
         });
       } else {
+        console.error(`[CHECK] Reward failed:`, result.error);
         return NextResponse.json({
           success: false,
-          message: 'Ошибка при начислении награды'
+          message: `Ошибка при начислении награды: ${result.error || 'Неизвестная ошибка'}`
         });
       }
     } else {
+      console.log(`[CHECK] Task not completed: ${message}`);
       return NextResponse.json({
         success: false,
         message: message
@@ -378,7 +425,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Check subscription error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: String(error) },
       { status: 500 }
     );
   }
