@@ -2,44 +2,30 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+
+// ============================================
+// КОНФИГУРАЦИЯ MILESTONE-ЗАДАНИЙ
+// Легко менять в одном месте!
+// ============================================
+const INVITE_MILESTONES = [
+  { friends: 1, reward: 500, taskKey: 'invite_1', title: 'Пригласи 1 друга' },
+  { friends: 3, reward: 500, taskKey: 'invite_3', title: 'Пригласи 3 друзей' },
+  { friends: 5, reward: 500, taskKey: 'invite_5', title: 'Пригласи 5 друзей' },
+  { friends: 10, reward: 500, taskKey: 'invite_10', title: 'Пригласи 10 друзей' },
+];
+// ============================================
 
 const GlobalStyles = () => (
   <>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     
-    {/* Preload критичных шрифтов */}
-    <link
-      rel="preload"
-      href="/fonts/CeraPro-Regular.woff2"
-      as="font"
-      type="font/woff2"
-      crossOrigin="anonymous"
-    />
-    <link
-      rel="preload"
-      href="/fonts/CeraPro-Medium.woff2"
-      as="font"
-      type="font/woff2"
-      crossOrigin="anonymous"
-    />
-    <link
-      rel="preload"
-      href="/fonts/CeraPro-Bold.woff2"
-      as="font"
-      type="font/woff2"
-      crossOrigin="anonymous"
-    />
-    <link
-      rel="preload"
-      href="/fonts/Vasek-Italic.woff2"
-      as="font"
-      type="font/woff2"
-      crossOrigin="anonymous"
-    />
+    <link rel="preload" href="/fonts/CeraPro-Regular.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+    <link rel="preload" href="/fonts/CeraPro-Medium.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+    <link rel="preload" href="/fonts/CeraPro-Bold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+    <link rel="preload" href="/fonts/Vasek-Italic.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
     
-    {/* Preload критичных изображений */}
     <link rel="preload" href="/svg4122-a7pi.svg" as="image" />
     <link rel="preload" href="/svg4122-denw.svg" as="image" />
     <link rel="preload" href="/images/134.png" as="image" />
@@ -78,7 +64,7 @@ const GlobalStyles = () => (
       }
       
       @font-face {
-        font-family: 'Cera Pro';
+tall        font-family: 'Cera Pro';
         src: url('/fonts/CeraPro-Medium.woff2') format('woff2'),
              url('/fonts/CeraPro-Medium.woff') format('woff');
         font-weight: 500;
@@ -111,6 +97,12 @@ const GlobalStyles = () => (
   </>
 );
 
+interface CompletedTask {
+  task_key: string;
+  reward_crystals: number;
+  completed_at: string;
+}
+
 type UserProfile = {
   id: number;
   tg_id: number;
@@ -120,23 +112,24 @@ type UserProfile = {
   last_tap_date: string | null;
   subscribed_to_channel?: boolean;
   voted_for_channel?: boolean;
-  tasks_completed?: {
-    subscribe: boolean;
-    vote: boolean;
-    invite: boolean;
-  };
+  referral_count: number;
+  completed_tasks: CompletedTask[];
+  invite_milestones?: typeof INVITE_MILESTONES;
 };
 
 interface Task {
-  id: number;
+  id: string;
+  taskKey: string;
   points: number;
   title: string;
   description?: string;
-  checkButtonText: string;
-  actionButtonText: string;
+  progress?: { current: number; required: number };
+  buttonText: string;
+  checkButtonText?: string;
   action: () => void;
-  checkAction: () => void;
-  isCompleted?: boolean;
+  checkAction?: () => void;
+  isCompleted: boolean;
+  type: 'welcome' | 'manual' | 'milestone';
 }
 
 export default function HomePage() {
@@ -148,32 +141,9 @@ export default function HomePage() {
   const [logoError, setLogoError] = useState(false);
   const [isBalancePressed, setIsBalancePressed] = useState(false);
   const [isNavigationPressed, setIsNavigationPressed] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [deviceInfo, setDeviceInfo] = useState({
-    isIOS: false,
-    isMobile: false,
-    pixelRatio: 1,
-    viewportWidth: 375,
-    viewportHeight: 812
-  });
   const DAILY_TAP_LIMIT = 100;
 
   useEffect(() => {
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isIOS = /iphone|ipad|ipod/.test(userAgent);
-    const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent);
-    const pixelRatio = window.devicePixelRatio || 1;
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    
-    setDeviceInfo({
-      isIOS,
-      isMobile,
-      pixelRatio,
-      viewportWidth,
-      viewportHeight
-    });
-
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.ready();
@@ -220,111 +190,96 @@ export default function HomePage() {
     window.scrollTo(0, 0);
   }, []);
 
-  const handleEarnCrystals = () => {
-  const tg = window.Telegram?.WebApp;
-  if (!user || !tg?.initData) return;
-  
-  if (tapsLeft <= 0) {
-    tg.showAlert('Плюсы на сегодня закончились! Возвращайся завтра.');
-    return;
-  }
-  
-  if (tg.HapticFeedback) {
-    tg.HapticFeedback.impactOccurred('light');
-  }
-  
-  setTapsLeft(prev => prev - 1);
-  setUser(prevUser => {
-      if (!prevUser) return null;
-      return {
-          ...prevUser,
-          balance_crystals: prevUser.balance_crystals + 1,
-          daily_taps_count: prevUser.daily_taps_count + 1
-      };
-  });
+  // Проверяем, выполнено ли задание
+  const isTaskCompleted = (taskKey: string): boolean => {
+    if (!user?.completed_tasks) return false;
+    return user.completed_tasks.some(t => t.task_key === taskKey);
+  };
 
-  fetch('/api/tap', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ initData: tg.initData }),
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.error) {
-      setUser(prevUser => {
-          if (!prevUser) return null;
-          const newBalance = (prevUser.balance_crystals || 0) - 1;
-          const newTaps = (prevUser.daily_taps_count || 0) - 1;
-          return {
-              ...prevUser,
-              balance_crystals: newBalance < 0 ? 0 : newBalance,
-              daily_taps_count: newTaps < 0 ? 0 : newTaps
-          };
-      });
-      
-      if (typeof data.tapsLeft === 'number') {
-          setTapsLeft(data.tapsLeft);
-      } else {
-          setTapsLeft(prev => prev + 1);
-      }
-      
-      if (data.error === 'Daily tap limit reached') {
-          tg.showAlert('Плюсы на сегодня закончились! Возвращайся завтра.');
-      } else {
-          tg.showAlert(data.error || 'Произошла ошибка');
-      }
-    } else {
-      if (typeof data.newBalance === 'number') {
-          setUser(prev => prev ? { ...prev, balance_crystals: data.newBalance } : null);
-      }
-      if (typeof data.tapsLeft === 'number') {
-          setTapsLeft(data.tapsLeft);
+  // Получаем следующий невыполненный milestone
+  const getNextMilestone = (): typeof INVITE_MILESTONES[0] | null => {
+    for (const milestone of INVITE_MILESTONES) {
+      if (!isTaskCompleted(milestone.taskKey)) {
+        return milestone;
       }
     }
-  })
-  .catch(err => {
-    console.error('Tap fetch error:', err);
-    setTapsLeft(prev => prev + 1);
+    return null;
+  };
+
+  const handleEarnCrystals = () => {
+    const tg = window.Telegram?.WebApp;
+    if (!user || !tg?.initData) return;
+    
+    if (tapsLeft <= 0) {
+      tg.showAlert('Плюсы на сегодня закончились! Возвращайся завтра.');
+      return;
+    }
+    
+    if (tg.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('light');
+    }
+    
+    setTapsLeft(prev => prev - 1);
     setUser(prevUser => {
+      if (!prevUser) return null;
+      return {
+        ...prevUser,
+        balance_crystals: prevUser.balance_crystals + 1,
+        daily_taps_count: prevUser.daily_taps_count + 1
+      };
+    });
+
+    fetch('/api/tap', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: tg.initData }),
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        setUser(prevUser => {
+          if (!prevUser) return null;
+          return {
+            ...prevUser,
+            balance_crystals: Math.max(0, prevUser.balance_crystals - 1),
+            daily_taps_count: Math.max(0, prevUser.daily_taps_count - 1)
+          };
+        });
+        setTapsLeft(prev => prev + 1);
+        
+        if (data.error === 'Daily tap limit reached') {
+          tg.showAlert('Плюсы на сегодня закончились! Возвращайся завтра.');
+        }
+      } else {
+        if (typeof data.newBalance === 'number') {
+          setUser(prev => prev ? { ...prev, balance_crystals: data.newBalance } : null);
+        }
+        if (typeof data.tapsLeft === 'number') {
+          setTapsLeft(data.tapsLeft);
+        }
+      }
+    })
+    .catch(err => {
+      console.error('Tap fetch error:', err);
+      setTapsLeft(prev => prev + 1);
+      setUser(prevUser => {
         if (!prevUser) return null;
         return {
-            ...prevUser,
-            balance_crystals: prevUser.balance_crystals - 1,
-            daily_taps_count: prevUser.daily_taps_count - 1
+          ...prevUser,
+          balance_crystals: prevUser.balance_crystals - 1,
+          daily_taps_count: prevUser.daily_taps_count - 1
         };
+      });
     });
-    tg.showAlert('Произошла ошибка сети. Попробуйте еще раз.');
-  });
-};
+  };
   
   const handleInviteFriend = () => {
     const tg = window.Telegram?.WebApp;
-    
-    if (!tg) {
-      return;
-    }
-    
-    if (loading) {
-      tg.showAlert('Загрузка данных. Подождите немного.');
-      return;
-    }
-    
-    if (!user) {
-      tg.showAlert('Данные пользователя не загружены. Перезагрузите страницу.');
-      return;
-    }
-    
-    const userId = user.tg_id;
-    
-    if (!userId) {
-      tg.showAlert('ID пользователя не найден. Перезагрузите страницу.');
-      return;
-    }
+    if (!tg || !user) return;
     
     const botUsername = 'my_auction_admin_bot';
     const appName = 'assist_plus';
-    
-    const referralLink = `https://t.me/${botUsername}/${appName}?startapp=ref${userId}`;
+    const referralLink = `https://t.me/${botUsername}/${appName}?startapp=ref${user.tg_id}`;
     const shareText = `Привет! Запусти мини-приложение "АССИСТ+" и получай бонусы!`;
     
     try {
@@ -332,22 +287,17 @@ export default function HomePage() {
       tg.openTelegramLink(shareUrl);
     } catch (error) {
       console.error('Share error:', error);
-      const fullText = `${shareText}\n${referralLink}`;
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(fullText)
-          .then(() => {
-            tg.showAlert('Ссылка скопирована в буфер обмена! Отправь ее другу.');
-          })
-          .catch(() => {
-            tg.showAlert(`Ссылка для друга:\n${referralLink}`);
-          });
+        navigator.clipboard.writeText(`${shareText}\n${referralLink}`)
+          .then(() => tg.showAlert('Ссылка скопирована в буфер обмена!'))
+          .catch(() => tg.showAlert(`Ссылка для друга:\n${referralLink}`));
       } else {
         tg.showAlert(`Ссылка для друга:\n${referralLink}`);
       }
     }
   };
 
-  const checkTask = (taskId: 'subscribe' | 'vote' | 'invite') => {
+  const checkTask = (taskId: string) => {
     const tg = window.Telegram?.WebApp;
     if (!tg?.initData) return;
 
@@ -359,20 +309,21 @@ export default function HomePage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          setUser((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  balance_crystals: data.newBalance,
-                  tasks_completed: {
-                    ...prev.tasks_completed,
-                    subscribe: taskId === 'subscribe' ? true : prev.tasks_completed?.subscribe || false,
-                    vote: taskId === 'vote' ? true : prev.tasks_completed?.vote || false,
-                    invite: taskId === 'invite' ? true : prev.tasks_completed?.invite || false,
-                  }
-                }
-              : null
-          );
+          setUser((prev) => {
+            if (!prev) return null;
+            
+            const newCompletedTask: CompletedTask = {
+              task_key: data.taskKey || taskId,
+              reward_crystals: data.reward,
+              completed_at: new Date().toISOString()
+            };
+            
+            return {
+              ...prev,
+              balance_crystals: data.newBalance,
+              completed_tasks: [...prev.completed_tasks, newCompletedTask]
+            };
+          });
           tg.showAlert(data.message || `Награда получена: +${data.reward} плюсов!`);
         } else {
           tg.showAlert(data.message || 'Условия не выполнены.');
@@ -402,50 +353,98 @@ export default function HomePage() {
     router.push('/navigation');
   };
 
-  const tasks: Task[] = [
-    {
-      id: 1,
+  // Формируем список заданий
+  const { activeTasks, completedTasks } = useMemo(() => {
+    if (!user) return { activeTasks: [], completedTasks: [] };
+
+    const allTasks: Task[] = [];
+
+    // 1. Приветственный бонус
+    allTasks.push({
+      id: 'welcome',
+      taskKey: 'welcome_bonus',
+      points: 400,
+      title: 'Приветственный бонус',
+      description: 'Получи стартовые плюсы',
+      buttonText: 'Получить',
+      action: () => checkTask('welcome_bonus'),
+      isCompleted: isTaskCompleted('welcome_bonus'),
+      type: 'welcome'
+    });
+
+    // 2. Подписка на канал
+    allTasks.push({
+      id: 'subscribe',
+      taskKey: 'subscribe_channel',
       points: 100,
-      title: "Подпишись на АССИСТ+",
-      checkButtonText: "Проверить",
-      actionButtonText: "Подписаться",
+      title: 'Подпишись на АССИСТ+',
+      buttonText: 'Подписаться',
+      checkButtonText: 'Проверить',
       action: handleSubscribeToChannel,
       checkAction: () => checkTask('subscribe'),
-      isCompleted: user?.tasks_completed?.subscribe || false,
-    },
-    {
-      id: 2,
+      isCompleted: isTaskCompleted('subscribe_channel'),
+      type: 'manual'
+    });
+
+    // 3. Голосование/буст
+    allTasks.push({
+      id: 'vote',
+      taskKey: 'vote_poll',
       points: 500,
-      title: "Отдай голос",
-      description: "на улучшение канала",
-      checkButtonText: "Проверить",
-      actionButtonText: "Проголосовать",
+      title: 'Отдай голос',
+      description: 'на улучшение канала',
+      buttonText: 'Проголосовать',
+      checkButtonText: 'Проверить',
       action: handleVoteForChannel,
       checkAction: () => checkTask('vote'),
-      isCompleted: user?.tasks_completed?.vote || false,
-    },
-    {
-      id: 3,
-      points: 500,
-      title: "Пригласи друга",
-      checkButtonText: "Проверить",
-      actionButtonText: "Пригласить",
-      action: handleInviteFriend,
-      checkAction: () => checkTask('invite'),
-      isCompleted: user?.tasks_completed?.invite || false,
-    },
-  ];
+      isCompleted: isTaskCompleted('vote_poll'),
+      type: 'manual'
+    });
 
-  const handleTaskAction = (taskId: number, actionType: "check" | "action") => {
-    const task = tasks.find(t => t.id === taskId);
-    if (task) {
-      if (actionType === "check") {
-        task.checkAction();
-      } else {
-        task.action();
-      }
+    // 4. Milestone-задания приглашений (только следующее невыполненное)
+    const nextMilestone = getNextMilestone();
+    if (nextMilestone) {
+      const canClaim = user.referral_count >= nextMilestone.friends;
+      
+      allTasks.push({
+        id: nextMilestone.taskKey,
+        taskKey: nextMilestone.taskKey,
+        points: nextMilestone.reward,
+        title: nextMilestone.title,
+        progress: {
+          current: user.referral_count,
+          required: nextMilestone.friends
+        },
+        buttonText: canClaim ? 'Получить' : 'Пригласить',
+        checkButtonText: canClaim ? undefined : undefined,
+        action: canClaim ? () => checkTask(nextMilestone.taskKey) : handleInviteFriend,
+        isCompleted: false,
+        type: 'milestone'
+      });
     }
-  };
+
+    // Добавляем выполненные milestone-задания
+    INVITE_MILESTONES.forEach(milestone => {
+      if (isTaskCompleted(milestone.taskKey)) {
+        allTasks.push({
+          id: `completed_${milestone.taskKey}`,
+          taskKey: milestone.taskKey,
+          points: milestone.reward,
+          title: milestone.title,
+          buttonText: '',
+          action: () => {},
+          isCompleted: true,
+          type: 'milestone'
+        });
+      }
+    });
+
+    // Разделяем на активные и выполненные
+    const active = allTasks.filter(t => !t.isCompleted);
+    const completed = allTasks.filter(t => t.isCompleted);
+
+    return { activeTasks: active, completedTasks: completed };
+  }, [user]);
 
   if (loading) {
     return <div className="loading-container">Загрузка...</div>;
@@ -462,6 +461,7 @@ export default function HomePage() {
       <GlobalStyles />
       <div className="app-wrapper">
         <main className="main-container">
+          {/* HEADER - LOGO */}
           <header className="logo-section">
             <div className="logo-container">
               <div className="logo-wrapper">
@@ -494,8 +494,8 @@ export default function HomePage() {
             </div>
           </header>
 
+          {/* BALANCE SECTION */}
           <section className="balance-section">
-            {/* Стрелка */}
             <svg 
               width="30" 
               height="66" 
@@ -533,6 +533,7 @@ export default function HomePage() {
             </p>
           </section>
 
+          {/* NAVIGATION BUTTON */}
           <section className="navigation-section">
             <button
               className={`navigation-button ${isNavigationPressed ? 'pressed' : ''}`}
@@ -555,75 +556,92 @@ export default function HomePage() {
             </button>
           </section>
 
+          {/* TASKS SECTION */}
           <section className="tasks-section">
             <div className="tasks-container">
               <div className="tasks-background">
-                <img
-                  className="tasks-bg-image-top"
-                  alt="Фоновое изображение сверху"
-                  src="/svg1642-j9o.svg"
-                />
+                <img className="tasks-bg-image-top" alt="" src="/svg1642-j9o.svg" />
                 <div className="tasks-bg-color"></div>
-                <img
-                  className="tasks-bg-image-bottom"
-                  alt="Фоновое изображение снизу"
-                  src="/svg1642-j9o.svg"
-                />
+                <img className="tasks-bg-image-bottom" alt="" src="/svg1642-j9o.svg" />
               </div>
 
+              {/* ACTIVE TASKS */}
               <div className="tasks-header">
                 <h2 className="tasks-title">Задания</h2>
               </div>
 
               <div className="tasks-list">
-                {tasks.map((task) => (
-                  <article
-                    key={task.id}
-                    className="task-card"
-                  >
+                {activeTasks.map((task) => (
+                  <article key={task.id} className="task-card active">
                     <div className="task-header">
                       <div className="task-content">
-                        {task.description ? (
-                          <p className="task-title">
-                            {task.title} <br />
-                            {task.description}
-                          </p>
-                        ) : (
-                          <div className="task-title">{task.title}</div>
+                        <div className="task-title">
+                          {task.title}
+                          {task.description && <><br />{task.description}</>}
+                        </div>
+                        {task.progress && (
+                          <div className="task-progress">
+                            {task.progress.current} из {task.progress.required}
+                          </div>
                         )}
                       </div>
 
                       <div className="task-points">
                         <div className="points-text">+{task.points}</div>
                         <div className="points-icon">
-                          <img
-                            src="/vector4120-sezw.svg"
-                            alt="Кристалл"
-                            className="points-crystal"
-                          />
+                          <img src="/vector4120-sezw.svg" alt="" className="points-crystal" />
                         </div>
                       </div>
                     </div>
 
                     <div className="task-actions">
-                      <button
-                        onClick={() => handleTaskAction(task.id, "check")}
-                        className="task-button check-button"
-                      >
-                        <div className="button-text">{task.checkButtonText}</div>
-                      </button>
-
-                      <button
-                        onClick={() => handleTaskAction(task.id, "action")}
-                        className="task-button action-button"
-                      >
-                        <div className="button-text bold">{task.actionButtonText}</div>
+                      {task.checkButtonText && task.checkAction && (
+                        <button onClick={task.checkAction} className="task-button check-button">
+                          <span className="button-text">{task.checkButtonText}</span>
+                        </button>
+                      )}
+                      
+                      <button onClick={task.action} className="task-button action-button">
+                        <span className="button-text bold">{task.buttonText}</span>
                       </button>
                     </div>
 
                     <div className="task-glow"></div>
+                    <div className="task-glow-bottom"></div>
                   </article>
                 ))}
+              </div>
+
+              {/* COMPLETED TASKS */}
+              <div className="tasks-header completed-header">
+                <h2 className="tasks-title">Выполненные</h2>
+              </div>
+
+              <div className="tasks-list">
+                {completedTasks.length === 0 ? (
+                  <div className="no-completed-tasks">
+                    Выполняй задания, чтобы они появились здесь
+                  </div>
+                ) : (
+                  completedTasks.map((task) => (
+                    <article key={task.id} className="task-card completed">
+                      <div className="task-header">
+                        <div className="task-content">
+                          <div className="task-title">{task.title}</div>
+                        </div>
+
+                        <div className="task-points">
+                          <div className="points-text">+{task.points}</div>
+                          <div className="points-icon">
+                            <img src="/vector4120-sezw.svg" alt="" className="points-crystal" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="task-glow"></div>
+                    </article>
+                  ))
+                )}
               </div>
             </div>
           </section>
@@ -661,6 +679,7 @@ export default function HomePage() {
             position: relative;
           }
 
+          /* LOGO STYLES */
           .logo-section {
             gap: 6px;
             display: flex;
@@ -695,8 +714,6 @@ export default function HomePage() {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            -webkit-backface-visibility: hidden;
-            transform: translateZ(0);
           }
           
           .plus-icon {
@@ -706,8 +723,6 @@ export default function HomePage() {
             width: 19px;
             height: 19px;
             object-fit: contain;
-            -webkit-backface-visibility: hidden;
-            transform: translateZ(0);
           }
           
           .logo-text-fallback {
@@ -716,18 +731,17 @@ export default function HomePage() {
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
           }
           
           .assist-text {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Cera Pro', sans-serif;
             font-weight: 700;
             font-size: 19px;
             color: #000000;
           }
           
           .plus-text {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Cera Pro', sans-serif;
             font-weight: 700;
             font-size: 19px;
             color: #FF0000;
@@ -746,7 +760,7 @@ export default function HomePage() {
             position: absolute;
             top: 12px;
             left: calc(50% - 36px);
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Cera Pro', sans-serif;
             font-weight: 400;
             font-size: 14px;
             text-align: center;
@@ -758,7 +772,6 @@ export default function HomePage() {
           
           .logo-title {
             color: #000000;
-            height: auto;
             position: absolute;
             font-size: 38px;
             font-style: italic;
@@ -768,8 +781,9 @@ export default function HomePage() {
             text-align: center;
           }
 
+          /* BALANCE STYLES */
           .balance-section {
-            position: relative; /* Важно для абсолютного позиционирования стрелки */
+            position: relative;
             gap: 15px;
             display: flex;
             padding: 5px 0 12px;
@@ -822,15 +836,13 @@ export default function HomePage() {
             width: 62px;
             height: 58px;
             object-fit: contain;
-            -webkit-backface-visibility: hidden;
-            transform: translateZ(0);
           }
           
           .balance-amount {
             background: rgba(255, 255, 255, 0.5);
             padding: 7px 10px;
             border-radius: 30px;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Cera Pro', sans-serif;
             font-weight: 700;
             font-size: 20px;
             color: #0D0D0D;
@@ -843,12 +855,11 @@ export default function HomePage() {
             display: flex;
             align-items: center;
             justify-content: center;
-            box-sizing: border-box;
           }
           
           .balance-description {
             width: 281px;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Cera Pro', sans-serif;
             font-weight: 400;
             font-size: 14px;
             text-align: center;
@@ -859,10 +870,63 @@ export default function HomePage() {
           }
           
           .description-bold {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 700;
           }
 
+          /* NAVIGATION STYLES */
+          .navigation-section {
+            width: 100%;
+            padding: 0 16px 16px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            z-index: 1;
+          }
+
+          .navigation-button {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            gap: 10px;
+            width: 100%;
+            max-width: calc(100vw - 32px);
+            height: 80px;
+            background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s ease-in-out;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 4px 12px rgba(215, 37, 37, 0.3);
+          }
+
+          .navigation-button.pressed {
+            transform: scale(0.98);
+          }
+
+          .navigation-text {
+            font-family: 'Cera Pro', sans-serif;
+            font-weight: 500;
+            font-size: 18px;
+            color: #FFFFFF;
+            line-height: 1.2;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+          }
+
+          .navigation-arrow {
+            width: 12px;
+            height: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          /* TASKS SECTION STYLES */
           .tasks-section {
             gap: 6px;
             display: flex;
@@ -879,7 +943,7 @@ export default function HomePage() {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 16px;
+            gap: 10px;
             padding: 28px 0px 70px;
             position: relative;
             overflow: visible;
@@ -941,42 +1005,68 @@ export default function HomePage() {
             max-width: 100vw;
             z-index: 1;
           }
+
+          .completed-header {
+            padding-top: 15px;
+          }
           
           .tasks-title {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-weight: 700;
-            font-size: 26px;
+            font-family: 'Cera Pro', sans-serif;
+            font-weight: 500;
+            font-size: 32px;
             text-align: right;
-            color: #000000;
-            line-height: 28px;
-            letter-spacing: -0.77px;
+            color: #0D0D0D;
+            line-height: 110%;
+            letter-spacing: -0.03em;
             white-space: nowrap;
             margin: 0;
           }
           
           .tasks-list {
-            display: inline-flex;
+            display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             z-index: 1;
             width: 100%;
             padding: 0 16px;
             box-sizing: border-box;
           }
+
+          .no-completed-tasks {
+            font-family: 'Cera Pro', sans-serif;
+            font-weight: 400;
+            font-size: 14px;
+            color: #666666;
+            text-align: center;
+            padding: 20px;
+          }
           
+          /* TASK CARD STYLES */
           .task-card {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 4px;
-            padding: 16px;
+            padding: 20px;
+            gap: 8px;
             width: 100%;
             max-width: calc(100vw - 32px);
             position: relative;
-            background: linear-gradient(244deg, #F23939 0%, #DB1B1B 100%);
-            border-radius: 24px;
+            border-radius: 30px;
             overflow: hidden;
+            isolation: isolate;
+          }
+
+          /* Active task - RED */
+          .task-card.active {
+            background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
+          }
+
+          /* Completed task - GRAY */
+          .task-card.completed {
+            background: linear-gradient(243.66deg, #707070 10.36%, #525252 86.45%);
+            padding: 20px;
+            gap: 8px;
           }
           
           .task-header {
@@ -993,69 +1083,77 @@ export default function HomePage() {
             flex-direction: column;
             align-items: flex-start;
             justify-content: center;
+            gap: 4px;
           }
           
           .task-title {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Cera Pro', sans-serif;
             font-weight: 500;
-            font-size: 16px;
+            font-size: 20px;
             text-align: left;
             color: #FFFFFF;
-            line-height: 16px;
-            letter-spacing: -0.32px;
+            line-height: 100%;
+            letter-spacing: -0.03em;
             margin: 0;
+          }
+
+          .task-progress {
+            font-family: 'Cera Pro', sans-serif;
+            font-weight: 400;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 4px;
           }
           
           .task-points {
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             flex-shrink: 0;
           }
           
           .points-text {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Cera Pro', sans-serif;
             font-weight: 700;
-            font-size: 19px;
+            font-size: 24px;
             color: #FFFFFF;
-            line-height: 19px;
+            line-height: 100%;
             white-space: nowrap;
           }
           
           .points-icon {
-            width: 20px;
-            height: 20px;
+            width: 25px;
+            height: 25px;
             background: #FFFFFF;
-            border-radius: 10px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
           }
           
           .points-crystal {
-            width: 12px;
+            width: 14px;
             height: 12px;
             object-fit: contain;
           }
           
           .task-actions {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: flex-end;
-            gap: 8px;
-            padding-top: 8px;
+            gap: 10px;
+            padding-top: 10px;
             width: 100%;
           }
           
           .task-button {
-            display: inline-flex;
-            flex-direction: column;
+            display: flex;
             align-items: center;
             justify-content: center;
-            padding: 8px 11px;
+            padding: 10px 14px;
             background: #FFFFFF;
             border: none;
-            border-radius: 24px;
+            border-radius: 30px;
             cursor: pointer;
             transition: transform 0.1s ease-in-out;
             -webkit-tap-highlight-color: transparent;
@@ -1064,96 +1162,63 @@ export default function HomePage() {
           .task-button:active {
             transform: scale(0.98);
           }
+
+          .check-button {
+            padding: 10px 14px;
+          }
+
+          .action-button {
+            padding: 10px 14px;
+          }
           
           .button-text {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-weight: 500;
-            font-size: 13px;
+            font-family: 'Cera Pro', sans-serif;
+            font-weight: 300;
+            font-size: 16px;
             color: #0D0D0D;
-            line-height: 13px;
-            letter-spacing: -0.64px;
+            line-height: 100%;
+            letter-spacing: -0.05em;
             white-space: nowrap;
           }
           
           .button-text.bold {
             font-weight: 500;
+            font-size: 20px;
+            letter-spacing: -0.03em;
           }
           
           .task-glow {
             position: absolute;
-            top: -35px;
-            right: 13px;
-            width: 97px;
-            height: 97px;
+            width: 120px;
+            height: 120px;
+            right: -20px;
+            top: -43px;
             background: rgba(255, 255, 255, 0.8);
-            border-radius: 48.5px;
-            filter: blur(100px);
+            filter: blur(125px);
             pointer-events: none;
+            z-index: -1;
           }
 
-          .navigation-section {
-            width: 100%;
-            padding: 0 16px 16px;
-            box-sizing: border-box;
-            display: flex;
-            justify-content: center;
-            z-index: 1;
+          .task-glow-bottom {
+            position: absolute;
+            width: 78px;
+            height: 78px;
+            left: 10px;
+            bottom: -30px;
+            background: #FFFFFF;
+            filter: blur(60px);
+            pointer-events: none;
+            z-index: -1;
           }
 
-          .navigation-button {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            gap: 10px;
-            isolation: isolate;
-            width: 100%;
-            max-width: calc(100vw - 32px);
-            height: 80px;
-            background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
-            border-radius: 30px;
-            border: none;
-            cursor: pointer;
-            transition: transform 0.1s ease-in-out;
-            -webkit-tap-highlight-color: transparent;
-            box-shadow: 0 4px 12px rgba(215, 37, 37, 0.3);
-            position: relative;
-          }
-
-          .navigation-button.pressed {
-            transform: scale(0.98);
-          }
-
-          .navigation-text {
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-weight: 500;
-            font-size: 18px;
-            color: #FFFFFF;
-            line-height: 1.2;
-            text-align: left;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-          }
-
-          .navigation-arrow {
-            width: 12px;
-            height: 12px;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
+          /* LOADING & ERROR STATES */
           .loading-container, .error-container {
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            height: -webkit-fill-available;
             background-color: #FFFFFF;
-            font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Cera Pro', sans-serif;
           }
           
           .loading-container {
@@ -1166,27 +1231,23 @@ export default function HomePage() {
             text-align: center;
           }
 
+          /* RESPONSIVE */
           @media (max-width: 375px) {
             .main-container {
               padding: 20px 0px 0px;
               padding-bottom: 70px;
             }
             
-            .balance-description {
-              font-size: 14px;
-              line-height: 110%;
-            }
-            
             .task-card {
-              padding: 13px;
+              padding: 16px;
             }
             
             .task-title {
-              font-size: 14px;
+              font-size: 18px;
             }
             
             .points-text {
-              font-size: 18px;
+              font-size: 20px;
             }
 
             .navigation-button {
@@ -1197,22 +1258,9 @@ export default function HomePage() {
             .navigation-text {
               font-size: 16px;
             }
-          }
 
-          @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-            .logo-image, .plus-icon, .balance-crystal, .points-crystal, .tasks-bg-image-top, .tasks-bg-image-bottom {
-              image-rendering: -webkit-optimize-contrast;
-              image-rendering: crisp-edges;
-            }
-          }
-
-          @supports (-webkit-touch-callout: none) {
-            .app-wrapper {
-              min-height: -webkit-fill-available;
-            }
-            
-            .main-container {
-              min-height: -webkit-fill-available;
+            .button-text.bold {
+              font-size: 18px;
             }
           }
         `}</style>

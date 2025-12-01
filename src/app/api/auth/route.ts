@@ -1,11 +1,32 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/init-database';
 import { validateTelegramHash } from '@/lib/telegram-auth';
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const CHANNEL_ID = '-1002782276287';
-const REFERRAL_REWARD = 500;
+
+// ============================================
+// КОНФИГУРАЦИЯ РЕФЕРАЛЬНОЙ СИСТЕМЫ
+// ============================================
+const REFERRAL_CONFIG = {
+  // Награда за каждого приглашённого друга (автоматически)
+  REWARD_PER_REFERRAL: 500,
+  
+  // Требовать ли подписку на канал для получения награды
+  // true = друг должен подписаться, false = достаточно запустить приложение
+  REQUIRE_SUBSCRIPTION: false,
+};
+
+// Milestone-конфигурация (легко менять!)
+const INVITE_MILESTONES = [
+  { friends: 1, reward: 500, taskKey: 'invite_1' },
+  { friends: 3, reward: 500, taskKey: 'invite_3' },
+  { friends: 5, reward: 500, taskKey: 'invite_5' },
+  { friends: 10, reward: 500, taskKey: 'invite_10' },
+];
+// ============================================
 
 interface UserFromDB {
   id: number;
@@ -31,6 +52,12 @@ interface UserFromDB {
   awards: string | null;
 }
 
+interface CompletedTask {
+  task_key: string;
+  reward_crystals: number;
+  completed_at: string;
+}
+
 interface AuthResponse {
   id: number;
   tg_id: number;
@@ -46,16 +73,13 @@ interface AuthResponse {
   subscribed_to_channel?: boolean;
   voted_for_channel?: boolean;
   bot_started?: boolean;
-  referral_count?: number;
+  referral_count: number;
   referral_count_subscribed?: number;
   current_month_referrals?: number;
   bio?: string;
   awards?: string;
-  tasks_completed: {
-    subscribe: boolean;
-    vote: boolean;
-    invite: boolean;
-  };
+  completed_tasks: CompletedTask[];
+  invite_milestones: typeof INVITE_MILESTONES;
 }
 
 async function checkChannelSubscription(userId: number) {
@@ -96,7 +120,6 @@ export async function POST(req: NextRequest) {
 
     console.log('=== AUTH REQUEST ===');
     console.log('initData exists:', !!initData);
-    console.log('initData length:', initData?.length || 0);
     console.log('startapp:', startapp);
 
     if (!initData) {
@@ -122,8 +145,6 @@ export async function POST(req: NextRequest) {
     const params = new URLSearchParams(initData);
     const userParam = params.get('user');
     
-    console.log('User param:', userParam);
-    
     if (!userParam) {
       console.error('❌ No user in initData');
       return NextResponse.json({ error: 'No user data in initData' }, { status: 400 });
@@ -135,24 +156,11 @@ export async function POST(req: NextRequest) {
     console.log('User ID:', userData.id);
     console.log('Username:', userData.username);
     console.log('First name:', userData.first_name);
-    console.log('Photo URL:', userData.photo_url);
 
     let startParam = startapp;
     
     if (!startParam) {
       startParam = params.get('startapp') || params.get('start_param') || params.get('start');
-      
-      try {
-        const initDataObj = Object.fromEntries(params.entries());
-        if (initDataObj.startapp && !startParam) {
-          startParam = initDataObj.startapp;
-        }
-        if (initDataObj.start_param && !startParam) {
-          startParam = initDataObj.start_param;
-        }
-      } catch (e) {
-        console.log('Error parsing startapp:', e);
-      }
     }
 
     console.log('Start param:', startParam);
@@ -162,20 +170,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid user data' }, { status: 400 });
     }
 
-    const checkTasksStmt = db.prepare(`
-      SELECT t.task_key 
-      FROM user_tasks ut 
-      JOIN tasks t ON ut.task_id = t.id 
-      WHERE ut.user_id = (SELECT id FROM users WHERE tg_id = ?)
-    `);
-
-    const findUserStmt = db.prepare(`
-      SELECT * FROM users WHERE tg_id = ?
-    `);
-    
+    const findUserStmt = db.prepare(`SELECT * FROM users WHERE tg_id = ?`);
     let user = findUserStmt.get(userData.id) as UserFromDB | undefined;
 
-    let referredById = null;
+    let referredById: number | null = null;
+    let isNewUser = false;
+
+    // Парсим реферальную ссылку
     if (startParam && startParam.startsWith('ref')) {
       const referrerIdStr = startParam.replace(/^ref_?/, '');
       const referrerTgId = parseInt(referrerIdStr, 10);
@@ -197,6 +198,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (user) {
+      // Обновляем существующего пользователя
       const updateStmt = db.prepare(`
         UPDATE users 
         SET username = ?, first_name = ?, last_name = ?, photo_url = ?,
@@ -215,9 +217,11 @@ export async function POST(req: NextRequest) {
       user = findUserStmt.get(userData.id) as UserFromDB;
       console.log('✅ User updated');
     } else {
+      // Создаём нового пользователя с балансом 0
+      isNewUser = true;
       const insertStmt = db.prepare(`
         INSERT INTO users (tg_id, username, first_name, last_name, photo_url, referred_by_id, balance_crystals)
-        VALUES (?, ?, ?, ?, ?, ?, 400)
+        VALUES (?, ?, ?, ?, ?, ?, 0)
       `);
       
       insertStmt.run(
@@ -236,21 +240,33 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
       }
       
-      console.log('✅ New user created');
+      console.log('✅ New user created with balance 0');
       
-      // ОБНОВЛЕНО: Обновление счётчиков и проверка подписки
+      // Обновляем счётчики у пригласившего и начисляем автоматическую награду
       if (referredById) {
         try {
-          // Проверяем подписку нового пользователя на канал
-          const chatMember = await checkChannelSubscription(userData.id);
-          const isSubscribed = chatMember?.status === 'member' || 
-                              chatMember?.status === 'administrator' || 
-                              chatMember?.status === 'creator';
+          let shouldReward = true;
           
-          console.log(`[REFERRAL] New user ${userData.id} subscription status: ${isSubscribed ? 'subscribed' : 'not subscribed'}`);
+          // Если включена проверка подписки
+          if (REFERRAL_CONFIG.REQUIRE_SUBSCRIPTION) {
+            const chatMember = await checkChannelSubscription(userData.id);
+            const isSubscribed = chatMember?.status === 'member' || 
+                                chatMember?.status === 'administrator' || 
+                                chatMember?.status === 'creator';
+            shouldReward = isSubscribed;
+            
+            if (isSubscribed) {
+              const updateNewUserStmt = db.prepare(`
+                UPDATE users SET subscribed_to_channel = 1 WHERE id = ?
+              `);
+              updateNewUserStmt.run(user.id);
+            }
+            
+            console.log(`[REFERRAL] New user ${userData.id} subscription: ${isSubscribed}`);
+          }
           
           const transaction = db.transaction(() => {
-            // Увеличиваем общий счётчик рефералов
+            // Увеличиваем счётчик рефералов
             const updateReferrerStmt = db.prepare(`
               UPDATE users 
               SET referral_count = referral_count + 1,
@@ -259,15 +275,12 @@ export async function POST(req: NextRequest) {
                   balance_crystals = balance_crystals + CASE WHEN ? THEN ? ELSE 0 END
               WHERE id = ?
             `);
-            updateReferrerStmt.run(isSubscribed ? 1 : 0, isSubscribed ? 1 : 0, REFERRAL_REWARD, referredById);
-            
-            // Обновляем подписку у нового пользователя
-            if (isSubscribed) {
-              const updateNewUserStmt = db.prepare(`
-                UPDATE users SET subscribed_to_channel = 1 WHERE id = ?
-              `);
-              updateNewUserStmt.run(user!.id);
-            }
+            updateReferrerStmt.run(
+              shouldReward ? 1 : 0, 
+              shouldReward ? 1 : 0, 
+              REFERRAL_CONFIG.REWARD_PER_REFERRAL, 
+              referredById
+            );
             
             // Создаём запись в referral_rewards
             const insertRewardStmt = db.prepare(`
@@ -284,19 +297,19 @@ export async function POST(req: NextRequest) {
             insertRewardStmt.run(
               referredById, 
               user!.id, 
-              isSubscribed ? 1 : 0,
-              isSubscribed ? 1 : 0,
-              isSubscribed ? new Date().toISOString() : null,
-              isSubscribed ? new Date().toISOString() : null
+              shouldReward ? 1 : 0,
+              shouldReward ? 1 : 0,
+              shouldReward ? new Date().toISOString() : null,
+              shouldReward ? new Date().toISOString() : null
             );
           });
           
           transaction();
           
-          if (isSubscribed) {
-            console.log(`✅ Referral reward ${REFERRAL_REWARD} crystals given to user ${referredById} for subscribed referral ${user.id}`);
+          if (shouldReward) {
+            console.log(`✅ Referrer ${referredById} rewarded ${REFERRAL_CONFIG.REWARD_PER_REFERRAL} crystals for referral ${user.id}`);
           } else {
-            console.log(`✅ Referral counters updated for user ${referredById}, but no reward (referral not subscribed yet)`);
+            console.log(`✅ Referral counted for ${referredById}, but no reward (subscription required)`);
           }
         } catch (error) {
           console.error('❌ Error updating referral counters:', error);
@@ -309,8 +322,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const completedTasks = checkTasksStmt.all(user.id) as { task_key: string }[];
-    const completedTaskKeys = completedTasks.map(task => task.task_key);
+    // Загружаем выполненные задания с деталями
+    const completedTasksStmt = db.prepare(`
+      SELECT t.task_key, t.reward_crystals, ut.completed_at
+      FROM user_tasks ut 
+      JOIN tasks t ON ut.task_id = t.id 
+      WHERE ut.user_id = ?
+      ORDER BY ut.completed_at DESC
+    `);
+    const completedTasks = completedTasksStmt.all(user.id) as CompletedTask[];
 
     const response: AuthResponse = {
       id: user.id,
@@ -332,17 +352,16 @@ export async function POST(req: NextRequest) {
       current_month_referrals: user.current_month_referrals || 0,
       bio: user.bio || '',
       awards: user.awards || '',
-      tasks_completed: {
-        subscribe: completedTaskKeys.includes('subscribe_channel'),
-        vote: completedTaskKeys.includes('vote_poll'),
-        invite: completedTaskKeys.includes('invite_friend')
-      }
+      completed_tasks: completedTasks,
+      invite_milestones: INVITE_MILESTONES,
     };
 
     console.log('=== SUCCESS ===');
     console.log('User ID:', user.id);
     console.log('TG ID:', user.tg_id);
     console.log('Balance:', user.balance_crystals);
+    console.log('Referral count:', user.referral_count);
+    console.log('Completed tasks:', completedTasks.length);
 
     return NextResponse.json(response);
 

@@ -8,7 +8,7 @@ const db = new Database(dbPath, { verbose: console.log });
 // Устанавливаем правильные права доступа для БД
 try {
   if (fs.existsSync(dbPath)) {
-    fs.chmodSync(dbPath, 0o666); // rw-rw-rw-
+    fs.chmodSync(dbPath, 0o666);
     console.log('✅ Права доступа к базе данных установлены (666)');
   }
 } catch (error) {
@@ -24,7 +24,7 @@ db.exec(`
     first_name TEXT NOT NULL,
     last_name TEXT,
     referred_by_id INTEGER,
-    balance_crystals INTEGER NOT NULL DEFAULT 400,
+    balance_crystals INTEGER NOT NULL DEFAULT 0,
     last_tap_date TEXT,
     daily_taps_count INTEGER NOT NULL DEFAULT 0,
     bio TEXT,
@@ -49,8 +49,7 @@ db.exec(`
 try {
   db.exec(`ALTER TABLE users ADD COLUMN checklists_received INTEGER DEFAULT 0`);
   console.log('✅ Добавлено поле checklists_received');
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-} catch (error) {
+} catch {
   // Поле уже существует
 }
 
@@ -111,41 +110,99 @@ db.exec(`
     title TEXT NOT NULL,
     description TEXT,
     reward_crystals INTEGER DEFAULT 0,
-    task_type TEXT DEFAULT 'manual' CHECK(task_type IN ('manual', 'auto', 'referral')),
+    task_type TEXT DEFAULT 'manual' CHECK(task_type IN ('manual', 'auto', 'referral', 'welcome', 'milestone')),
+    milestone_required INTEGER DEFAULT 0,
     is_active INTEGER DEFAULT 1
   )
 `);
 
+// Добавляем поле milestone_required если его нет
+try {
+  db.exec(`ALTER TABLE tasks ADD COLUMN milestone_required INTEGER DEFAULT 0`);
+  console.log('✅ Добавлено поле milestone_required');
+} catch {
+  // Поле уже существует
+}
+
 // Вставка базовых заданий
 const insertTask = db.prepare(`
-  INSERT OR IGNORE INTO tasks (id, task_key, title, description, reward_crystals, task_type)
-  VALUES (@id, @task_key, @title, @description, @reward_crystals, @task_type)
+  INSERT OR REPLACE INTO tasks (id, task_key, title, description, reward_crystals, task_type, milestone_required)
+  VALUES (@id, @task_key, @title, @description, @reward_crystals, @task_type, @milestone_required)
 `);
 
 db.transaction(() => {
+  // Приветственный бонус
   insertTask.run({ 
     id: 1, 
+    task_key: 'welcome_bonus', 
+    title: 'Приветственный бонус', 
+    description: 'Получи стартовые плюсы',
+    reward_crystals: 400,
+    task_type: 'welcome',
+    milestone_required: 0
+  });
+  
+  // Подписка на канал
+  insertTask.run({ 
+    id: 2, 
     task_key: 'subscribe_channel', 
     title: 'Подпишись на АССИСТ+', 
     description: 'Подпишись на наш канал и получи бонус',
     reward_crystals: 100,
-    task_type: 'manual'
+    task_type: 'manual',
+    milestone_required: 0
   });
+  
+  // Голосование/буст
   insertTask.run({ 
-    id: 2, 
+    id: 3, 
     task_key: 'vote_poll', 
     title: 'Отдай голос на улучшение канала', 
     description: 'Проголосуй за улучшение канала',
     reward_crystals: 500,
-    task_type: 'manual'
+    task_type: 'manual',
+    milestone_required: 0
   });
+  
+  // Milestone-задания приглашений
   insertTask.run({ 
-    id: 3, 
-    task_key: 'invite_friend', 
-    title: 'Пригласи друга', 
-    description: 'Пригласи друга и получи бонус после его подписки',
+    id: 4, 
+    task_key: 'invite_1', 
+    title: 'Пригласи 1 друга', 
+    description: 'Пригласи друга и получи бонус',
     reward_crystals: 500,
-    task_type: 'referral'
+    task_type: 'milestone',
+    milestone_required: 1
+  });
+  
+  insertTask.run({ 
+    id: 5, 
+    task_key: 'invite_3', 
+    title: 'Пригласи 3 друзей', 
+    description: 'Пригласи 3 друзей и получи бонус',
+    reward_crystals: 500,
+    task_type: 'milestone',
+    milestone_required: 3
+  });
+  
+  insertTask.run({ 
+    id: 6, 
+    task_key: 'invite_5', 
+    title: 'Пригласи 5 друзей', 
+    description: 'Пригласи 5 друзей и получи бонус',
+    reward_crystals: 500,
+    task_type: 'milestone',
+    milestone_required: 5
+  });
+  
+  insertTask.run({ 
+    id: 7, 
+    task_key: 'invite_10', 
+    title: 'Пригласи 10 друзей', 
+    description: 'Пригласи 10 друзей и получи бонус',
+    reward_crystals: 500,
+    task_type: 'milestone',
+    milestone_required: 10
   });
 })();
 
@@ -162,7 +219,7 @@ db.exec(`
   )
 `);
 
-// Таблица реферальных наград
+// Таблица реферальных наград (для автоматических +500)
 db.exec(`
   CREATE TABLE IF NOT EXISTS referral_rewards (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -300,16 +357,17 @@ db.exec(`CREATE INDEX IF NOT EXISTS idx_lottery_entries_lottery ON lottery_entri
 db.exec(`CREATE INDEX IF NOT EXISTS idx_lottery_entries_user ON lottery_entries(user_id)`);
 db.exec(`CREATE INDEX IF NOT EXISTS idx_purchase_history_user ON purchase_history(user_id)`);
 db.exec(`CREATE INDEX IF NOT EXISTS idx_daily_limits_user_date ON daily_limits(user_id, date)`);
+db.exec(`CREATE INDEX IF NOT EXISTS idx_user_tasks_user ON user_tasks(user_id)`);
+db.exec(`CREATE INDEX IF NOT EXISTS idx_tasks_key ON tasks(task_key)`);
 
 console.log('✅ Все таблицы базы данных успешно инициализированы');
 console.log('📊 Структура БД обновлена для поддержки:');
+console.log('   - Приветственного бонуса (+400)');
+console.log('   - Milestone-заданий приглашений (1, 3, 5, 10 друзей)');
+console.log('   - Автоматических наград за рефералов');
 console.log('   - Системы рулетки с типами доставки призов');
-console.log('   - Реферальной системы с подписками');
-console.log('   - Системы розыгрышей (10/20/30 приглашений)');
 console.log('   - Истории покупок');
 console.log('   - Магазина товаров');
 console.log('   - Ежедневных лимитов');
-console.log('   - Проверки запуска бота');
-console.log('   - Счетчика полученных чек-листов');
 
 export default db;
