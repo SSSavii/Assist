@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
@@ -103,27 +102,146 @@ db.exec(`
   )
 `);
 
-// Таблица заданий (БЕЗ CHECK constraint - валидация на уровне приложения)
-db.exec(`
-  CREATE TABLE IF NOT EXISTS tasks (
-    id INTEGER PRIMARY KEY,
-    task_key TEXT NOT NULL UNIQUE,
-    title TEXT NOT NULL,
-    description TEXT,
-    reward_crystals INTEGER DEFAULT 0,
-    task_type TEXT DEFAULT 'manual',
-    milestone_required INTEGER DEFAULT 0,
-    is_active INTEGER DEFAULT 1
-  )
-`);
-
-console.log('📋 Таблица tasks готова, начинаем добавление заданий...');
-
 // ============================================
-// ВСТАВКА ЗАДАНИЙ С ГАРАНТИЕЙ ВЫПОЛНЕНИЯ
+// МИГРАЦИЯ ТАБЛИЦЫ TASKS БЕЗ ПОТЕРИ ДАННЫХ
 // ============================================
 
-const insertTask = db.prepare(`
+console.log('🔄 Проверка и миграция таблицы tasks...');
+
+// Проверяем, существует ли таблица tasks
+const tableExists = db.prepare(`
+  SELECT name FROM sqlite_master 
+  WHERE type='table' AND name='tasks'
+`).get();
+
+if (tableExists) {
+  console.log('📋 Таблица tasks существует, проверяем структуру...');
+  
+  // Проверяем, есть ли CHECK constraint
+  const tableInfo = db.prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='tasks'`).get() as { sql: string };
+  const hasCheckConstraint = tableInfo.sql.includes('CHECK');
+  
+  if (hasCheckConstraint) {
+    console.log('⚠️ Обнаружен CHECK constraint, выполняем безопасную миграцию...');
+    
+    try {
+      db.transaction(() => {
+        // 1. Сохраняем существующие данные
+        console.log('  1️⃣ Сохранение существующих данных...');
+        db.exec(`
+          CREATE TEMPORARY TABLE tasks_backup AS 
+          SELECT * FROM tasks
+        `);
+        
+        // 2. Сохраняем данные user_tasks
+        console.log('  2️⃣ Сохранение связей user_tasks...');
+        const userTasksExists = db.prepare(`
+          SELECT name FROM sqlite_master 
+          WHERE type='table' AND name='user_tasks'
+        `).get();
+        
+        if (userTasksExists) {
+          db.exec(`
+            CREATE TEMPORARY TABLE user_tasks_backup AS 
+            SELECT * FROM user_tasks
+          `);
+          db.exec(`DROP TABLE user_tasks`);
+        }
+        
+        // 3. Удаляем старую таблицу
+        console.log('  3️⃣ Удаление старой структуры...');
+        db.exec(`DROP TABLE tasks`);
+        
+        // 4. Создаём новую таблицу БЕЗ CHECK constraint
+        console.log('  4️⃣ Создание новой структуры без ограничений...');
+        db.exec(`
+          CREATE TABLE tasks (
+            id INTEGER PRIMARY KEY,
+            task_key TEXT NOT NULL UNIQUE,
+            title TEXT NOT NULL,
+            description TEXT,
+            reward_crystals INTEGER DEFAULT 0,
+            task_type TEXT DEFAULT 'manual',
+            milestone_required INTEGER DEFAULT 0,
+            is_active INTEGER DEFAULT 1
+          )
+        `);
+        
+        // 5. Восстанавливаем данные
+        console.log('  5️⃣ Восстановление данных...');
+        const backupCount = db.prepare('SELECT COUNT(*) as cnt FROM tasks_backup').get() as { cnt: number };
+        if (backupCount.cnt > 0) {
+          db.exec(`
+            INSERT INTO tasks 
+            SELECT * FROM tasks_backup
+          `);
+          console.log(`  ✅ Восстановлено ${backupCount.cnt} существующих заданий`);
+        }
+        
+        // 6. Восстанавливаем user_tasks
+        if (userTasksExists) {
+          console.log('  6️⃣ Восстановление user_tasks...');
+          db.exec(`
+            CREATE TABLE user_tasks (
+              user_id INTEGER NOT NULL,
+              task_id INTEGER NOT NULL,
+              status TEXT NOT NULL DEFAULT 'completed',
+              completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (user_id, task_id),
+              FOREIGN KEY(user_id) REFERENCES users(id),
+              FOREIGN KEY(task_id) REFERENCES tasks(id)
+            )
+          `);
+          
+          const userTasksCount = db.prepare('SELECT COUNT(*) as cnt FROM user_tasks_backup').get() as { cnt: number };
+          if (userTasksCount.cnt > 0) {
+            db.exec(`
+              INSERT INTO user_tasks 
+              SELECT * FROM user_tasks_backup
+            `);
+            console.log(`  ✅ Восстановлено ${userTasksCount.cnt} выполненных заданий пользователей`);
+          }
+        }
+        
+        // 7. Удаляем временные таблицы
+        db.exec(`DROP TABLE IF EXISTS tasks_backup`);
+        db.exec(`DROP TABLE IF EXISTS user_tasks_backup`);
+        
+        console.log('✅ Миграция выполнена успешно!');
+      })();
+    } catch (error) {
+      console.error('❌ Ошибка при миграции:', error);
+      // Пытаемся откатить изменения
+      db.exec(`DROP TABLE IF EXISTS tasks_backup`);
+      db.exec(`DROP TABLE IF EXISTS user_tasks_backup`);
+    }
+  } else {
+    console.log('✅ CHECK constraint отсутствует, миграция не требуется');
+  }
+} else {
+  // Таблицы нет - создаём новую
+  console.log('📋 Создание таблицы tasks...');
+  db.exec(`
+    CREATE TABLE tasks (
+      id INTEGER PRIMARY KEY,
+      task_key TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      description TEXT,
+      reward_crystals INTEGER DEFAULT 0,
+      task_type TEXT DEFAULT 'manual',
+      milestone_required INTEGER DEFAULT 0,
+      is_active INTEGER DEFAULT 1
+    )
+  `);
+}
+
+// ============================================
+// ДОБАВЛЕНИЕ ВСЕХ НЕОБХОДИМЫХ ЗАДАНИЙ
+// ============================================
+
+console.log('📋 Добавление/обновление заданий...');
+
+const insertOrUpdateTask = db.prepare(`
   INSERT OR REPLACE INTO tasks (id, task_key, title, description, reward_crystals, task_type, milestone_required, is_active)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 `);
@@ -205,7 +323,16 @@ const tasksToInsert = [
 const insertTasksTransaction = db.transaction(() => {
   for (const task of tasksToInsert) {
     try {
-      const result = insertTask.run(
+      // Проверяем, существует ли задание
+      const existing = db.prepare('SELECT id, reward_crystals FROM tasks WHERE task_key = ?').get(task.task_key) as { id: number, reward_crystals: number } | undefined;
+      
+      if (existing) {
+        console.log(`  📝 Обновление задания: ${task.task_key} (текущая награда: ${existing.reward_crystals})`);
+      } else {
+        console.log(`  ✅ Добавление нового задания: ${task.task_key} (награда: ${task.reward_crystals})`);
+      }
+      
+      insertOrUpdateTask.run(
         task.id,
         task.task_key,
         task.title,
@@ -215,17 +342,16 @@ const insertTasksTransaction = db.transaction(() => {
         task.milestone_required,
         task.is_active
       );
-      console.log(`  ✅ Задание добавлено: ${task.task_key} (id=${task.id}, reward=${task.reward_crystals})`);
     } catch (error) {
-      console.error(`  ❌ Ошибка при добавлении задания ${task.task_key}:`, error);
-      throw error; // Откатываем всю транзакцию при ошибке
+      console.error(`  ❌ Ошибка при обработке задания ${task.task_key}:`, error);
+      throw error;
     }
   }
 });
 
 try {
   insertTasksTransaction();
-  console.log('✅ Все задания успешно добавлены в транзакции');
+  console.log('✅ Все задания успешно обработаны');
 } catch (error) {
   console.error('❌ КРИТИЧЕСКАЯ ОШИБКА при добавлении заданий:', error);
 }
@@ -233,15 +359,17 @@ try {
 // Проверяем результат
 const checkTasksStmt = db.prepare('SELECT COUNT(*) as count FROM tasks');
 const tasksCount = checkTasksStmt.get() as { count: number };
-console.log(`📊 Проверка: всего заданий в БД = ${tasksCount.count}`);
+console.log(`📊 Итого заданий в БД: ${tasksCount.count}`);
 
 if (tasksCount.count < 7) {
-  console.error('❌ ВНИМАНИЕ: Не все задания добавлены! Ожидалось 7, получено:', tasksCount.count);
-  console.error('Список заданий в БД:');
-  const allTasksStmt = db.prepare('SELECT id, task_key, reward_crystals FROM tasks ORDER BY id');
-  const allTasks = allTasksStmt.all();
-  console.table(allTasks);
+  console.error(`⚠️ Внимание: ожидалось минимум 7 заданий, в БД: ${tasksCount.count}`);
 }
+
+// Показываем все задания
+const allTasksStmt = db.prepare('SELECT id, task_key, task_type, reward_crystals FROM tasks ORDER BY id');
+const allTasks = allTasksStmt.all();
+console.log('📋 Список всех заданий:');
+console.table(allTasks);
 
 // Таблица выполненных пользователем заданий
 db.exec(`
@@ -339,7 +467,7 @@ db.exec(`
   )
 `);
 
-// Вставка базовых товаров
+// Вставка базовых товаров (если их нет)
 const insertShopItem = db.prepare(`
   INSERT OR IGNORE INTO shop_items (id, name, description, price_crystals, item_type, delivery_type, stock_quantity)
   VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -357,7 +485,7 @@ try {
       -1
     );
   })();
-  console.log('✅ Товары магазина добавлены');
+  console.log('✅ Товары магазина проверены');
 } catch (error) {
   console.error('⚠️ Ошибка при добавлении товаров:', error);
 }
@@ -402,15 +530,24 @@ db.exec(`CREATE INDEX IF NOT EXISTS idx_daily_limits_user_date ON daily_limits(u
 db.exec(`CREATE INDEX IF NOT EXISTS idx_user_tasks_user ON user_tasks(user_id)`);
 db.exec(`CREATE INDEX IF NOT EXISTS idx_tasks_key ON tasks(task_key)`);
 
+// Финальная статистика
+const userCount = (db.prepare('SELECT COUNT(*) as cnt FROM users').get() as { cnt: number }).cnt;
+const userTasksCount = (db.prepare('SELECT COUNT(*) as cnt FROM user_tasks').get() as { cnt: number }).cnt;
+
 console.log('');
 console.log('====================================');
-console.log('✅ База данных полностью инициализирована');
+console.log('✅ База данных успешно обновлена!');
 console.log('====================================');
 console.log('');
-console.log('📊 Структура БД включает:');
-console.log('   ✅ Пользователи (users)');
-console.log('   ✅ Задания (tasks) - ' + tasksCount.count + ' шт.');
-console.log('   ✅ Выполненные задания (user_tasks)');
+console.log('📊 Статистика БД:');
+console.log(`   👥 Пользователей: ${userCount}`);
+console.log(`   📋 Заданий: ${tasksCount.count}`);
+console.log(`   ✅ Выполнено заданий: ${userTasksCount}`);
+console.log('');
+console.log('🏗️ Структура БД включает:');
+console.log('   ✅ Пользователи (users) - сохранены');
+console.log('   ✅ Задания (tasks) - обновлены');
+console.log('   ✅ Выполненные задания (user_tasks) - сохранены');
 console.log('   ✅ Реферальные награды (referral_rewards)');
 console.log('   ✅ Аукционы (Lots, Bids)');
 console.log('   ✅ Рулетка (case_winnings)');
@@ -419,15 +556,7 @@ console.log('   ✅ Магазин (shop_items, purchase_history)');
 console.log('   ✅ Навигация (navigation_items)');
 console.log('   ✅ Лимиты (daily_limits)');
 console.log('');
-console.log('💎 Система наград:');
-console.log('   - Приветственный бонус: +400 плюсов');
-console.log('   - Подписка на канал: +100 плюсов');
-console.log('   - Голосование/буст: +500 плюсов');
-console.log('   - За каждого реферала: +500 плюсов (автоматически)');
-console.log('   - Milestone 1 друг: +500 плюсов');
-console.log('   - Milestone 3 друга: +500 плюсов');
-console.log('   - Milestone 5 друзей: +500 плюсов');
-console.log('   - Milestone 10 друзей: +500 плюсов');
+console.log('💎 Система наград готова к работе!');
 console.log('');
 
 export default db;
