@@ -15,56 +15,6 @@ try {
   console.warn('⚠️ Не удалось установить права доступа:', error);
 }
 
-// ============================================
-// МИГРАЦИЯ: Обновление таблицы tasks
-// ============================================
-try {
-  // Проверяем, существует ли старая таблица
-  const tableInfo = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='tasks'").get();
-  
-  if (tableInfo) {
-    console.log('🔄 Обнаружена старая таблица tasks, выполняется миграция...');
-    
-    const migrationTransaction = db.transaction(() => {
-      // 1. Создаём новую таблицу с правильным CHECK constraint
-      db.exec(`
-        CREATE TABLE IF NOT EXISTS tasks_new (
-          id INTEGER PRIMARY KEY,
-          task_key TEXT NOT NULL UNIQUE,
-          title TEXT NOT NULL,
-          description TEXT,
-          reward_crystals INTEGER DEFAULT 0,
-          task_type TEXT DEFAULT 'manual' CHECK(task_type IN ('manual', 'auto', 'referral', 'welcome', 'milestone')),
-          milestone_required INTEGER DEFAULT 0,
-          is_active INTEGER DEFAULT 1
-        )
-      `);
-      
-      // 2. Копируем данные из старой таблицы (только валидные типы)
-      db.exec(`
-        INSERT OR IGNORE INTO tasks_new (id, task_key, title, description, reward_crystals, task_type, milestone_required, is_active)
-        SELECT id, task_key, title, description, reward_crystals, task_type, 
-               COALESCE(milestone_required, 0), COALESCE(is_active, 1)
-        FROM tasks 
-        WHERE task_type IN ('manual', 'auto', 'referral')
-      `);
-      
-      // 3. Удаляем старую таблицу
-      db.exec('DROP TABLE tasks');
-      
-      // 4. Переименовываем новую таблицу
-      db.exec('ALTER TABLE tasks_new RENAME TO tasks');
-      
-      console.log('✅ Миграция таблицы tasks завершена');
-    });
-    
-    migrationTransaction();
-  }
-} catch (error) {
-  console.log('ℹ️ Миграция не требуется или уже выполнена:', error);
-}
-// ============================================
-
 // Создание таблицы пользователей
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
@@ -115,7 +65,7 @@ db.exec(`
     start_price INTEGER NOT NULL DEFAULT 0,
     min_bid_step INTEGER NOT NULL DEFAULT 100,
     current_price INTEGER NOT NULL DEFAULT 0,
-    status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK(status IN ('DRAFT', 'ACTIVE', 'FINISHED', 'CANCELLED')),
+    status TEXT NOT NULL DEFAULT 'ACTIVE',
     expires_at TEXT NOT NULL,
     winner_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -152,7 +102,7 @@ db.exec(`
   )
 `);
 
-// Таблица заданий (с НОВЫМ CHECK constraint)
+// Таблица заданий (БЕЗ CHECK constraint - валидация на уровне приложения)
 db.exec(`
   CREATE TABLE IF NOT EXISTS tasks (
     id INTEGER PRIMARY KEY,
@@ -160,11 +110,19 @@ db.exec(`
     title TEXT NOT NULL,
     description TEXT,
     reward_crystals INTEGER DEFAULT 0,
-    task_type TEXT DEFAULT 'manual' CHECK(task_type IN ('manual', 'auto', 'referral', 'welcome', 'milestone')),
+    task_type TEXT DEFAULT 'manual',
     milestone_required INTEGER DEFAULT 0,
     is_active INTEGER DEFAULT 1
   )
 `);
+
+// Добавляем поля milestone_required если их нет
+try {
+  db.exec(`ALTER TABLE tasks ADD COLUMN milestone_required INTEGER DEFAULT 0`);
+  console.log('✅ Добавлено поле milestone_required');
+} catch {
+  // Поле уже существует
+}
 
 // Вставка базовых заданий
 const insertTask = db.prepare(`
@@ -172,7 +130,7 @@ const insertTask = db.prepare(`
   VALUES (@id, @task_key, @title, @description, @reward_crystals, @task_type, @milestone_required)
 `);
 
-db.transaction(() => {
+const insertTasksTransaction = db.transaction(() => {
   // Приветственный бонус
   insertTask.run({ 
     id: 1, 
@@ -246,7 +204,15 @@ db.transaction(() => {
     task_type: 'milestone',
     milestone_required: 10
   });
-})();
+});
+
+// Выполняем вставку заданий
+try {
+  insertTasksTransaction();
+  console.log('✅ Базовые задания добавлены/обновлены');
+} catch (error) {
+  console.error('⚠️ Ошибка при добавлении заданий:', error);
+}
 
 // Таблица выполненных пользователем заданий
 db.exec(`
@@ -287,7 +253,7 @@ db.exec(`
     prize_description TEXT,
     start_date TEXT NOT NULL,
     end_date TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'FINISHED', 'CANCELLED')),
+    status TEXT NOT NULL DEFAULT 'ACTIVE',
     winner_id INTEGER,
     required_referrals INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -316,12 +282,12 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS purchase_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
-    item_type TEXT NOT NULL CHECK(item_type IN ('premium_item', 'case', 'crystals', 'other')),
+    item_type TEXT NOT NULL,
     item_name TEXT NOT NULL,
     item_description TEXT,
     price_crystals INTEGER NOT NULL,
     quantity INTEGER DEFAULT 1,
-    status TEXT NOT NULL DEFAULT 'completed' CHECK(status IN ('pending', 'completed', 'failed', 'refunded')),
+    status TEXT NOT NULL DEFAULT 'completed',
     purchased_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
   )
@@ -334,8 +300,8 @@ db.exec(`
     name TEXT NOT NULL,
     description TEXT,
     price_crystals INTEGER NOT NULL,
-    item_type TEXT NOT NULL CHECK(item_type IN ('premium_item', 'case', 'crystals', 'other')),
-    delivery_type TEXT DEFAULT 'instant' CHECK(delivery_type IN ('instant', 'bot_message', 'manual')),
+    item_type TEXT NOT NULL,
+    delivery_type TEXT DEFAULT 'instant',
     is_available INTEGER DEFAULT 1,
     stock_quantity INTEGER DEFAULT -1,
     image_url TEXT,
@@ -350,7 +316,7 @@ const insertShopItem = db.prepare(`
   VALUES (@id, @name, @description, @price_crystals, @item_type, @delivery_type, @stock_quantity)
 `);
 
-db.transaction(() => {
+const insertShopItemsTransaction = db.transaction(() => {
   insertShopItem.run({
     id: 1,
     name: 'Созвон с кумиром',
@@ -360,7 +326,14 @@ db.transaction(() => {
     delivery_type: 'manual',
     stock_quantity: -1
   });
-})();
+});
+
+try {
+  insertShopItemsTransaction();
+  console.log('✅ Товары магазина добавлены');
+} catch (error) {
+  console.error('⚠️ Ошибка при добавлении товаров:', error);
+}
 
 // Таблица для навигационных пунктов
 db.exec(`
@@ -380,7 +353,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS daily_limits (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
-    limit_type TEXT NOT NULL CHECK(limit_type IN ('taps', 'cases', 'referrals')),
+    limit_type TEXT NOT NULL,
     date TEXT NOT NULL,
     count INTEGER DEFAULT 0,
     max_limit INTEGER NOT NULL,
