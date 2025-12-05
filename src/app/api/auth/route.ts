@@ -80,6 +80,7 @@ interface AuthResponse {
   awards?: string;
   completed_tasks: CompletedTask[];
   invite_milestones: typeof INVITE_MILESTONES;
+  has_spun_before: boolean;
 }
 
 async function checkChannelSubscription(userId: number) {
@@ -332,6 +333,11 @@ export async function POST(req: NextRequest) {
     `);
     const completedTasks = completedTasksStmt.all(user.id) as CompletedTask[];
 
+    // Проверяем, крутил ли пользователь рулетку раньше
+    const spinCountStmt = db.prepare(`SELECT COUNT(*) as count FROM case_winnings WHERE user_id = ?`);
+    const spinCountResult = spinCountStmt.get(user.id) as { count: number };
+    const hasSpunBefore = spinCountResult.count > 0;
+
     const response: AuthResponse = {
       id: user.id,
       tg_id: user.tg_id,
@@ -354,6 +360,7 @@ export async function POST(req: NextRequest) {
       awards: user.awards || '',
       completed_tasks: completedTasks,
       invite_milestones: INVITE_MILESTONES,
+      has_spun_before: hasSpunBefore,
     };
 
     console.log('=== SUCCESS ===');
@@ -362,6 +369,7 @@ export async function POST(req: NextRequest) {
     console.log('Balance:', user.balance_crystals);
     console.log('Referral count:', user.referral_count);
     console.log('Completed tasks:', completedTasks.length);
+    console.log('Has spun before:', hasSpunBefore);
 
     return NextResponse.json(response);
 

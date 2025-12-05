@@ -256,13 +256,11 @@ type Prize = {
 
 const ALL_PRIZES: Prize[] = [
   // Нереальный шанс
-  // Удалено: 3000 A+
   { name: 'Приглашение на закрытое мероприятие', type: 'impossible', probability: 0, canWin: false, deliveryType: 'manual', image: '/prizes/closed-event.png' },
   { name: 'Индивидуальный разбор от предпринимателя (60 минут)', type: 'impossible', probability: 0, canWin: false, deliveryType: 'manual', image: '/prizes/individual-60min.png' },
   { name: 'Завтрак с предпринимателем', type: 'impossible', probability: 0, canWin: false, deliveryType: 'manual', image: '/prizes/breakfast.png' },
   
   // Очень маленький шанс
-  // Удалено: 2000 A+
   { name: 'Разбор 1 запроса от предпринимателя с выручкой от 100 млн рублей в год', type: 'very_rare', probability: 0.167, canWin: true, deliveryType: 'manual', image: '/prizes/entrepreneur-analysis.png' },
   { name: 'Пакет практических лайфхаков', type: 'very_rare', probability: 0.167, canWin: true, deliveryType: 'bot_message', image: '/prizes/lifehacks.png' },
   
@@ -291,6 +289,7 @@ interface UserProfile {
   first_name: string;
   last_name?: string;
   username?: string;
+  has_spun_before?: boolean;
 }
 
 interface DailyLimit {
@@ -328,6 +327,7 @@ export default function ShopPage() {
   const [isPurchasing, setIsPurchasing] = useState(false);
   const hasSpunRef = useRef(false);
   const isProcessingPrizeRef = useRef(false);
+  const [isFirstSpin, setIsFirstSpin] = useState(true);
 
   // Предзагрузка всех изображений
   useEffect(() => {
@@ -379,6 +379,7 @@ export default function ShopPage() {
       }
       setUser(userData);
       setDailyLimit(limitData);
+      setIsFirstSpin(!userData.has_spun_before);
     })
     .catch(err => {
       console.error("Shop page fetch error:", err);
@@ -390,6 +391,16 @@ export default function ShopPage() {
   }, []);
 
   const getRandomPrize = (): Prize => {
+    // Если это первый спин - гарантированно выдаём плейбук
+    if (isFirstSpin) {
+      const playbook = ALL_PRIZES.find(p => p.name === 'Пакет практических лайфхаков');
+      if (playbook) {
+        console.log('[FIRST SPIN] Guaranteed prize: Пакет практических лайфхаков');
+        return playbook;
+      }
+    }
+    
+    // Обычная логика для последующих спинов
     const winnablePrizes = ALL_PRIZES.filter(p => p.canWin);
     const totalProbability = winnablePrizes.reduce((sum, prize) => sum + prize.probability, 0);
     
@@ -446,6 +457,8 @@ export default function ShopPage() {
         
         if (prize.name === 'Чек-лист') {
           tg.showAlert(`🎉 Поздравляем! Вы выиграли чек-лист!\n\n📬 Проверьте бота - чек-лист отправлен!`);
+        } else if (prize.name === 'Пакет практических лайфхаков') {
+          tg.showAlert(`🎉 Поздравляем! Вы выиграли пакет практических лайфхаков!\n\n📬 Проверьте бота - материалы отправлены!`);
         } else {
           tg.showAlert(`🎉 Поздравляем! Вы выиграли: ${prize.name}\n\n📬 Приз отправлен вам в бот!`);
         }
@@ -571,6 +584,11 @@ export default function ShopPage() {
     if (winningPrize && !isProcessingPrizeRef.current) {
       window.Telegram?.WebApp?.HapticFeedback.notificationOccurred('success');
       handlePrizeDelivery(winningPrize);
+    }
+    
+    // После первого спина сбрасываем флаг
+    if (isFirstSpin) {
+      setIsFirstSpin(false);
     }
     
     setTimeout(() => {
