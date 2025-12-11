@@ -464,7 +464,6 @@ async function checkAndFinishAuctions() {
 // Запуск фоновых задач
 setInterval(checkAndFinishAuctions, 60000); // Каждую минуту
 setInterval(checkAndRunLottery, 3600000); // Каждый час - проверка розыгрыша
-// setInterval(checkAndResetMonthlyReferrals, 3600000); // УДАЛЕНО: Функция, которая сбрасывала людей каждый час
 console.log('✅ Фоновые задачи запущены (аукционы + розыгрыши).');
 
 // Проверяем сразу при запуске
@@ -531,7 +530,8 @@ bot.onText(/\/help/, (msg) => {
                 `/draw <уровень> - Провести розыгрыш вручную\n` +
                 `/runlottery - Запустить полный розыгрыш сейчас\n` +
                 `/reset_month - Сбросить месячные счетчики\n` +
-                `/fix_stats - Восстановить рефералов`;
+                `/fix_stats - Восстановить рефералов\n` +
+                `/mistakes - Выгрузить истории об ошибках`;
   }
   
   bot.sendMessage(chatId, helpText, { parse_mode: 'Markdown' });
@@ -561,10 +561,15 @@ bot.onText(/\/admin/, async (msg) => {
     
     const stats = statsStmt.get();
     
+    // Считаем количество историй
+    const storiesStmt = db.prepare(`SELECT COUNT(*) as count FROM user_stories WHERE task_key = 'share_mistake'`);
+    const storiesCount = storiesStmt.get();
+    
     const message = `*👑 Админ-панель*\n\n` +
                    `📊 *Статистика:*\n` +
                    `Всего пользователей: ${stats.total_users}\n` +
-                   `Активировали бота: ${stats.active_users}\n\n` +
+                   `Активировали бота: ${stats.active_users}\n` +
+                   `📝 Историй об ошибках: ${storiesCount.count}\n\n` +
                    `🎰 *Участники розыгрышей (в этом месяце):*\n` +
                    `1+ реферал: ${stats.lottery_1} чел.\n` +
                    `5+ рефералов: ${stats.lottery_5} чел.\n` +
@@ -574,12 +579,88 @@ bot.onText(/\/admin/, async (msg) => {
                    `*Команды:*\n` +
                    `/lottery - Управление розыгрышами\n` +
                    `/participants <уровень> - Список участников\n` +
-                   `/runlottery - Запустить полный розыгрыш`;
+                   `/runlottery - Запустить полный розыгрыш\n` +
+                   `/mistakes - Выгрузить истории об ошибках`;
     
     bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
   } catch (error) {
     console.error('[ADMIN] Ошибка:', error);
     bot.sendMessage(chatId, '❌ Ошибка при получении статистики');
+  }
+});
+
+// ============================================
+// КОМАНДА /mistakes - Выгрузка историй об ошибках
+// ============================================
+bot.onText(/\/mistakes/, async (msg) => {
+  if (!checkAdmin(msg)) {
+    bot.sendMessage(msg.chat.id, "⛔️ У вас нет прав для использования этой команды.");
+    return;
+  }
+  
+  const chatId = msg.chat.id;
+  
+  try {
+    const storiesStmt = db.prepare(`
+      SELECT 
+        us.id,
+        us.story_text,
+        us.created_at,
+        u.tg_id,
+        u.first_name,
+        u.last_name,
+        u.username
+      FROM user_stories us
+      JOIN users u ON us.user_id = u.id
+      WHERE us.task_key = 'share_mistake'
+      ORDER BY us.created_at DESC
+    `);
+    
+    const stories = storiesStmt.all();
+    
+    if (stories.length === 0) {
+      bot.sendMessage(chatId, '📝 Пока нет историй об ошибках.');
+      return;
+    }
+    
+    // Формируем CSV
+    let csvContent = 'ID,TG_ID,Username,Имя,Фамилия,Дата,История\n';
+    
+    for (const story of stories) {
+      const username = story.username || '';
+      const firstName = (story.first_name || '').replace(/"/g, '""');
+      const lastName = (story.last_name || '').replace(/"/g, '""');
+      const storyText = (story.story_text || '').replace(/"/g, '""').replace(/\n/g, ' ');
+      const date = story.created_at ? new Date(story.created_at).toLocaleString('ru-RU') : '';
+      
+      csvContent += `${story.id},${story.tg_id},"${username}","${firstName}","${lastName}","${date}","${storyText}"\n`;
+    }
+    
+    // Создаём временный файл
+    const tempDir = path.join(process.cwd(), 'temp');
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+    
+    const fileName = `mistakes_${Date.now()}.csv`;
+    const filePath = path.join(tempDir, fileName);
+    
+    // Добавляем BOM для корректного отображения кириллицы в Excel
+    fs.writeFileSync(filePath, '\ufeff' + csvContent, 'utf8');
+    
+    // Отправляем файл
+    await bot.sendDocument(chatId, filePath, {
+      caption: `📝 Истории об ошибках\nВсего: ${stories.length}`
+    });
+    
+    // Удаляем временный файл
+    fs.unlinkSync(filePath);
+    
+    console.log(`[MISTAKES] Выгружено ${stories.length} историй для админа ${msg.from.id}`);
+    
+  } catch (error) {
+    console.error('[MISTAKES] Ошибка:', error);
+    bot.sendMessage(chatId, '❌ Ошибка при выгрузке историй');
   }
 });
 
@@ -812,7 +893,7 @@ bot.onText(/\/reset_month/, async (msg) => {
   }
 });
 
-// --- НОВАЯ КОМАНДА: ВОССТАНОВЛЕНИЕ ДАННЫХ ---
+// --- КОМАНДА: ВОССТАНОВЛЕНИЕ ДАННЫХ ---
 bot.onText(/\/fix_stats/, async (msg) => {
     if (!checkAdmin(msg)) return;
     const chatId = msg.chat.id;

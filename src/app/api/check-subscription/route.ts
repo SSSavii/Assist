@@ -18,6 +18,7 @@ const TASK_REWARDS: Record<string, number> = {
   invite_3: 500,
   invite_5: 500,
   invite_10: 500,
+  share_mistake: 500,
 };
 
 // Milestone-конфигурация (должна совпадать с auth/route.ts)
@@ -115,6 +116,16 @@ function isTaskCompleted(userId: number, taskKey: string): boolean {
     SELECT 1 FROM user_tasks ut 
     JOIN tasks t ON ut.task_id = t.id 
     WHERE ut.user_id = ? AND t.task_key = ?
+  `);
+  return !!stmt.get(userId, taskKey);
+}
+
+/**
+ * Проверяет, отправил ли пользователь историю
+ */
+function hasSubmittedStory(userId: number, taskKey: string): boolean {
+  const stmt = db.prepare(`
+    SELECT 1 FROM user_stories WHERE user_id = ? AND task_key = ?
   `);
   return !!stmt.get(userId, taskKey);
 }
@@ -219,7 +230,8 @@ export async function POST(req: NextRequest) {
       'invite_1',
       'invite_3',
       'invite_5',
-      'invite_10'
+      'invite_10',
+      'share_mistake'
     ];
 
     if (!taskId || !validTaskIds.includes(taskId)) {
@@ -260,6 +272,7 @@ export async function POST(req: NextRequest) {
       'invite_3': 'invite_3',
       'invite_5': 'invite_5',
       'invite_10': 'invite_10',
+      'share_mistake': 'share_mistake',
     };
 
     const taskKey = taskKeyMap[taskId];
@@ -389,6 +402,21 @@ export async function POST(req: NextRequest) {
         } else {
           const remaining = milestone.friends - referralCount;
           message = `Нужно ещё ${remaining} ${remaining === 1 ? 'друг' : 'друзей'}. У тебя ${referralCount} из ${milestone.friends}.`;
+        }
+        break;
+      }
+
+      // ============================================
+      // ЗАДАНИЕ "РАССКАЖИ О СВОЕЙ ОШИБКЕ"
+      // ============================================
+      case 'share_mistake': {
+        // Проверяем, отправил ли пользователь историю
+        if (hasSubmittedStory(user.id, 'share_mistake')) {
+          isCompleted = true;
+          message = 'Спасибо за твою историю!';
+        } else {
+          isCompleted = false;
+          message = 'Сначала напишите свою историю, нажав кнопку "Написать"';
         }
         break;
       }

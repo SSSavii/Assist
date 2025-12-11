@@ -103,6 +103,26 @@ db.exec(`
 `);
 
 // ============================================
+// ТАБЛИЦА ИСТОРИЙ/ОТВЕТОВ ПОЛЬЗОВАТЕЛЕЙ
+// ============================================
+db.exec(`
+  CREATE TABLE IF NOT EXISTS user_stories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    task_key TEXT NOT NULL,
+    story_text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )
+`);
+
+// Создаём индекс для быстрого поиска
+db.exec(`CREATE INDEX IF NOT EXISTS idx_user_stories_user ON user_stories(user_id)`);
+db.exec(`CREATE INDEX IF NOT EXISTS idx_user_stories_task ON user_stories(task_key)`);
+
+console.log('✅ Таблица user_stories готова');
+
+// ============================================
 // МИГРАЦИЯ ТАБЛИЦЫ TASKS БЕЗ ПОТЕРИ ДАННЫХ
 // ============================================
 
@@ -316,6 +336,16 @@ const tasksToInsert = [
     task_type: 'milestone',
     milestone_required: 10,
     is_active: 1
+  },
+  {
+    id: 8,
+    task_key: 'share_mistake',
+    title: 'Расскажи о своей ошибке',
+    description: 'Поделись своим опытом и получи бонус',
+    reward_crystals: 500,
+    task_type: 'story',
+    milestone_required: 0,
+    is_active: 1
   }
 ];
 
@@ -361,8 +391,8 @@ const checkTasksStmt = db.prepare('SELECT COUNT(*) as count FROM tasks');
 const tasksCount = checkTasksStmt.get() as { count: number };
 console.log(`📊 Итого заданий в БД: ${tasksCount.count}`);
 
-if (tasksCount.count < 7) {
-  console.error(`⚠️ Внимание: ожидалось минимум 7 заданий, в БД: ${tasksCount.count}`);
+if (tasksCount.count < 8) {
+  console.error(`⚠️ Внимание: ожидалось минимум 8 заданий, в БД: ${tasksCount.count}`);
 }
 
 // Показываем все задания
@@ -533,6 +563,7 @@ db.exec(`CREATE INDEX IF NOT EXISTS idx_tasks_key ON tasks(task_key)`);
 // Финальная статистика
 const userCount = (db.prepare('SELECT COUNT(*) as cnt FROM users').get() as { cnt: number }).cnt;
 const userTasksCount = (db.prepare('SELECT COUNT(*) as cnt FROM user_tasks').get() as { cnt: number }).cnt;
+const storiesCount = (db.prepare('SELECT COUNT(*) as cnt FROM user_stories').get() as { cnt: number }).cnt;
 
 console.log('');
 console.log('====================================');
@@ -543,11 +574,13 @@ console.log('📊 Статистика БД:');
 console.log(`   👥 Пользователей: ${userCount}`);
 console.log(`   📋 Заданий: ${tasksCount.count}`);
 console.log(`   ✅ Выполнено заданий: ${userTasksCount}`);
+console.log(`   📝 Историй пользователей: ${storiesCount}`);
 console.log('');
 console.log('🏗️ Структура БД включает:');
 console.log('   ✅ Пользователи (users) - сохранены');
 console.log('   ✅ Задания (tasks) - обновлены');
 console.log('   ✅ Выполненные задания (user_tasks) - сохранены');
+console.log('   ✅ Истории пользователей (user_stories) - NEW');
 console.log('   ✅ Реферальные награды (referral_rewards)');
 console.log('   ✅ Аукционы (Lots, Bids)');
 console.log('   ✅ Рулетка (case_winnings)');
