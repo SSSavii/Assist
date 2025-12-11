@@ -64,7 +64,7 @@ const GlobalStyles = () => (
       }
       
       @font-face {
-tall        font-family: 'Cera Pro';
+        font-family: 'Cera Pro';
         src: url('/fonts/CeraPro-Medium.woff2') format('woff2'),
              url('/fonts/CeraPro-Medium.woff') format('woff');
         font-weight: 500;
@@ -129,7 +129,7 @@ interface Task {
   action: () => void;
   checkAction?: () => void;
   isCompleted: boolean;
-  type: 'welcome' | 'manual' | 'milestone';
+  type: 'welcome' | 'manual' | 'milestone' | 'story';
 }
 
 export default function HomePage() {
@@ -141,7 +141,15 @@ export default function HomePage() {
   const [logoError, setLogoError] = useState(false);
   const [isBalancePressed, setIsBalancePressed] = useState(false);
   const [isNavigationPressed, setIsNavigationPressed] = useState(false);
+  
+  // Состояния для модального окна истории
+  const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
+  const [storyText, setStoryText] = useState('');
+  const [isSubmittingStory, setIsSubmittingStory] = useState(false);
+  const [hasSubmittedStory, setHasSubmittedStory] = useState(false);
+  
   const DAILY_TAP_LIMIT = 100;
+  const MIN_STORY_LENGTH = 15;
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -353,6 +361,59 @@ export default function HomePage() {
     router.push('/navigation');
   };
 
+  // Открытие модального окна для написания истории
+  const handleOpenStoryModal = () => {
+    setIsStoryModalOpen(true);
+  };
+
+  // Закрытие модального окна
+  const handleCloseStoryModal = () => {
+    setIsStoryModalOpen(false);
+  };
+
+  // Отправка истории
+  const handleSubmitStory = async () => {
+    const tg = window.Telegram?.WebApp;
+    if (!tg?.initData) return;
+
+    const trimmedText = storyText.trim();
+    
+    if (trimmedText.length < MIN_STORY_LENGTH) {
+      tg.showAlert(`Минимум ${MIN_STORY_LENGTH} символов. Сейчас: ${trimmedText.length}`);
+      return;
+    }
+
+    setIsSubmittingStory(true);
+
+    try {
+      const response = await fetch('/api/submit-story', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          initData: tg.initData,
+          taskKey: 'share_mistake',
+          text: trimmedText
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setHasSubmittedStory(true);
+        setIsStoryModalOpen(false);
+        setStoryText('');
+        tg.showAlert(data.message || 'История сохранена! Теперь нажмите "Проверить".');
+      } else {
+        tg.showAlert(data.message || 'Ошибка при сохранении.');
+      }
+    } catch (error) {
+      console.error('Submit story error:', error);
+      tg.showAlert('Ошибка соединения с сервером.');
+    } finally {
+      setIsSubmittingStory(false);
+    }
+  };
+
   // Формируем список заданий
   const { activeTasks, completedTasks } = useMemo(() => {
     if (!user) return { activeTasks: [], completedTasks: [] };
@@ -401,7 +462,21 @@ export default function HomePage() {
       type: 'manual'
     });
 
-    // 4. Milestone-задания приглашений (только следующее невыполненное)
+    // 4. Задание "Расскажи о своей ошибке"
+    allTasks.push({
+      id: 'share_mistake',
+      taskKey: 'share_mistake',
+      points: 500,
+      title: 'Расскажи о своей ошибке',
+      buttonText: 'Написать',
+      checkButtonText: 'Проверить',
+      action: handleOpenStoryModal,
+      checkAction: () => checkTask('share_mistake'),
+      isCompleted: isTaskCompleted('share_mistake'),
+      type: 'story'
+    });
+
+    // 5. Milestone-задания приглашений (только следующее невыполненное)
     const nextMilestone = getNextMilestone();
     if (nextMilestone) {
       const canClaim = user.referral_count >= nextMilestone.friends;
@@ -444,7 +519,7 @@ export default function HomePage() {
     const completed = allTasks.filter(t => t.isCompleted);
 
     return { activeTasks: active, completedTasks: completed };
-  }, [user]);
+  }, [user, hasSubmittedStory]);
 
   if (loading) {
     return <div className="loading-container">Загрузка...</div>;
@@ -646,6 +721,47 @@ export default function HomePage() {
             </div>
           </section>
         </main>
+
+        {/* МОДАЛЬНОЕ ОКНО ДЛЯ НАПИСАНИЯ ИСТОРИИ */}
+        {isStoryModalOpen && (
+          <div className="modal-overlay" onClick={handleCloseStoryModal}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3 className="modal-title">Расскажи о своей ошибке</h3>
+                <button className="modal-close" onClick={handleCloseStoryModal}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="#000" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </button>
+              </div>
+              
+              <p className="modal-description">
+                Поделись своим опытом — какую ошибку ты совершил и чему научился?
+              </p>
+              
+              <textarea
+                className="modal-textarea"
+                placeholder="Напиши свою историю здесь..."
+                value={storyText}
+                onChange={(e) => setStoryText(e.target.value)}
+                maxLength={2000}
+              />
+              
+              <div className="modal-footer">
+                <span className="char-count">
+                  {storyText.length} / {MIN_STORY_LENGTH} мин.
+                </span>
+                <button 
+                  className="modal-submit-button"
+                  onClick={handleSubmitStory}
+                  disabled={isSubmittingStory || storyText.trim().length < MIN_STORY_LENGTH}
+                >
+                  {isSubmittingStory ? 'Отправка...' : 'Отправить'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <style jsx>{`
           .app-wrapper {
@@ -1211,6 +1327,121 @@ export default function HomePage() {
             z-index: -1;
           }
 
+          /* MODAL STYLES */
+          .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+          }
+
+          .modal-content {
+            background: #FFFFFF;
+            border-radius: 24px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+          }
+
+          .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+
+          .modal-title {
+            font-family: 'Cera Pro', sans-serif;
+            font-weight: 600;
+            font-size: 20px;
+            color: #0D0D0D;
+            margin: 0;
+          }
+
+          .modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .modal-description {
+            font-family: 'Cera Pro', sans-serif;
+            font-weight: 400;
+            font-size: 14px;
+            color: #666666;
+            margin: 0;
+            line-height: 1.4;
+          }
+
+          .modal-textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 16px;
+            border: 1px solid #E0E0E0;
+            border-radius: 16px;
+            font-family: 'Cera Pro', sans-serif;
+            font-size: 16px;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+          }
+
+          .modal-textarea:focus {
+            border-color: #D72525;
+          }
+
+          .modal-textarea::placeholder {
+            color: #AAAAAA;
+          }
+
+          .modal-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+
+          .char-count {
+            font-family: 'Cera Pro', sans-serif;
+            font-size: 12px;
+            color: #999999;
+          }
+
+          .modal-submit-button {
+            padding: 12px 24px;
+            background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
+            border: none;
+            border-radius: 30px;
+            color: #FFFFFF;
+            font-family: 'Cera Pro', sans-serif;
+            font-weight: 500;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+          }
+
+          .modal-submit-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+
+          .modal-submit-button:active:not(:disabled) {
+            transform: scale(0.98);
+          }
+
           /* LOADING & ERROR STATES */
           .loading-container, .error-container {
             display: flex;
@@ -1260,6 +1491,14 @@ export default function HomePage() {
             }
 
             .button-text.bold {
+              font-size: 18px;
+            }
+
+            .modal-content {
+              padding: 20px;
+            }
+
+            .modal-title {
               font-size: 18px;
             }
           }
