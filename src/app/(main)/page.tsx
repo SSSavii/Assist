@@ -1395,6 +1395,7 @@ export default function HomePage() {
             border-radius: 16px;
             font-family: 'Cera Pro', sans-serif;
             font-size: 16px;
+            color: #0D0D0D;
             resize: none;
             outline: none;
             transition: border-color 0.2s;
