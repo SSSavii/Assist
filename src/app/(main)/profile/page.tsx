@@ -10,6 +10,7 @@ import {
   Wallet,
   Gift,
   Calendar,
+  FileText,
 } from 'lucide-react';
 
 type UserProfile = {
@@ -311,6 +312,15 @@ export default function ProfilePage() {
           imageSrc="/profile/Frame 30-4.png"
           text="Сотрудничество"
           onClick={handleCooperationClick}
+        />
+        
+        {/* Анализ резюме - новая кнопка */}
+        <ProfileLink
+          icon={FileText}
+          iconBgColor="bg-purple-500"
+          text="AI Анализ резюме"
+          subText="NEW"
+          href="/resume"
         />
 
         {/* Кнопка навигации по каналу АССИСТ+ */}

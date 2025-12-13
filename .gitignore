@@ -57,3 +57,5 @@ tmp/
 
 # Vercel (на случай если решите использовать)
 .vercel
+data/cache/*
+!data/cache/.gitkeep
