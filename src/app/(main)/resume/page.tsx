@@ -4,6 +4,7 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { parseResumeFile } from '@/lib/resume/fileParser';
 
 export default function ResumePage() {
   const [resumeText, setResumeText] = useState('');
@@ -22,38 +23,19 @@ export default function ResumePage() {
     setFileName(file.name);
     setError('');
     setUploadLoading(true);
-    
-    // Проверяем размер (макс 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      setError('Файл слишком большой (максимум 10MB)');
-      setFileName('');
-      setUploadLoading(false);
-      return;
-    }
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/api/resume-parse', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Ошибка обработки файла');
-      }
-
-      const { text, metadata } = await response.json();
-      setResumeText(text);
+      // Парсим файл в браузере
+      const result = await parseResumeFile(file);
+      setResumeText(result.text);
       
-      console.log('File parsed successfully:', metadata);
+      console.log('File parsed successfully:', result.metadata);
       
     } catch (err) {
       console.error('Ошибка загрузки файла:', err);
       setError(err instanceof Error ? err.message : 'Не удалось обработать файл');
       setFileName('');
+      setResumeText('');
     } finally {
       setUploadLoading(false);
     }
@@ -265,7 +247,7 @@ export default function ResumePage() {
             </div>
           </div>
         ) : (
-          /* Результаты */
+          /* Результаты - БЕЗ ИЗМЕНЕНИЙ */
           <div className="space-y-4">
             {/* Оценка */}
             <div className="bg-gray-50 rounded-lg shadow-sm p-6">
