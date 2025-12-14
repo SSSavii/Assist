@@ -9,6 +9,7 @@ export default function ResumePage() {
   const [resumeText, setResumeText] = useState('');
   const [analysis, setAnalysis] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
   const [error, setError] = useState('');
   const [fileName, setFileName] = useState('');
   const router = useRouter();
@@ -20,34 +21,52 @@ export default function ResumePage() {
 
     setFileName(file.name);
     setError('');
+    setUploadLoading(true);
     
     // Проверяем размер (макс 10MB)
     if (file.size > 10 * 1024 * 1024) {
       setError('Файл слишком большой (максимум 10MB)');
+      setFileName('');
+      setUploadLoading(false);
       return;
     }
 
-    // Для текстовых файлов читаем содержимое
-    if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
-      const text = await file.text();
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/resume-parse', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Ошибка обработки файла');
+      }
+
+      const { text, metadata } = await response.json();
       setResumeText(text);
-    } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-      // Для PDF показываем сообщение
-      setError('PDF файлы временно не поддерживаются. Пожалуйста, скопируйте текст из PDF и вставьте в поле ниже.');
+      
+      console.log('File parsed successfully:', metadata);
+      
+    } catch (err) {
+      console.error('Ошибка загрузки файла:', err);
+      setError(err instanceof Error ? err.message : 'Не удалось обработать файл');
       setFileName('');
-    } else if (file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
-      // Для Word показываем сообщение
-      setError('Word файлы временно не поддерживаются. Пожалуйста, скопируйте текст из документа и вставьте в поле ниже.');
-      setFileName('');
-    } else {
-      setError('Неподдерживаемый формат файла');
-      setFileName('');
+    } finally {
+      setUploadLoading(false);
     }
   };
 
   const handleAnalyze = async () => {
     if (!resumeText.trim()) {
       setError('Пожалуйста, введите текст резюме или загрузите файл');
+      return;
+    }
+
+    if (resumeText.trim().length < 100) {
+      setError('Текст резюме слишком короткий (минимум 100 символов)');
       return;
     }
 
@@ -61,12 +80,16 @@ export default function ResumePage() {
         body: JSON.stringify({ resumeText })
       });
       
-      if (!response.ok) throw new Error('Ошибка анализа');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Ошибка анализа');
+      }
       
       const data = await response.json();
       setAnalysis(data);
     } catch (err) {
-      setError('Не удалось проанализировать резюме. Попробуйте еще раз.');
+      console.error('Analysis error:', err);
+      setError(err instanceof Error ? err.message : 'Не удалось проанализировать резюме. Попробуйте еще раз.');
     } finally {
       setLoading(false);
     }
@@ -77,6 +100,9 @@ export default function ResumePage() {
     setResumeText('');
     setFileName('');
     setError('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -105,24 +131,62 @@ export default function ResumePage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".txt,.pdf,.doc,.docx"
+                accept=".txt,.pdf,.docx"
                 onChange={handleFileUpload}
                 className="hidden"
+                disabled={uploadLoading}
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full py-3 px-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-red-400 transition-colors"
+                disabled={uploadLoading}
+                className={`w-full py-3 px-4 border-2 border-dashed rounded-lg transition-colors ${
+                  uploadLoading 
+                    ? 'border-gray-200 bg-gray-100 cursor-not-allowed' 
+                    : 'border-gray-300 hover:border-red-400'
+                }`}
               >
                 <div className="flex items-center justify-center">
-                  <svg className="w-6 h-6 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <span className="text-black font-medium">
-                    {fileName || 'Прикрепить файл (TXT, PDF, Word)'}
-                  </span>
+                  {uploadLoading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 mr-3 text-red-500" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      <span className="text-black font-medium">Обрабатываем файл...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-6 h-6 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <span className="text-black font-medium">
+                        {fileName || 'Прикрепить файл (PDF, DOCX, TXT)'}
+                      </span>
+                    </>
+                  )}
                 </div>
               </button>
+              {fileName && !uploadLoading && (
+                <div className="mt-2 flex items-center justify-between text-sm text-green-600 bg-green-50 p-2 rounded">
+                  <span className="flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Файл загружен: {fileName}
+                  </span>
+                  <button
+                    onClick={() => {
+                      setFileName('');
+                      setResumeText('');
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                    }}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="text-center text-gray-500 mb-4">
@@ -137,26 +201,39 @@ export default function ResumePage() {
               <textarea
                 value={resumeText}
                 onChange={(e) => setResumeText(e.target.value)}
-                className="w-full h-64 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-black bg-white"
+                disabled={uploadLoading}
+                className="w-full h-64 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-black bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
                 placeholder="Скопируйте и вставьте ваше резюме здесь..."
                 style={{ color: 'black' }}
               />
-              <div className="text-sm text-gray-600 mt-1">
-                Минимум 100 символов для качественного анализа
+              <div className="flex justify-between items-center text-sm mt-1">
+                <span className={`${
+                  resumeText.length < 100 ? 'text-red-500' : 
+                  resumeText.length < 500 ? 'text-yellow-600' : 
+                  'text-green-600'
+                }`}>
+                  {resumeText.length} символов
+                </span>
+                <span className="text-gray-600">
+                  Минимум 100 символов для качественного анализа
+                </span>
               </div>
             </div>
             
             {error && (
-              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg border border-red-200">
-                {error}
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg border border-red-200 flex items-start">
+                <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <span>{error}</span>
               </div>
             )}
             
             <button
               onClick={handleAnalyze}
-              disabled={loading || resumeText.length < 100}
+              disabled={loading || uploadLoading || resumeText.length < 100}
               className={`w-full py-3 rounded-lg font-medium transition-all ${
-                loading || resumeText.length < 100
+                loading || uploadLoading || resumeText.length < 100
                   ? 'bg-gray-300 cursor-not-allowed text-gray-500' 
                   : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg'
               }`}
@@ -173,6 +250,19 @@ export default function ResumePage() {
                 'Проанализировать резюме'
               )}
             </button>
+
+            {/* Подсказка для пользователя */}
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start">
+                <svg className="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium mb-1">Совет:</p>
+                  <p>Для лучшего результата убедитесь, что резюме содержит: опыт работы, образование, навыки и достижения с конкретными цифрами.</p>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           /* Результаты */
