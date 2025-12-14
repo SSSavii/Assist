@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
@@ -188,17 +187,21 @@ export default function ResumePage() {
                 placeholder="Скопируйте и вставьте ваше резюме здесь..."
                 style={{ color: 'black' }}
               />
-              <div className="flex justify-between items-center text-sm mt-1">
-                <span className={`${
-                  resumeText.length < 100 ? 'text-red-500' : 
-                  resumeText.length < 500 ? 'text-yellow-600' : 
-                  'text-green-600'
-                }`}>
-                  {resumeText.length} символов
-                </span>
-                <span className="text-gray-600">
-                  Минимум 100 символов для качественного анализа
-                </span>
+              {/* ИСПРАВЛЕННАЯ НАДПИСЬ */}
+              <div className="mt-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className={`font-medium ${
+                    resumeText.length < 100 ? 'text-red-500' : 
+                    resumeText.length < 500 ? 'text-yellow-600' : 
+                    'text-green-600'
+                  }`}>
+                    {resumeText.length} символов
+                  </span>
+                  <span className="text-gray-400">•</span>
+                  <span className="text-gray-600">
+                    минимум 100 для анализа
+                  </span>
+                </div>
               </div>
             </div>
             
@@ -247,7 +250,7 @@ export default function ResumePage() {
             </div>
           </div>
         ) : (
-          /* Результаты - БЕЗ ИЗМЕНЕНИЙ */
+          /* Результаты */
           <div className="space-y-4">
             {/* Оценка */}
             <div className="bg-gray-50 rounded-lg shadow-sm p-6">
