@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * Динамическая загрузка PDF.js из CDN
+ * Динамическая загрузка PDF.js (локальная версия)
  */
 async function loadPdfJs(): Promise<any> {
   if (typeof window === 'undefined') {
     throw new Error('PDF.js можно использовать только в браузере');
   }
 
-  // Проверяем, загружен ли уже PDF.js
   if ((window as any).pdfjsLib) {
     return (window as any).pdfjsLib;
   }
@@ -20,7 +19,6 @@ async function loadPdfJs(): Promise<any> {
     script.onload = () => {
       const pdfjsLib = (window as any).pdfjsLib;
       if (pdfjsLib) {
-        // Настраиваем worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
         resolve(pdfjsLib);
       } else {
@@ -29,6 +27,44 @@ async function loadPdfJs(): Promise<any> {
     };
     
     script.onerror = () => reject(new Error('Ошибка загрузки PDF.js'));
+    document.head.appendChild(script);
+  });
+}
+
+/**
+ * Динамическая загрузка Mammoth.js (ЛОКАЛЬНАЯ версия из public/)
+ */
+async function loadMammoth(): Promise<any> {
+  if (typeof window === 'undefined') {
+    throw new Error('Mammoth.js можно использовать только в браузере');
+  }
+
+  // Проверяем, загружен ли уже Mammoth.js
+  if ((window as any).mammoth) {
+    console.log('✅ Mammoth.js уже загружен');
+    return (window as any).mammoth;
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = '/mammoth.browser.min.js';  // ← Локальный файл из public/
+    script.async = true;
+    
+    script.onload = () => {
+      const mammoth = (window as any).mammoth;
+      if (mammoth) {
+        console.log('✅ Mammoth.js загружен успешно из /public');
+        resolve(mammoth);
+      } else {
+        reject(new Error('Не удалось загрузить Mammoth.js'));
+      }
+    };
+    
+    script.onerror = () => {
+      console.error('❌ Ошибка загрузки Mammoth.js из /mammoth.browser.min.js');
+      reject(new Error('Ошибка загрузки Mammoth.js. Проверьте наличие файла /public/mammoth.browser.min.js'));
+    };
+    
     document.head.appendChild(script);
   });
 }
@@ -64,44 +100,46 @@ async function parsePDF(file: File): Promise<string> {
 }
 
 /**
- * Парсинг DOCX через встроенный ZIP API браузера
+ * Парсинг DOCX через локальную версию Mammoth.js
  */
 async function parseDOCX(file: File): Promise<string> {
   try {
+    console.log('🔄 Начинаем парсинг DOCX:', file.name, 'размер:', file.size, 'байт');
+    
+    const mammoth = await loadMammoth();
     const arrayBuffer = await file.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
     
-    // DOCX - это ZIP архив
-    // Ищем файл word/document.xml
-    const zipData = uint8Array;
+    console.log('📄 ArrayBuffer создан, размер:', arrayBuffer.byteLength, 'байт');
     
-    // Простой поиск XML содержимого
-    const decoder = new TextDecoder('utf-8');
-    const fullText = decoder.decode(zipData);
+    // Извлекаем текст из DOCX
+    const result = await mammoth.extractRawText({ arrayBuffer });
     
-    // Ищем тег <w:t> который содержит текст в DOCX
-    const textMatches = fullText.match(/<w:t[^>]*>([^<]*)<\/w:t>/g);
+    console.log('📝 Результат парсинга:', {
+      textLength: result.value?.length || 0,
+      messagesCount: result.messages?.length || 0
+    });
     
-    if (!textMatches || textMatches.length === 0) {
-      throw new Error('Не найден текстовый контент в DOCX');
+    if (result.messages && result.messages.length > 0) {
+      console.warn('⚠️ Предупреждения Mammoth:', result.messages);
     }
     
-    // Извлекаем текст из тегов
-    const extractedText = textMatches
-      .map(match => {
-        const textContent = match.replace(/<w:t[^>]*>/, '').replace(/<\/w:t>/, '');
-        return textContent
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>')
-          .replace(/&amp;/g, '&')
-          .replace(/&quot;/g, '"')
-          .replace(/&apos;/g, "'");
-      })
-      .join(' ');
+    if (!result.value || result.value.trim().length === 0) {
+      console.error('❌ Текст не извлечен из DOCX');
+      throw new Error('Документ пуст или не содержит текста');
+    }
     
-    return extractedText;
+    console.log('✅ Успешно извлечено', result.value.length, 'символов');
+    return result.value;
+    
   } catch (error) {
-    console.error('DOCX parsing error:', error);
+    console.error('❌ DOCX parsing error:', error);
+    
+    if (error instanceof Error) {
+      throw new Error(
+        `Не удалось прочитать DOCX: ${error.message}. Попробуйте скопировать текст вручную.`
+      );
+    }
+    
     throw new Error(
       'Не удалось прочитать DOCX. Пожалуйста, откройте файл, скопируйте текст (Ctrl+A, Ctrl+C) и вставьте в поле ниже.'
     );
@@ -137,18 +175,18 @@ export async function parseResumeFile(file: File): Promise<{
   try {
     // Определяем тип файла и парсим
     if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-      console.log('Parsing PDF:', file.name);
+      console.log('📕 Обработка PDF файла...');
       text = await parsePDF(file);
     } 
     else if (
       file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
       file.name.endsWith('.docx')
     ) {
-      console.log('Parsing DOCX:', file.name);
+      console.log('📘 Обработка DOCX файла...');
       text = await parseDOCX(file);
     }
     else if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
-      console.log('Parsing TXT:', file.name);
+      console.log('📄 Обработка TXT файла...');
       text = await parseTXT(file);
     }
     else if (file.type === 'application/msword' || file.name.endsWith('.doc')) {
@@ -181,8 +219,10 @@ export async function parseResumeFile(file: File): Promise<{
   // Ограничение размера
   if (text.length > 50000) {
     text = text.substring(0, 50000);
-    console.log('Text truncated to 50000 characters');
+    console.log('✂️ Текст обрезан до 50000 символов');
   }
+  
+  console.log(`✅ Успешно извлечено ${text.length} символов из ${file.name}`);
   
   return {
     text,
