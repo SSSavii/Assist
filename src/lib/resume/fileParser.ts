@@ -1,46 +1,85 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import * as pdfjsLib from 'pdfjs-dist';
-// Используем обычный импорт mammoth (он работает и в браузере)
-import * as mammoth from 'mammoth';
-
-// Настройка worker для PDF.js
-if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-}
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import PizZip from 'pizzip';
 
 /**
- * Парсинг PDF файла в браузере
+ * Парсинг PDF через встроенный API браузера (без внешних библиотек!)
  */
 async function parsePDF(file: File): Promise<string> {
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-  
-  let fullText = '';
-  
-  // Извлекаем текст со всех страниц
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const textContent = await page.getTextContent();
-    const pageText = textContent.items
-      .map((item: any) => ('str' in item ? item.str : ''))
-      .join(' ');
-    fullText += pageText + '\n';
-  }
-  
-  return fullText;
+  // Простое извлечение текста из PDF через FileReader
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = async (e) => {
+      try {
+        const typedArray = new Uint8Array(e.target?.result as ArrayBuffer);
+        
+        // Конвертируем в текст (базовый подход)
+        const decoder = new TextDecoder('utf-8');
+        let text = decoder.decode(typedArray);
+        
+        // Очищаем от PDF служебных символов
+        text = text
+          .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, ' ') // Удаляем control chars
+          .replace(/<<[^>]*>>/g, ' ') // Удаляем PDF objects
+          .replace(/\/[A-Za-z]+/g, ' ') // Удаляем PDF commands
+          .replace(/\s+/g, ' ') // Множественные пробелы
+          .trim();
+        
+        resolve(text);
+      } catch (error) {
+        reject(new Error('Не удалось прочитать PDF файл'));
+      }
+    };
+    
+    reader.onerror = () => reject(new Error('Ошибка чтения файла'));
+    reader.readAsArrayBuffer(file);
+  });
 }
 
 /**
- * Парсинг DOCX файла в браузере
+ * Парсинг DOCX через PizZip (простой и надежный)
  */
 async function parseDOCX(file: File): Promise<string> {
-  const arrayBuffer = await file.arrayBuffer();
-  const result = await mammoth.extractRawText({ arrayBuffer });
-  return result.value;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = async (e) => {
+      try {
+        const arrayBuffer = e.target?.result as ArrayBuffer;
+        const zip = new PizZip(arrayBuffer);
+        
+        // Извлекаем document.xml из DOCX
+        const documentXml = zip.file('word/document.xml')?.asText();
+        
+        if (!documentXml) {
+          throw new Error('Не удалось найти текст в документе');
+        }
+        
+        // Извлекаем текст из XML (простой regex)
+        const text = documentXml
+          .replace(/<w:t[^>]*>([^<]*)<\/w:t>/g, '$1 ') // Извлекаем текст из <w:t> тегов
+          .replace(/<[^>]*>/g, '') // Удаляем все XML теги
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&amp;/g, '&')
+          .replace(/&quot;/g, '"')
+          .replace(/&apos;/g, "'")
+          .replace(/\s+/g, ' ')
+          .trim();
+        
+        resolve(text);
+      } catch (error) {
+        reject(new Error('Не удалось прочитать DOCX файл. Возможно, он поврежден.'));
+      }
+    };
+    
+    reader.onerror = () => reject(new Error('Ошибка чтения файла'));
+    reader.readAsArrayBuffer(file);
+  });
 }
 
 /**
- * Парсинг TXT файла
+ * Парсинг TXT файла (как было)
  */
 async function parseTXT(file: File): Promise<string> {
   return await file.text();
