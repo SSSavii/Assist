@@ -1,85 +1,115 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import PizZip from 'pizzip';
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * Парсинг PDF через встроенный API браузера (без внешних библиотек!)
+ * Динамическая загрузка PDF.js из CDN
  */
-async function parsePDF(file: File): Promise<string> {
-  // Простое извлечение текста из PDF через FileReader
+async function loadPdfJs(): Promise<any> {
+  if (typeof window === 'undefined') {
+    throw new Error('PDF.js можно использовать только в браузере');
+  }
+
+  // Проверяем, загружен ли уже PDF.js
+  if ((window as any).pdfjsLib) {
+    return (window as any).pdfjsLib;
+  }
+
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    script.async = true;
     
-    reader.onload = async (e) => {
-      try {
-        const typedArray = new Uint8Array(e.target?.result as ArrayBuffer);
-        
-        // Конвертируем в текст (базовый подход)
-        const decoder = new TextDecoder('utf-8');
-        let text = decoder.decode(typedArray);
-        
-        // Очищаем от PDF служебных символов
-        text = text
-          .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, ' ') // Удаляем control chars
-          .replace(/<<[^>]*>>/g, ' ') // Удаляем PDF objects
-          .replace(/\/[A-Za-z]+/g, ' ') // Удаляем PDF commands
-          .replace(/\s+/g, ' ') // Множественные пробелы
-          .trim();
-        
-        resolve(text);
-      } catch (error) {
-        reject(new Error('Не удалось прочитать PDF файл'));
+    script.onload = () => {
+      const pdfjsLib = (window as any).pdfjsLib;
+      if (pdfjsLib) {
+        // Настраиваем worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+        resolve(pdfjsLib);
+      } else {
+        reject(new Error('Не удалось загрузить PDF.js'));
       }
     };
     
-    reader.onerror = () => reject(new Error('Ошибка чтения файла'));
-    reader.readAsArrayBuffer(file);
+    script.onerror = () => reject(new Error('Ошибка загрузки PDF.js'));
+    document.head.appendChild(script);
   });
 }
 
 /**
- * Парсинг DOCX через PizZip (простой и надежный)
+ * Парсинг PDF через CDN версию PDF.js
+ */
+async function parsePDF(file: File): Promise<string> {
+  try {
+    const pdfjsLib = await loadPdfJs();
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    
+    let fullText = '';
+    
+    // Извлекаем текст со всех страниц
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str || '')
+        .join(' ');
+      fullText += pageText + '\n';
+    }
+    
+    return fullText;
+  } catch (error) {
+    console.error('PDF parsing error:', error);
+    throw new Error(
+      'Не удалось прочитать PDF. Пожалуйста, откройте файл, скопируйте текст (Ctrl+A, Ctrl+C) и вставьте в поле ниже.'
+    );
+  }
+}
+
+/**
+ * Парсинг DOCX через встроенный ZIP API браузера
  */
 async function parseDOCX(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
     
-    reader.onload = async (e) => {
-      try {
-        const arrayBuffer = e.target?.result as ArrayBuffer;
-        const zip = new PizZip(arrayBuffer);
-        
-        // Извлекаем document.xml из DOCX
-        const documentXml = zip.file('word/document.xml')?.asText();
-        
-        if (!documentXml) {
-          throw new Error('Не удалось найти текст в документе');
-        }
-        
-        // Извлекаем текст из XML (простой regex)
-        const text = documentXml
-          .replace(/<w:t[^>]*>([^<]*)<\/w:t>/g, '$1 ') // Извлекаем текст из <w:t> тегов
-          .replace(/<[^>]*>/g, '') // Удаляем все XML теги
+    // DOCX - это ZIP архив
+    // Ищем файл word/document.xml
+    const zipData = uint8Array;
+    
+    // Простой поиск XML содержимого
+    const decoder = new TextDecoder('utf-8');
+    const fullText = decoder.decode(zipData);
+    
+    // Ищем тег <w:t> который содержит текст в DOCX
+    const textMatches = fullText.match(/<w:t[^>]*>([^<]*)<\/w:t>/g);
+    
+    if (!textMatches || textMatches.length === 0) {
+      throw new Error('Не найден текстовый контент в DOCX');
+    }
+    
+    // Извлекаем текст из тегов
+    const extractedText = textMatches
+      .map(match => {
+        const textContent = match.replace(/<w:t[^>]*>/, '').replace(/<\/w:t>/, '');
+        return textContent
           .replace(/&lt;/g, '<')
           .replace(/&gt;/g, '>')
           .replace(/&amp;/g, '&')
           .replace(/&quot;/g, '"')
-          .replace(/&apos;/g, "'")
-          .replace(/\s+/g, ' ')
-          .trim();
-        
-        resolve(text);
-      } catch (error) {
-        reject(new Error('Не удалось прочитать DOCX файл. Возможно, он поврежден.'));
-      }
-    };
+          .replace(/&apos;/g, "'");
+      })
+      .join(' ');
     
-    reader.onerror = () => reject(new Error('Ошибка чтения файла'));
-    reader.readAsArrayBuffer(file);
-  });
+    return extractedText;
+  } catch (error) {
+    console.error('DOCX parsing error:', error);
+    throw new Error(
+      'Не удалось прочитать DOCX. Пожалуйста, откройте файл, скопируйте текст (Ctrl+A, Ctrl+C) и вставьте в поле ниже.'
+    );
+  }
 }
 
 /**
- * Парсинг TXT файла (как было)
+ * Парсинг TXT файла
  */
 async function parseTXT(file: File): Promise<string> {
   return await file.text();
@@ -125,7 +155,7 @@ export async function parseResumeFile(file: File): Promise<{
       throw new Error('Старый формат .doc не поддерживается. Сохраните файл в формате .docx');
     }
     else {
-      throw new Error(`Неподдерживаемый формат файла: ${file.name}`);
+      throw new Error(`Неподдерживаемый формат: ${file.name}. Поддерживаются: PDF, DOCX, TXT`);
     }
   } catch (error) {
     console.error('File parsing error:', error);
@@ -133,7 +163,7 @@ export async function parseResumeFile(file: File): Promise<{
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error('Не удалось прочитать файл. Возможно, он поврежден.');
+    throw new Error('Не удалось прочитать файл.');
   }
   
   // Очистка текста
