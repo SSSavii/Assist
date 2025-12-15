@@ -160,6 +160,14 @@ export default function HomePage() {
       tg.BackButton.hide();
       
       const startappParam = tg.initDataUnsafe?.start_param;
+
+      // === ЛОГИКА ПЕРЕАДРЕСАЦИИ ===
+      // Если есть параметр navigation, сразу переходим и останавливаем загрузку главной
+      if (startappParam === 'navigation') {
+        router.replace('/navigation');
+        return; 
+      }
+      // ============================
       
       fetch('/api/auth', {
         method: 'POST',
@@ -196,7 +204,7 @@ export default function HomePage() {
       setLoading(false);
     }
     window.scrollTo(0, 0);
-  }, []);
+  }, []); // Пустой массив зависимостей важен
 
   // Проверяем, выполнено ли задание
   const isTaskCompleted = (taskKey: string): boolean => {
@@ -524,11 +532,14 @@ export default function HomePage() {
   if (loading) {
     return <div className="loading-container">Загрузка...</div>;
   }
-  if (error) {
+  // Не показываем ошибку если сработал редирект (user === null но мы ушли)
+  // Однако если мы остались здесь и loading false, то это ошибка или просто страница
+  if (error && !loading) {
     return <div className="error-container">Ошибка: {error}</div>;
   }
-  if (!user) {
-    return <div className="error-container">Не удалось загрузить данные пользователя.</div>;
+  if (!user && !loading) {
+    // Этот кейс возможен при редиректе, но Next.js должен успеть уйти
+    return <div className="loading-container">Переход...</div>;
   }
 
   return (
@@ -600,7 +611,8 @@ export default function HomePage() {
               </div>
             </div>
             
-            <div className="balance-amount">{user.balance_crystals}</div>
+            {/* Безопасный рендеринг баланса */}
+            <div className="balance-amount">{user ? user.balance_crystals : 0}</div>
 
             <p className="balance-description">
               <span className="description-bold">Кликай на кнопку выше</span>, зарабатывай <br />
