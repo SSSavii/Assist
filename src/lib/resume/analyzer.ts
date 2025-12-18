@@ -26,13 +26,9 @@ export class ResumeAnalyzer {
     this.cache = new Map();
   }
   
-  /**
-   * Проверка, является ли текст реальным резюме
-   */
   private validateResumeQuality(text: string): { isValid: boolean; quality: number; reason?: string } {
     const length = text.length;
     
-    // 1. Проверка соотношения пробелов
     const spaces = (text.match(/\s/g) || []).length;
     const spaceRatio = spaces / length;
     
@@ -44,7 +40,6 @@ export class ResumeAnalyzer {
       };
     }
     
-    // 2. Проверка на повторяющиеся символы
     const repeatingPattern = /(.)\1{10,}/g;
     if (repeatingPattern.test(text)) {
       return { 
@@ -54,7 +49,6 @@ export class ResumeAnalyzer {
       };
     }
     
-    // 3. Проверка на бессмысленные последовательности
     const words = text.split(/\s+/);
     const longWords = words.filter(w => w.length > 3);
     
@@ -66,7 +60,6 @@ export class ResumeAnalyzer {
       };
     }
     
-    // 4. Средняя длина слова
     const avgWordLength = longWords.reduce((sum, w) => sum + w.length, 0) / longWords.length;
     
     if (avgWordLength < 3 || avgWordLength > 15) {
@@ -77,7 +70,6 @@ export class ResumeAnalyzer {
       };
     }
     
-    // 5. Проверка наличия ключевых слов резюме
     const resumeKeywords = [
       'опыт', 'работа', 'образование', 'навык', 'должность', 'компания',
       'university', 'experience', 'education', 'skills', 'position', 'работал',
@@ -96,7 +88,6 @@ export class ResumeAnalyzer {
       };
     }
     
-    // 6. Проверка на наличие профессиональной информации
     const hasDates = /\d{4}/.test(text);
     const hasEmail = /@/.test(text);
     const hasPhone = /\+?\d{10,}/.test(text);
@@ -111,7 +102,6 @@ export class ResumeAnalyzer {
       };
     }
     
-    // Вычисляем общее качество текста (0-10)
     let quality = 5;
     
     if (spaceRatio >= 0.15 && spaceRatio <= 0.22) quality += 1;
@@ -122,12 +112,44 @@ export class ResumeAnalyzer {
     
     return { isValid: true, quality: Math.min(10, quality) };
   }
+
+  // Дедупликация по ключевым словам
+  private deduplicateByKeywords(items: string[]): string[] {
+    const keywords = [
+      'summary', 'о себе', 'профиль',
+      'цифр', 'метрик', 'процент', '%',
+      'достижен', 'результат',
+      'контакт', 'email', 'телефон',
+      'структур', 'секци',
+      'глагол', 'актив',
+      'bullet', 'список', 'маркир',
+      'язык', 'english', 'английск',
+      'сократ', 'длин', 'коротк', 'объём',
+      'опыт', 'дат', 'год'
+    ];
+    
+    const result: string[] = [];
+    const usedKeywords = new Set<string>();
+    
+    for (const item of items) {
+      const itemLower = item.toLowerCase();
+      const itemKeywords = keywords.filter(kw => itemLower.includes(kw));
+      
+      const hasOverlap = itemKeywords.some(kw => usedKeywords.has(kw));
+      
+      if (!hasOverlap || itemKeywords.length === 0) {
+        result.push(item);
+        itemKeywords.forEach(kw => usedKeywords.add(kw));
+      }
+    }
+    
+    return result;
+  }
   
   private analyzeWithRules(resumeText: string): any {
     const text = resumeText.toLowerCase();
     const textLength = resumeText.length;
     
-    // Проверяем качество текста
     const validation = this.validateResumeQuality(resumeText);
     
     if (!validation.isValid) {
@@ -141,9 +163,9 @@ export class ResumeAnalyzer {
           'Укажите образование, навыки и достижения'
         ],
         recommendations: [
-          'Используйте стандартную структуру резюме: Summary → Опыт → Образование → Навыки',
+          'Используйте структуру: Summary → Опыт → Образование → Навыки',
           'Добавьте контактную информацию (email, телефон)',
-          'Опишите ваш опыт работы с датами и достижениями'
+          'Опишите опыт работы с датами и достижениями'
         ],
         qualityMetrics: {
           isRealResume: false,
@@ -154,9 +176,7 @@ export class ResumeAnalyzer {
       };
     }
     
-    // Расширенный анализ для валидного резюме
     const analysis = {
-      // Базовые секции
       hasSummary: this.checkPattern(text, ['о себе', 'summary', 'обо мне', 'профиль']) && 
                   text.split('\n').some(line => line.length > 100 && line.length < 500),
       
@@ -177,28 +197,23 @@ export class ResumeAnalyzer {
         ['разработал', 'запустил']
       ]),
       
-      // Метрики
       numbersCount: (text.match(/\d+/g) || []).length,
       percentageCount: (text.match(/\d+\s*%/g) || []).length,
       currencyCount: (text.match(/\d+\s*(руб|₽|тыс|млн|\$|€|к|k)/gi) || []).length,
       
-      // Опыт работы
       yearsCount: this.extractYears(text),
       companiesCount: this.countCompanies(text),
       projectsCount: (text.match(/проект|project/gi) || []).length,
       
-      // Качество описания
       hasActionVerbs: this.countActionVerbs(text),
       hasBulletPoints: resumeText.includes('•') || resumeText.includes('–') || 
                        resumeText.split('\n').filter(l => l.trim().match(/^[-*•►→]/)).length > 3,
       
-      // Длина
       isOptimalLength: textLength >= 1200 && textLength <= 3500,
       isGoodLength: textLength >= 800 && textLength <= 5000,
       isTooShort: textLength < 800,
       isTooLong: textLength > 5000,
       
-      // Навыки
       hasTechSkills: this.countSkills(text, [
         'python', 'java', 'javascript', 'react', 'sql', 'excel', 
         'photoshop', 'figma', 'autocad', '1c', 'crm', 'erp', 'typescript',
@@ -215,19 +230,16 @@ export class ResumeAnalyzer {
         'french', 'b1', 'b2', 'c1', 'c2', 'intermediate', 'advanced', 'fluent'
       ]),
       
-      // Структура
       hasGoodStructure: this.checkGoodStructure(text),
       hasDuplicates: this.checkDuplicates(text),
       
-      // Профессионализм
       hasLinkedIn: text.includes('linkedin'),
       hasPortfolio: text.includes('portfolio') || text.includes('github') || text.includes('behance'),
     };
     
-    // СТРОГАЯ система оценки
+    // Расчёт оценки
     let score = 3.0;
     
-    // === ОСНОВНЫЕ СЕКЦИИ ===
     if (analysis.hasExperience && analysis.yearsCount > 0) {
       score += 1.0;
     } else if (analysis.hasExperience) {
@@ -250,7 +262,6 @@ export class ResumeAnalyzer {
     if (analysis.hasSummary) score += 0.6;
     if (analysis.hasContacts) score += 0.4;
     
-    // === КАЧЕСТВО КОНТЕНТА ===
     if (analysis.numbersCount >= 15 && analysis.percentageCount >= 3) {
       score += 1.2;
     } else if (analysis.numbersCount >= 10 && analysis.percentageCount >= 2) {
@@ -277,7 +288,6 @@ export class ResumeAnalyzer {
       score -= 0.3;
     }
     
-    // === ОПЫТ ===
     if (analysis.yearsCount >= 5) score += 0.5;
     else if (analysis.yearsCount >= 3) score += 0.3;
     else if (analysis.yearsCount >= 1) score += 0.1;
@@ -287,14 +297,12 @@ export class ResumeAnalyzer {
     
     if (analysis.projectsCount >= 3) score += 0.3;
     
-    // === НАВЫКИ ===
     if (analysis.hasTechSkills >= 5) score += 0.5;
     else if (analysis.hasTechSkills >= 3) score += 0.3;
     
     if (analysis.hasSoftSkills >= 3) score += 0.3;
     if (analysis.hasLanguages) score += 0.3;
     
-    // === СТРУКТУРА ===
     if (analysis.hasGoodStructure) score += 0.6;
     else score -= 0.4;
     
@@ -306,32 +314,29 @@ export class ResumeAnalyzer {
       score += 0.2;
     }
     
-    // === БОНУСЫ ===
     if (analysis.hasLinkedIn) score += 0.2;
     if (analysis.hasPortfolio) score += 0.3;
     
-    // === ШТРАФЫ ===
     if (analysis.isTooShort) score -= 1.5;
     if (analysis.isTooLong) score -= 0.8;
     if (analysis.hasDuplicates) score -= 0.6;
     if (!analysis.hasContacts) score -= 0.5;
     
-    // Ограничиваем оценку
     score = Math.min(10, Math.max(1, Math.round(score * 10) / 10));
     
-    // === СИЛЬНЫЕ СТОРОНЫ ===
+    // Сильные стороны
     const strengths = [];
     
     if (analysis.yearsCount >= 5 && analysis.companiesCount >= 2) {
-      strengths.push(`Солидный опыт работы: ${analysis.yearsCount}+ лет в ${analysis.companiesCount} компаниях`);
+      strengths.push(`Солидный опыт: ${analysis.yearsCount}+ лет в ${analysis.companiesCount} компаниях`);
     } else if (analysis.yearsCount >= 3) {
-      strengths.push(`Практический опыт работы ${analysis.yearsCount} ${this.getYearWord(analysis.yearsCount)}`);
+      strengths.push(`Опыт работы ${analysis.yearsCount} ${this.getYearWord(analysis.yearsCount)}`);
     }
     
     if (analysis.numbersCount >= 15 && analysis.percentageCount >= 3) {
-      strengths.push("Отличная количественная аргументация (цифры, проценты, метрики)");
+      strengths.push("Отличная количественная аргументация");
     } else if (analysis.numbersCount >= 8) {
-      strengths.push("Присутствуют конкретные количественные показатели");
+      strengths.push("Есть конкретные количественные показатели");
     }
     
     if (analysis.hasAchievements && (analysis.percentageCount >= 2 || analysis.currencyCount >= 1)) {
@@ -339,32 +344,32 @@ export class ResumeAnalyzer {
     }
     
     if (analysis.hasTechSkills >= 5 && analysis.hasSoftSkills >= 3) {
-      strengths.push("Отличный баланс технических и личностных компетенций");
+      strengths.push("Баланс технических и личностных компетенций");
     } else if (analysis.hasTechSkills >= 3) {
-      strengths.push("Указаны релевантные профессиональные навыки");
+      strengths.push("Указаны профессиональные навыки");
     }
     
     if (analysis.hasGoodStructure && analysis.hasBulletPoints) {
-      strengths.push("Чёткая структура с удобным форматированием");
+      strengths.push("Чёткая структура и форматирование");
     }
     
     if (analysis.hasPortfolio || analysis.hasLinkedIn) {
-      strengths.push("Указаны дополнительные профессиональные ресурсы");
+      strengths.push("Есть ссылки на профессиональные ресурсы");
     }
     
     if (analysis.isOptimalLength) {
       strengths.push("Оптимальный объём резюме");
     }
     
-    // === СЛАБЫЕ СТОРОНЫ ===
+    // Слабые стороны
     const weaknesses = [];
     
     if (!analysis.hasSummary) {
-      weaknesses.push("Отсутствует вводный Summary — рекрутер не понимает вашу ценность за 10 секунд");
+      weaknesses.push("Нет вводного Summary — рекрутер не понимает вашу ценность за 10 секунд");
     }
     
     if (analysis.numbersCount < 5) {
-      weaknesses.push("Критически мало конкретных цифр — невозможно оценить масштаб работы");
+      weaknesses.push("Мало конкретных цифр — сложно оценить масштаб работы");
     } else if (analysis.percentageCount === 0) {
       weaknesses.push("Нет процентных показателей результативности");
     }
@@ -396,18 +401,18 @@ export class ResumeAnalyzer {
     }
     
     if (analysis.hasDuplicates) {
-      weaknesses.push("Обнаружены повторяющиеся фразы");
+      weaknesses.push("Есть повторяющиеся фразы");
     }
     
-    // === РЕКОМЕНДАЦИИ ===
+    // Рекомендации
     const recommendations = [];
     
     if (!analysis.hasSummary) {
-      recommendations.push("Добавьте Summary: роль + опыт + 2-3 ключевых навыка + главное достижение (2-3 строки)");
+      recommendations.push("Добавьте Summary: роль + опыт + 2-3 навыка + главное достижение (2-3 строки)");
     }
     
     if (analysis.numbersCount < 10 || analysis.percentageCount < 2) {
-      recommendations.push("Добавьте метрики: объём бюджета, размер команды, % роста, количество проектов");
+      recommendations.push("Добавьте метрики: объём бюджета, размер команды, % роста");
     }
     
     if (!analysis.hasAchievements || analysis.hasActionVerbs < 5) {
@@ -415,26 +420,26 @@ export class ResumeAnalyzer {
     }
     
     if (analysis.isTooLong) {
-      recommendations.push("Сократите до 1-2 страниц: оставьте последние 5-7 лет опыта");
+      recommendations.push("Сократите до 1-2 страниц: оставьте последние 5-7 лет");
     }
     
     if (!analysis.hasGoodStructure || !analysis.hasBulletPoints) {
-      recommendations.push("Используйте структуру: Summary → Опыт → Образование → Навыки с буллетами");
+      recommendations.push("Используйте структуру: Summary → Опыт → Образование → Навыки");
     }
     
     if (!analysis.hasPortfolio && (text.includes('дизайн') || text.includes('разработ'))) {
       recommendations.push("Добавьте ссылки на портфолио/GitHub/Behance");
     }
     
-    // === SUMMARY ===
+    // Summary
     let summary = "";
     
     if (score >= 9) {
       summary = "Топовое резюме уровня senior-специалиста. Вы в топ-5% кандидатов.";
     } else if (score >= 8) {
-      summary = "Отличное резюме. Небольшая доработка — и идеально.";
+      summary = "Отличное резюме. Небольшие правки — и идеально.";
     } else if (score >= 7) {
-      summary = "Хорошее резюме. Добавьте больше цифр и метрик для усиления.";
+      summary = "Хорошее резюме. Добавьте больше цифр и метрик.";
     } else if (score >= 6) {
       summary = "Базовое резюме. Информация есть, но подача слабая.";
     } else if (score >= 5) {
@@ -442,15 +447,19 @@ export class ResumeAnalyzer {
     } else if (score >= 3) {
       summary = "Слабое резюме. Нужна серьёзная переработка.";
     } else {
-      summary = "Резюме не соответствует стандартам. Следуйте рекомендациям.";
+      summary = "Резюме не соответствует стандартам.";
     }
+    
+    // Дедупликация
+    const uniqueWeaknesses = this.deduplicateByKeywords(weaknesses);
+    const uniqueRecommendations = this.deduplicateByKeywords(recommendations);
     
     return {
       summary,
       score,
       strengths: strengths.slice(0, 5),
-      weaknesses: weaknesses.slice(0, 5),
-      recommendations: recommendations.slice(0, 4),
+      weaknesses: uniqueWeaknesses.slice(0, 5),
+      recommendations: uniqueRecommendations.slice(0, 4),
       qualityMetrics: {
         isRealResume: true,
         textQuality: validation.quality,
