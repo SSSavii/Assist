@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NudgeSystem, type Nudge } from './nudges';
 
@@ -17,6 +18,21 @@ export interface AnalysisResult {
   };
 }
 
+// Темы для глобальной дедупликации
+type Topic = 
+  | 'summary' 
+  | 'metrics' 
+  | 'achievements' 
+  | 'structure' 
+  | 'contacts' 
+  | 'verbs' 
+  | 'length' 
+  | 'languages' 
+  | 'portfolio' 
+  | 'bullets'
+  | 'dates'
+  | 'linkedin';
+
 export class ResumeAnalyzer {
   private nudgeSystem: NudgeSystem;
   private cache: Map<string, AnalysisResult>;
@@ -24,6 +40,44 @@ export class ResumeAnalyzer {
   constructor() {
     this.nudgeSystem = new NudgeSystem();
     this.cache = new Map();
+  }
+
+  // Определяем тему сообщения
+  private detectTopic(message: string): Topic | null {
+    const lower = message.toLowerCase();
+    
+    if (/summary|о себе|профиль|обо мне|начните с|первые строки/.test(lower)) return 'summary';
+    if (/цифр|метрик|процент|%|числ|количеств/.test(lower)) return 'metrics';
+    if (/достижен|результат|увеличил|сократил/.test(lower)) return 'achievements';
+    if (/структур|секци|раздел/.test(lower)) return 'structure';
+    if (/контакт|email|телефон|почт/.test(lower)) return 'contacts';
+    if (/глагол|актив|пассив|действ/.test(lower)) return 'verbs';
+    if (/длин|коротк|сократ|объём|страниц/.test(lower)) return 'length';
+    if (/язык|english|английск|b1|b2|c1/.test(lower)) return 'languages';
+    if (/portfolio|github|behance|портфолио/.test(lower)) return 'portfolio';
+    if (/bullet|список|маркир|•/.test(lower)) return 'bullets';
+    if (/дат|год|период|20\d{2}/.test(lower)) return 'dates';
+    if (/linkedin/.test(lower)) return 'linkedin';
+    
+    return null;
+  }
+
+  // Фильтрация массива с учётом уже использованных тем
+  private filterByUsedTopics(items: string[], usedTopics: Set<Topic>): string[] {
+    const result: string[] = [];
+    
+    for (const item of items) {
+      const topic = this.detectTopic(item);
+      
+      if (topic === null || !usedTopics.has(topic)) {
+        result.push(item);
+        if (topic) {
+          usedTopics.add(topic);
+        }
+      }
+    }
+    
+    return result;
   }
   
   private validateResumeQuality(text: string): { isValid: boolean; quality: number; reason?: string } {
@@ -112,39 +166,6 @@ export class ResumeAnalyzer {
     
     return { isValid: true, quality: Math.min(10, quality) };
   }
-
-  // Дедупликация по ключевым словам
-  private deduplicateByKeywords(items: string[]): string[] {
-    const keywords = [
-      'summary', 'о себе', 'профиль',
-      'цифр', 'метрик', 'процент', '%',
-      'достижен', 'результат',
-      'контакт', 'email', 'телефон',
-      'структур', 'секци',
-      'глагол', 'актив',
-      'bullet', 'список', 'маркир',
-      'язык', 'english', 'английск',
-      'сократ', 'длин', 'коротк', 'объём',
-      'опыт', 'дат', 'год'
-    ];
-    
-    const result: string[] = [];
-    const usedKeywords = new Set<string>();
-    
-    for (const item of items) {
-      const itemLower = item.toLowerCase();
-      const itemKeywords = keywords.filter(kw => itemLower.includes(kw));
-      
-      const hasOverlap = itemKeywords.some(kw => usedKeywords.has(kw));
-      
-      if (!hasOverlap || itemKeywords.length === 0) {
-        result.push(item);
-        itemKeywords.forEach(kw => usedKeywords.add(kw));
-      }
-    }
-    
-    return result;
-  }
   
   private analyzeWithRules(resumeText: string): any {
     const text = resumeText.toLowerCase();
@@ -159,13 +180,12 @@ export class ResumeAnalyzer {
         strengths: [],
         weaknesses: [
           validation.reason || 'Текст не соответствует формату резюме',
-          'Добавьте структурированную информацию о вашем опыте',
-          'Укажите образование, навыки и достижения'
+          'Добавьте информацию о вашем опыте',
+          'Укажите образование и навыки'
         ],
         recommendations: [
           'Используйте структуру: Summary → Опыт → Образование → Навыки',
-          'Добавьте контактную информацию (email, телефон)',
-          'Опишите опыт работы с датами и достижениями'
+          'Добавьте email и телефон'
         ],
         qualityMetrics: {
           isRealResume: false,
@@ -324,7 +344,7 @@ export class ResumeAnalyzer {
     
     score = Math.min(10, Math.max(1, Math.round(score * 10) / 10));
     
-    // Сильные стороны
+    // Сильные стороны (без тем для дедупликации - это позитив)
     const strengths = [];
     
     if (analysis.yearsCount >= 5 && analysis.companiesCount >= 2) {
@@ -336,11 +356,11 @@ export class ResumeAnalyzer {
     if (analysis.numbersCount >= 15 && analysis.percentageCount >= 3) {
       strengths.push("Отличная количественная аргументация");
     } else if (analysis.numbersCount >= 8) {
-      strengths.push("Есть конкретные количественные показатели");
+      strengths.push("Есть конкретные показатели");
     }
     
     if (analysis.hasAchievements && (analysis.percentageCount >= 2 || analysis.currencyCount >= 1)) {
-      strengths.push("Достижения подкреплены измеримыми результатами");
+      strengths.push("Достижения с измеримыми результатами");
     }
     
     if (analysis.hasTechSkills >= 5 && analysis.hasSoftSkills >= 3) {
@@ -358,114 +378,106 @@ export class ResumeAnalyzer {
     }
     
     if (analysis.isOptimalLength) {
-      strengths.push("Оптимальный объём резюме");
+      strengths.push("Оптимальный объём");
     }
     
-    // Слабые стороны
+    // Слабые стороны - будут дедуплицироваться
     const weaknesses = [];
     
     if (!analysis.hasSummary) {
-      weaknesses.push("Нет вводного Summary — рекрутер не понимает вашу ценность за 10 секунд");
+      weaknesses.push("Нет вводного Summary — рекрутер не понимает вашу ценность");
     }
     
     if (analysis.numbersCount < 5) {
-      weaknesses.push("Мало конкретных цифр — сложно оценить масштаб работы");
-    } else if (analysis.percentageCount === 0) {
-      weaknesses.push("Нет процентных показателей результативности");
+      weaknesses.push("Мало цифр — сложно оценить масштаб работы");
     }
     
     if (!analysis.hasAchievements) {
-      weaknesses.push("Не выделены достижения — описаны обязанности, а не результаты");
+      weaknesses.push("Описаны обязанности, а не результаты");
     }
     
     if (analysis.hasActionVerbs < 4) {
-      weaknesses.push("Мало активных глаголов — текст звучит пассивно");
+      weaknesses.push("Мало глаголов действия — текст пассивный");
     }
     
     if (analysis.isTooShort) {
-      weaknesses.push(`Резюме слишком короткое (${Math.round(textLength/100)/10}k символов)`);
+      weaknesses.push("Резюме слишком короткое");
     } else if (analysis.isTooLong) {
-      weaknesses.push(`Резюме избыточное (${Math.round(textLength/1000)}k символов)`);
+      weaknesses.push("Резюме слишком длинное");
     }
     
     if (!analysis.hasGoodStructure) {
-      weaknesses.push("Нечёткая структура — сложно быстро найти информацию");
+      weaknesses.push("Нечёткая структура документа");
     }
     
     if (!analysis.hasBulletPoints) {
-      weaknesses.push("Нет маркированных списков — текст монолитный");
+      weaknesses.push("Нет маркированных списков");
     }
     
     if (!analysis.hasLanguages) {
-      weaknesses.push("Не указан уровень иностранных языков");
+      weaknesses.push("Не указаны иностранные языки");
     }
     
-    if (analysis.hasDuplicates) {
-      weaknesses.push("Есть повторяющиеся фразы");
-    }
-    
-    // Рекомендации
+    // Рекомендации - будут дедуплицироваться
     const recommendations = [];
     
     if (!analysis.hasSummary) {
-      recommendations.push("Добавьте Summary: роль + опыт + 2-3 навыка + главное достижение (2-3 строки)");
+      recommendations.push("Добавьте 2-3 строки о себе: роль + опыт + ключевое достижение");
     }
     
-    if (analysis.numbersCount < 10 || analysis.percentageCount < 2) {
-      recommendations.push("Добавьте метрики: объём бюджета, размер команды, % роста");
+    if (analysis.numbersCount < 10) {
+      recommendations.push("Добавьте больше цифр: бюджеты, размер команды, % роста");
     }
     
-    if (!analysis.hasAchievements || analysis.hasActionVerbs < 5) {
-      recommendations.push("Перепишите в формате: Действие → Результат → Метрика");
+    if (!analysis.hasAchievements) {
+      recommendations.push("Перепишите опыт в формате: Действие → Результат");
     }
     
     if (analysis.isTooLong) {
-      recommendations.push("Сократите до 1-2 страниц: оставьте последние 5-7 лет");
+      recommendations.push("Сократите до 2 страниц — последние 5-7 лет опыта");
     }
     
-    if (!analysis.hasGoodStructure || !analysis.hasBulletPoints) {
-      recommendations.push("Используйте структуру: Summary → Опыт → Образование → Навыки");
+    if (!analysis.hasBulletPoints) {
+      recommendations.push("Используйте маркированные списки (•) для читаемости");
     }
     
     if (!analysis.hasPortfolio && (text.includes('дизайн') || text.includes('разработ'))) {
-      recommendations.push("Добавьте ссылки на портфолио/GitHub/Behance");
+      recommendations.push("Добавьте ссылку на GitHub или портфолио");
     }
     
     // Summary
     let summary = "";
     
     if (score >= 9) {
-      summary = "Топовое резюме уровня senior-специалиста. Вы в топ-5% кандидатов.";
+      summary = "Топовое резюме. Вы в топ-5% кандидатов.";
     } else if (score >= 8) {
       summary = "Отличное резюме. Небольшие правки — и идеально.";
     } else if (score >= 7) {
-      summary = "Хорошее резюме. Добавьте больше цифр и метрик.";
+      summary = "Хорошее резюме. Добавьте больше конкретики.";
     } else if (score >= 6) {
-      summary = "Базовое резюме. Информация есть, но подача слабая.";
+      summary = "Базовое резюме. Есть информация, но подача слабая.";
     } else if (score >= 5) {
-      summary = "Резюме требует доработки. Много текста, мало результатов.";
+      summary = "Резюме требует доработки.";
     } else if (score >= 3) {
-      summary = "Слабое резюме. Нужна серьёзная переработка.";
+      summary = "Слабое резюме. Нужна переработка.";
     } else {
       summary = "Резюме не соответствует стандартам.";
     }
-    
-    // Дедупликация
-    const uniqueWeaknesses = this.deduplicateByKeywords(weaknesses);
-    const uniqueRecommendations = this.deduplicateByKeywords(recommendations);
     
     return {
       summary,
       score,
       strengths: strengths.slice(0, 5),
-      weaknesses: uniqueWeaknesses.slice(0, 5),
-      recommendations: uniqueRecommendations.slice(0, 4),
+      weaknesses,
+      recommendations,
       qualityMetrics: {
         isRealResume: true,
         textQuality: validation.quality,
         structureQuality: analysis.hasGoodStructure ? 8 : 4,
         contentQuality: Math.min(10, Math.round((analysis.numbersCount / 2) + (analysis.hasAchievements ? 3 : 0)))
-      }
+      },
+      // Передаём данные для генерации quickStart
+      analysisData: analysis
     };
   }
   
@@ -554,6 +566,48 @@ export class ResumeAnalyzer {
     }
     return hash.toString();
   }
+
+  // Генерация quickStart с учётом уже использованных тем
+  private generateQuickStart(score: number, usedTopics: Set<Topic>, analysisData: any): string[] {
+    const allTips: Array<{ tip: string; topic: Topic; forScore: 'low' | 'medium' | 'high' }> = [
+      // Для низких оценок (< 4)
+      { tip: "Создайте секции: Опыт → Образование → Навыки (10 мин)", topic: 'structure', forScore: 'low' },
+      { tip: "Добавьте email и телефон (1 мин)", topic: 'contacts', forScore: 'low' },
+      { tip: "Укажите даты работы в каждом месте (5 мин)", topic: 'dates', forScore: 'low' },
+      
+      // Для средних оценок (4-7)
+      { tip: "Напишите 2-3 предложения о себе в начало (3 мин)", topic: 'summary', forScore: 'medium' },
+      { tip: "К каждому опыту добавьте 2 достижения с % (10 мин)", topic: 'achievements', forScore: 'medium' },
+      { tip: "Используйте глаголы: увеличил, создал, запустил (5 мин)", topic: 'verbs', forScore: 'medium' },
+      { tip: "Разбейте текст на буллеты • (5 мин)", topic: 'bullets', forScore: 'medium' },
+      
+      // Для высоких оценок (7+)
+      { tip: "Усильте цифры: добавьте %, суммы, объёмы (5 мин)", topic: 'metrics', forScore: 'high' },
+      { tip: "Добавьте ссылку на LinkedIn (1 мин)", topic: 'linkedin', forScore: 'high' },
+      { tip: "Проверьте: у каждого пункта есть результат? (3 мин)", topic: 'achievements', forScore: 'high' },
+    ];
+    
+    // Определяем уровень
+    let level: 'low' | 'medium' | 'high';
+    if (score < 4) level = 'low';
+    else if (score < 7) level = 'medium';
+    else level = 'high';
+    
+    // Фильтруем по уровню и неиспользованным темам
+    const availableTips = allTips.filter(t => 
+      t.forScore === level && !usedTopics.has(t.topic)
+    );
+    
+    // Если не хватает - добавляем из других уровней
+    if (availableTips.length < 3) {
+      const otherTips = allTips.filter(t => 
+        t.forScore !== level && !usedTopics.has(t.topic)
+      );
+      availableTips.push(...otherTips);
+    }
+    
+    return availableTips.slice(0, 3).map(t => t.tip);
+  }
   
   async analyze(resumeText: string): Promise<AnalysisResult> {
     const hash = this.createHash(resumeText);
@@ -565,40 +619,36 @@ export class ResumeAnalyzer {
     const analysis = this.analyzeWithRules(resumeText);
     const nudges = this.nudgeSystem.generateNudges(resumeText);
     
+    // === ГЛОБАЛЬНАЯ ДЕДУПЛИКАЦИЯ ===
+    const usedTopics = new Set<Topic>();
+    
+    // 1. Сначала обрабатываем наджи (самый высокий приоритет)
+    for (const nudge of nudges) {
+      const topic = this.detectTopic(nudge.message);
+      if (topic) usedTopics.add(topic);
+    }
+    
+    // 2. Фильтруем weaknesses
+    const filteredWeaknesses = this.filterByUsedTopics(analysis.weaknesses, usedTopics);
+    
+    // 3. Фильтруем recommendations
+    const filteredRecommendations = this.filterByUsedTopics(analysis.recommendations, usedTopics);
+    
+    // 4. Генерируем quickStart с учётом уже использованных тем
+    const quickStart = this.generateQuickStart(analysis.score, usedTopics, analysis.analysisData);
+    
     const result: AnalysisResult = {
       summary: analysis.summary,
       score: analysis.score,
       strengths: analysis.strengths,
-      weaknesses: analysis.weaknesses,
-      recommendations: analysis.recommendations,
+      weaknesses: filteredWeaknesses.slice(0, 4),
+      recommendations: filteredRecommendations.slice(0, 3),
       nudges: nudges,
-      quickStart: this.generateQuickStart(analysis.score),
+      quickStart: quickStart,
       qualityMetrics: analysis.qualityMetrics
     };
     
     this.cache.set(hash, result);
     return result;
-  }
-  
-  private generateQuickStart(score: number): string[] {
-    if (score < 4) {
-      return [
-        "Создайте структуру: Summary → Опыт → Образование → Навыки (15 мин)",
-        "Добавьте даты и названия компаний (5 мин)",
-        "Укажите минимум 5 конкретных навыков (3 мин)"
-      ];
-    } else if (score < 7) {
-      return [
-        "Добавьте Summary из 2-3 строк в начало (5 мин)",
-        "К каждому опыту — 2-3 достижения с цифрами (10 мин)",
-        "Замените пассивные фразы на активные глаголы (5 мин)"
-      ];
-    } else {
-      return [
-        "Усильте метрики: добавьте % роста и объёмы (5 мин)",
-        "Проверьте, что каждое достижение имеет цифру (3 мин)",
-        "Добавьте ссылку на LinkedIn/портфолио (2 мин)"
-      ];
-    }
   }
 }
