@@ -3,6 +3,7 @@ export interface Nudge {
   type: 'social_proof' | 'framing' | 'loss_aversion' | 'anchoring' | 'simplification' | 'default_effect' | 'commitment' | 'scarcity';
   priority: 'high' | 'medium' | 'low';
   actionTime?: string;
+  topic: string; // Добавляем явную тему для дедупликации
 }
 
 interface NudgeTemplate {
@@ -62,53 +63,28 @@ export class NudgeSystem {
     };
   }
 
-  // Темы для дедупликации - каждый надж относится к одной теме
-  private nudgeTopics: Record<string, string> = {
-    no_summary: 'summary',
-    low_metrics: 'metrics',
-    no_linkedin: 'linkedin',
-    weak_action_verbs: 'verbs',
-    no_contacts: 'contacts',
-    too_long: 'length',
-    no_achievements: 'achievements',
-    no_keywords_ats: 'keywords',
-    passive_voice: 'verbs',
-    duties_not_results: 'achievements',
-    negative_framing: 'framing',
-    weak_start: 'summary',
-    no_top_achievement: 'achievements',
-    no_structure: 'structure',
-    no_bullets: 'structure',
-    too_short: 'length',
-    wall_of_text: 'structure',
-    no_languages: 'languages',
-    no_education_dates: 'dates',
-    no_dates: 'dates',
-    job_hopping_signal: 'experience',
-    no_unique_value: 'unique',
-    no_portfolio: 'portfolio'
-  };
-
   private nudgeTemplates: Record<string, NudgeTemplate> = {
     
     // === SOCIAL PROOF ===
     no_summary: {
       check: (_, metrics) => !metrics?.hasSummary,
       nudge: {
-        message: "87% успешных кандидатов начинают резюме с краткого Summary. Добавьте 2-3 предложения о себе.",
+        message: "87% успешных кандидатов начинают с краткого Summary. Добавьте 2-3 предложения о себе.",
         type: "social_proof",
         priority: "high",
-        actionTime: "3 мин"
+        actionTime: "3 мин",
+        topic: "summary"
       }
     },
 
     low_metrics: {
       check: (_, metrics) => (metrics?.percentageCount || 0) < 2 && (metrics?.numbersCount || 0) < 8,
       nudge: {
-        message: "Резюме с цифрами получают в 3 раза больше откликов. Добавьте проценты, суммы, объёмы.",
+        message: "Резюме с цифрами получают в 3 раза больше откликов. Добавьте проценты и суммы.",
         type: "social_proof",
         priority: "high",
-        actionTime: "7 мин"
+        actionTime: "7 мин",
+        topic: "metrics"
       }
     },
 
@@ -118,17 +94,19 @@ export class NudgeSystem {
         message: "73% рекрутеров проверяют LinkedIn. Добавьте ссылку на профиль.",
         type: "social_proof",
         priority: "medium",
-        actionTime: "1 мин"
+        actionTime: "1 мин",
+        topic: "linkedin"
       }
     },
 
     weak_action_verbs: {
       check: (_, metrics) => (metrics?.actionVerbsCount || 0) < 4,
       nudge: {
-        message: "Используйте глаголы действия: «запустил», «увеличил», «оптимизировал» вместо «работал».",
+        message: "Используйте глаголы действия: «запустил», «увеличил», «оптимизировал».",
         type: "social_proof",
         priority: "high",
-        actionTime: "5 мин"
+        actionTime: "5 мин",
+        topic: "verbs"
       }
     },
 
@@ -139,27 +117,30 @@ export class NudgeSystem {
         message: "Без контактов вы теряете 100% откликов. Добавьте email и телефон.",
         type: "loss_aversion",
         priority: "high",
-        actionTime: "1 мин"
+        actionTime: "1 мин",
+        topic: "contacts"
       }
     },
 
     too_long: {
       check: (text) => text.length > 5000,
       nudge: {
-        message: "Рекрутер тратит 6 секунд на просмотр. Сократите резюме до 2 страниц.",
+        message: "Рекрутер тратит 6 секунд на просмотр. Сократите до 2 страниц.",
         type: "loss_aversion",
         priority: "medium",
-        actionTime: "10 мин"
+        actionTime: "10 мин",
+        topic: "length"
       }
     },
 
     no_achievements: {
       check: (_, metrics) => !metrics?.hasAchievements,
       nudge: {
-        message: "Резюме без достижений проигрывает конкурентам. Добавьте 3-5 результатов с цифрами.",
+        message: "Резюме без достижений проигрывает. Добавьте 3-5 результатов с цифрами.",
         type: "loss_aversion",
         priority: "high",
-        actionTime: "10 мин"
+        actionTime: "10 мин",
+        topic: "achievements"
       }
     },
 
@@ -172,7 +153,8 @@ export class NudgeSystem {
         message: "70% компаний используют ATS-фильтры. Добавьте ключевые слова из вакансии.",
         type: "loss_aversion",
         priority: "high",
-        actionTime: "5 мин"
+        actionTime: "5 мин",
+        topic: "keywords"
       }
     },
 
@@ -183,10 +165,11 @@ export class NudgeSystem {
         return passive >= 3;
       },
       nudge: {
-        message: "Замените «работал с клиентами» → «привлёк 50+ клиентов». Активная форма сильнее.",
+        message: "«Работал с клиентами» → «Привлёк 50+ клиентов». Активная форма сильнее.",
         type: "framing",
         priority: "high",
-        actionTime: "5 мин"
+        actionTime: "5 мин",
+        topic: "verbs"
       }
     },
 
@@ -196,10 +179,11 @@ export class NudgeSystem {
         return duties >= 2;
       },
       nudge: {
-        message: "Пишите результаты, не обязанности. «Увеличил продажи на 30%» вместо «занимался продажами».",
+        message: "Пишите результаты, не обязанности. «Увеличил продажи на 30%».",
         type: "framing",
         priority: "high",
-        actionTime: "7 мин"
+        actionTime: "7 мин",
+        topic: "achievements"
       }
     },
 
@@ -209,10 +193,11 @@ export class NudgeSystem {
         return negative >= 1;
       },
       nudge: {
-        message: "Уберите негатив. «Без опыта в X» → «Быстро осваиваю новые технологии».",
+        message: "Уберите негатив. «Без опыта» → «Быстро осваиваю новое».",
         type: "framing",
         priority: "medium",
-        actionTime: "3 мин"
+        actionTime: "3 мин",
+        topic: "framing"
       }
     },
 
@@ -225,20 +210,22 @@ export class NudgeSystem {
         return !hasNumbers || !hasRole;
       },
       nudge: {
-        message: "Первые строки решают всё. Начните с: «Senior PM | 7 лет | 15+ проектов».",
+        message: "Первые строки решают. Начните: «Senior PM | 7 лет | 15+ проектов».",
         type: "anchoring",
         priority: "medium",
-        actionTime: "3 мин"
+        actionTime: "3 мин",
+        topic: "summary"
       }
     },
 
     no_top_achievement: {
       check: (text) => !/№1|лучший|топ-|первое место|рекорд|максимальн|награ|премия/i.test(text),
       nudge: {
-        message: "Добавьте топ-достижение: «лучший менеджер Q4», «рекорд продаж отдела».",
+        message: "Добавьте топ-достижение: «лучший менеджер Q4», «рекорд продаж».",
         type: "anchoring",
         priority: "medium",
-        actionTime: "2 мин"
+        actionTime: "2 мин",
+        topic: "achievements"
       }
     },
 
@@ -249,7 +236,8 @@ export class NudgeSystem {
         message: "Добавьте секции: Summary → Опыт → Навыки → Образование.",
         type: "simplification",
         priority: "high",
-        actionTime: "5 мин"
+        actionTime: "5 мин",
+        topic: "structure"
       }
     },
 
@@ -259,17 +247,19 @@ export class NudgeSystem {
         message: "Используйте буллеты (•). Списки читаются в 2 раза быстрее.",
         type: "simplification",
         priority: "medium",
-        actionTime: "5 мин"
+        actionTime: "5 мин",
+        topic: "bullets"
       }
     },
 
     too_short: {
       check: (text) => text.length < 800,
       nudge: {
-        message: "Резюме слишком краткое. Добавьте проекты, технологии, масштаб задач.",
+        message: "Резюме слишком краткое. Добавьте проекты и технологии.",
         type: "simplification",
         priority: "high",
-        actionTime: "15 мин"
+        actionTime: "15 мин",
+        topic: "length"
       }
     },
 
@@ -283,7 +273,8 @@ export class NudgeSystem {
         message: "Разбейте длинные абзацы. Идеал: 2-3 строки на пункт.",
         type: "simplification",
         priority: "medium",
-        actionTime: "5 мин"
+        actionTime: "5 мин",
+        topic: "bullets"
       }
     },
 
@@ -294,7 +285,8 @@ export class NudgeSystem {
         message: "Укажите уровень английского — это стандартное требование.",
         type: "default_effect",
         priority: "medium",
-        actionTime: "1 мин"
+        actionTime: "1 мин",
+        topic: "languages"
       }
     },
 
@@ -308,7 +300,8 @@ export class NudgeSystem {
         message: "Добавьте годы обучения: «МГУ, Экономика, 2015-2019».",
         type: "default_effect",
         priority: "low",
-        actionTime: "2 мин"
+        actionTime: "2 мин",
+        topic: "dates"
       }
     },
 
@@ -316,10 +309,11 @@ export class NudgeSystem {
     no_dates: {
       check: (text) => (text.match(/20\d{2}|19\d{2}/g) || []).length < 2,
       nudge: {
-        message: "Добавьте даты работы: «2019 — 2023». Это показывает стабильность.",
+        message: "Добавьте даты работы: «2019 — 2023».",
         type: "commitment",
         priority: "high",
-        actionTime: "3 мин"
+        actionTime: "3 мин",
+        topic: "dates"
       }
     },
 
@@ -330,10 +324,11 @@ export class NudgeSystem {
         return uniqueYears.size > 6 && text.length < 3000;
       },
       nudge: {
-        message: "При частой смене работы объясните причины: «повышение», «приглашение в проект».",
+        message: "При частой смене работы объясните причины: «повышение», «новый проект».",
         type: "commitment",
         priority: "medium",
-        actionTime: "5 мин"
+        actionTime: "5 мин",
+        topic: "experience"
       }
     },
 
@@ -345,10 +340,11 @@ export class NudgeSystem {
         return !uniqueMarkers.some(m => text.toLowerCase().includes(m));
       },
       nudge: {
-        message: "Добавьте уникальное: сертификаты, награды, публикации. Выделитесь среди 100+ кандидатов.",
+        message: "Добавьте уникальное: сертификаты, награды, публикации.",
         type: "scarcity",
         priority: "low",
-        actionTime: "5 мин"
+        actionTime: "5 мин",
+        topic: "unique"
       }
     },
 
@@ -359,10 +355,11 @@ export class NudgeSystem {
         return isCreativeOrTech && !hasPortfolio;
       },
       nudge: {
-        message: "Для технических ролей добавьте GitHub/Behance — это конкурентное преимущество.",
+        message: "Для технических ролей добавьте GitHub или Behance.",
         type: "scarcity",
         priority: "high",
-        actionTime: "2 мин"
+        actionTime: "2 мин",
+        topic: "portfolio"
       }
     }
   };
@@ -372,20 +369,15 @@ export class NudgeSystem {
     const nudges: Nudge[] = [];
     const usedTopics = new Set<string>();
     
-    Object.entries(this.nudgeTemplates).forEach(([key, template]) => {
+    Object.values(this.nudgeTemplates).forEach((template) => {
       if (template.check(resumeText, metrics)) {
-        const topic = this.nudgeTopics[key];
-        
         // Пропускаем, если тема уже использована
-        if (topic && usedTopics.has(topic)) {
+        if (usedTopics.has(template.nudge.topic)) {
           return;
         }
         
         nudges.push(template.nudge);
-        
-        if (topic) {
-          usedTopics.add(topic);
-        }
+        usedTopics.add(template.nudge.topic);
       }
     });
     
