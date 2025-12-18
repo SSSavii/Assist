@@ -4,6 +4,8 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { parseResumeFile } from '@/lib/resume/fileParser';
+import LottieSticker, { ScoreSticker } from '@/app/components/LottieSticker';
+import { NudgeSystem } from '@/lib/resume/nudges';
 
 export default function ResumePage() {
   const [resumeText, setResumeText] = useState('');
@@ -24,12 +26,9 @@ export default function ResumePage() {
     setUploadLoading(true);
 
     try {
-      // Парсим файл в браузере
       const result = await parseResumeFile(file);
       setResumeText(result.text);
-      
       console.log('File parsed successfully:', result.metadata);
-      
     } catch (err) {
       console.error('Ошибка загрузки файла:', err);
       setError(err instanceof Error ? err.message : 'Не удалось обработать файл');
@@ -70,7 +69,7 @@ export default function ResumePage() {
       setAnalysis(data);
     } catch (err) {
       console.error('Analysis error:', err);
-      setError(err instanceof Error ? err.message : 'Не удалось проанализировать резюме. Попробуйте еще раз.');
+      setError(err instanceof Error ? err.message : 'Не удалось проанализировать резюме');
     } finally {
       setLoading(false);
     }
@@ -100,8 +99,13 @@ export default function ResumePage() {
             </svg>
             Назад
           </button>
-          <h1 className="text-2xl font-bold text-black">AI Анализ резюме</h1>
-          <p className="text-black mt-1">Получите профессиональный разбор вашего резюме за 10 секунд</p>
+          <div className="flex items-center gap-3">
+            <LottieSticker name="ba_logo" size={48} />
+            <div>
+              <h1 className="text-2xl font-bold text-black">AI Анализ резюме</h1>
+              <p className="text-black mt-1">Профессиональный разбор за 10 секунд</p>
+            </div>
+          </div>
         </div>
 
         {!analysis ? (
@@ -151,9 +155,7 @@ export default function ResumePage() {
               {fileName && !uploadLoading && (
                 <div className="mt-2 flex items-center justify-between text-sm text-green-600 bg-green-50 p-2 rounded">
                   <span className="flex items-center">
-                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
+                    <LottieSticker name="checkmark" size={20} className="mr-1" />
                     Файл загружен: {fileName}
                   </span>
                   <button
@@ -170,9 +172,7 @@ export default function ResumePage() {
               )}
             </div>
 
-            <div className="text-center text-gray-500 mb-4">
-              <span>или</span>
-            </div>
+            <div className="text-center text-gray-500 mb-4">или</div>
 
             {/* Поле для текста */}
             <div className="mb-4">
@@ -183,11 +183,9 @@ export default function ResumePage() {
                 value={resumeText}
                 onChange={(e) => setResumeText(e.target.value)}
                 disabled={uploadLoading}
-                className="w-full h-64 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-black bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full h-64 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-black bg-white disabled:bg-gray-100"
                 placeholder="Скопируйте и вставьте ваше резюме здесь..."
-                style={{ color: 'black' }}
               />
-              {/* ИСПРАВЛЕННАЯ НАДПИСЬ */}
               <div className="mt-2 text-sm">
                 <div className="flex items-center gap-2">
                   <span className={`font-medium ${
@@ -198,18 +196,14 @@ export default function ResumePage() {
                     {resumeText.length} символов
                   </span>
                   <span className="text-gray-400">•</span>
-                  <span className="text-gray-600">
-                    минимум 100 для анализа
-                  </span>
+                  <span className="text-gray-600">минимум 100 для анализа</span>
                 </div>
               </div>
             </div>
             
             {error && (
               <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg border border-red-200 flex items-start">
-                <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
+                <LottieSticker name="exclamation" size={24} className="mr-2 flex-shrink-0" />
                 <span>{error}</span>
               </div>
             )}
@@ -236,15 +230,13 @@ export default function ResumePage() {
               )}
             </button>
 
-            {/* Подсказка для пользователя */}
+            {/* Подсказка */}
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-start">
-                <svg className="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
+                <LottieSticker name="fire" size={24} className="mr-2 flex-shrink-0" />
                 <div className="text-sm text-blue-800">
                   <p className="font-medium mb-1">Совет:</p>
-                  <p>Для лучшего результата убедитесь, что резюме содержит: опыт работы, образование, навыки и достижения с конкретными цифрами.</p>
+                  <p>Для лучшего результата убедитесь, что резюме содержит: опыт работы, образование, навыки и достижения с цифрами.</p>
                 </div>
               </div>
             </div>
@@ -265,6 +257,9 @@ export default function ResumePage() {
               </div>
               
               <div className="flex items-center mb-4">
+                <div className="mr-4">
+                  <ScoreSticker score={analysis.score} size={64} />
+                </div>
                 <div className={`text-4xl font-bold mr-6 px-4 py-2 rounded-lg ${
                   analysis.score >= 8 ? 'text-green-600 bg-green-50' :
                   analysis.score >= 6 ? 'text-yellow-600 bg-yellow-50' :
@@ -292,71 +287,77 @@ export default function ResumePage() {
             {analysis.nudges && analysis.nudges.length > 0 && (
               <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-6 border border-purple-200">
                 <h3 className="font-bold mb-4 text-black text-lg flex items-center">
-                  💡 Рекомендации-наджи
+                  <LottieSticker name="fire" size={28} className="mr-2" />
+                  Поведенческие рекомендации
                   <span className="ml-2 text-xs bg-purple-200 text-purple-700 px-2 py-1 rounded-full">
-                    поведенческие подсказки
+                    наджи
                   </span>
                 </h3>
                 {analysis.nudges.map((nudge: any, i: number) => (
                   <div key={i} className="mb-3 p-4 bg-white rounded-lg shadow-sm border-l-4 border-purple-400">
-                    <p className="text-black">{nudge.message}</p>
-                    {nudge.type && (
-                      <span className="inline-block mt-2 text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">
-                        {nudge.type === 'social_proof' && '📊 Социальное доказательство'}
-                        {nudge.type === 'framing' && '🖼️ Фрейминг'}
-                        {nudge.type === 'simplification' && '✨ Упрощение'}
-                        {nudge.type === 'default_effect' && '✅ Эффект умолчания'}
-                      </span>
-                    )}
+                    <div className="flex justify-between items-start">
+                      <p className="text-black flex-1">{nudge.message}</p>
+                      {nudge.actionTime && (
+                        <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded whitespace-nowrap">
+                          ⏱ {nudge.actionTime}
+                        </span>
+                      )}
+                    </div>
+                    <span className="inline-block mt-2 text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">
+                      {NudgeSystem.getNudgeTypeLabel(nudge.type)}
+                    </span>
                   </div>
                 ))}
               </div>
             )}
 
             {/* Сильные стороны */}
-            <div className="bg-green-50 rounded-lg p-6 border border-green-200">
-              <h3 className="font-bold mb-3 text-black text-lg flex items-center">
-                <svg className="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Сильные стороны
-              </h3>
-              <ul className="space-y-2">
-                {analysis.strengths?.map((item: string, i: number) => (
-                  <li key={i} className="flex items-start">
-                    <span className="text-green-500 mr-2 mt-1">✓</span>
-                    <span className="text-black">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {analysis.strengths && analysis.strengths.length > 0 && (
+              <div className="bg-green-50 rounded-lg p-6 border border-green-200">
+                <h3 className="font-bold mb-3 text-black text-lg flex items-center">
+                  <LottieSticker name="checkmark" size={28} className="mr-2" />
+                  Сильные стороны
+                </h3>
+                <ul className="space-y-2">
+                  {analysis.strengths.map((item: string, i: number) => (
+                    <li key={i} className="flex items-start bg-white p-3 rounded-lg">
+                      <LottieSticker name="checkmark" size={20} className="mr-2 flex-shrink-0" />
+                      <span className="text-black">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Слабые стороны */}
-            <div className="bg-orange-50 rounded-lg p-6 border border-orange-200">
-              <h3 className="font-bold mb-3 text-black text-lg flex items-center">
-                <svg className="w-6 h-6 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                Зоны роста
-              </h3>
-              <ul className="space-y-2">
-                {analysis.weaknesses?.map((item: string, i: number) => (
-                  <li key={i} className="flex items-start">
-                    <span className="text-orange-500 mr-2 mt-1">!</span>
-                    <span className="text-black">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {analysis.weaknesses && analysis.weaknesses.length > 0 && (
+              <div className="bg-orange-50 rounded-lg p-6 border border-orange-200">
+                <h3 className="font-bold mb-3 text-black text-lg flex items-center">
+                  <LottieSticker name="exclamation" size={28} className="mr-2" />
+                  Зоны роста
+                </h3>
+                <ul className="space-y-2">
+                  {analysis.weaknesses.map((item: string, i: number) => (
+                    <li key={i} className="flex items-start bg-white p-3 rounded-lg">
+                      <LottieSticker name="exclamation" size={20} className="mr-2 flex-shrink-0" />
+                      <span className="text-black">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Рекомендации */}
             {analysis.recommendations && analysis.recommendations.length > 0 && (
               <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
-                <h3 className="font-bold mb-3 text-black text-lg">💼 Практические рекомендации</h3>
+                <h3 className="font-bold mb-3 text-black text-lg flex items-center">
+                  <LottieSticker name="megaphone" size={28} className="mr-2" />
+                  Практические рекомендации
+                </h3>
                 <ol className="space-y-2">
                   {analysis.recommendations.map((rec: string, i: number) => (
-                    <li key={i} className="flex items-start">
-                      <span className="text-blue-600 mr-3 font-bold">{i + 1}.</span>
+                    <li key={i} className="flex items-start bg-white p-3 rounded-lg">
+                      <span className="text-blue-600 mr-3 font-bold min-w-[24px]">{i + 1}.</span>
                       <span className="text-black">{rec}</span>
                     </li>
                   ))}
@@ -367,19 +368,22 @@ export default function ResumePage() {
             {/* Быстрый старт */}
             <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-lg p-6 text-white">
               <h3 className="font-bold mb-4 text-lg flex items-center">
-                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Быстрый старт за 10 минут
+                <LottieSticker name="heart_a_plus" size={32} className="mr-2" />
+                Быстрый старт
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="space-y-2">
                 {analysis.quickStart?.map((step: string, i: number) => (
-                  <div key={i} className="bg-white/20 backdrop-blur rounded-lg p-3 text-center">
-                    <span className="text-3xl font-bold block mb-1">{i + 1}</span>
+                  <div key={i} className="bg-white/20 backdrop-blur rounded-lg p-3 flex items-center">
+                    <span className="text-2xl font-bold mr-3 w-8">{i + 1}</span>
                     <p className="text-sm">{step}</p>
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Футер с лого */}
+            <div className="flex justify-center py-4">
+              <LottieSticker name="heart_fire" size={40} />
             </div>
           </div>
         )}
