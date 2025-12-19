@@ -6,6 +6,35 @@ interface OllamaResponse {
   done: boolean;
 }
 
+// Коллекция мотивирующих цитат по категориям
+const QUOTES = {
+  confidence: [
+    'Уверенность — первый шаг к успеху.',
+    'Тот, кто верит в себя, убеждает других.',
+    'Ваша уверенность — ваш главный актив.',
+  ],
+  growth: [
+    'Каждый эксперт когда-то был новичком.',
+    'Путь в тысячу миль начинается с первого шага.',
+    'Развитие — это процесс, а не событие.',
+  ],
+  action: [
+    'Действие — ключ к результату.',
+    'Лучшее время начать — сейчас.',
+    'Маленькие шаги ведут к большим переменам.',
+  ],
+  quality: [
+    'Качество важнее количества.',
+    'Детали создают совершенство.',
+    'Простота — высшая форма изысканности.',
+  ],
+  success: [
+    'Успех любит подготовленных.',
+    'Возможности приходят к тем, кто готов.',
+    'Ваш потенциал не имеет границ.',
+  ]
+};
+
 export class AIResumeAnalyzer {
   private ollamaUrl: string;
   private model: string;
@@ -16,7 +45,7 @@ export class AIResumeAnalyzer {
   constructor() {
     this.ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
     this.model = process.env.OLLAMA_MODEL || 'qwen2.5:0.5b';
-    this.timeout = 15000; // 15 секунд для качественного ответа
+    this.timeout = 10000; // 10 секунд
     this.fallbackAnalyzer = new ResumeAnalyzer();
     this.nudgeSystem = new NudgeSystem();
   }
@@ -24,7 +53,7 @@ export class AIResumeAnalyzer {
   private async checkOllamaAvailable(): Promise<boolean> {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const timeoutId = setTimeout(() => controller.abort(), 1500);
       
       const response = await fetch(`${this.ollamaUrl}/api/tags`, {
         signal: controller.signal
@@ -37,152 +66,135 @@ export class AIResumeAnalyzer {
     }
   }
 
-  // Извлекаем ключевые факты из резюме для промпта
-  private extractKeyFacts(text: string): {
-    hasExperience: boolean;
-    yearsHint: string | null;
-    skills: string[];
-    hasAchievements: boolean;
-    field: string | null;
+  // Анализируем СТИЛЬ резюме, не содержание
+  private analyzeStyle(text: string): {
+    isConfident: boolean;
+    isStructured: boolean;
+    isCreative: boolean;
+    isConcise: boolean;
+    tone: 'formal' | 'friendly' | 'neutral';
   } {
     const lower = text.toLowerCase();
     
-    // Опыт
-    const yearsMatch = text.match(/(\d+)\s*(?:\+)?\s*(?:лет|год|года)\s*(?:опыт|работ|стаж)/i);
-    const yearsHint = yearsMatch ? `${yearsMatch[1]} лет опыта` : null;
+    // Уверенный тон: активные глаголы, достижения
+    const confidentWords = (text.match(/достиг|создал|увеличил|руководил|реализовал|внедрил|оптимизировал/gi) || []).length;
+    const isConfident = confidentWords >= 3;
     
-    // Навыки (берём первые 3)
-    const skillPatterns = [
-      /python|java|javascript|react|sql|excel|figma|git|node|typescript|vue|angular/gi,
-      /менеджмент|управлени|продаж|маркетинг|аналитик|дизайн|разработ/gi
-    ];
+    // Структурированность: секции, списки
+    const hasSections = /опыт|образование|навыки|experience|skills/i.test(text);
+    const hasBullets = /[•\-\*►]/g.test(text);
+    const isStructured = hasSections && hasBullets;
     
-    const skills: string[] = [];
-    for (const pattern of skillPatterns) {
-      const matches = text.match(pattern);
-      if (matches) {
-        skills.push(...matches.slice(0, 2));
-      }
-    }
+    // Креативность: нестандартные формулировки
+    const isCreative = /страст|люблю|увлека|интересу|мечта/i.test(lower);
     
-    // Достижения
-    const hasAchievements = /увеличил|сократил|достиг|запустил|создал|внедрил|\d+%/i.test(text);
+    // Лаконичность
+    const avgSentenceLength = text.length / (text.split(/[.!?]/).length || 1);
+    const isConcise = avgSentenceLength < 100;
     
-    // Сфера
-    let field: string | null = null;
-    if (/разработ|developer|программист|frontend|backend/i.test(lower)) field = 'IT/разработка';
-    else if (/менеджер|manager|руководител/i.test(lower)) field = 'менеджмент';
-    else if (/дизайн|designer/i.test(lower)) field = 'дизайн';
-    else if (/маркетолог|marketing|smm/i.test(lower)) field = 'маркетинг';
-    else if (/продаж|sales/i.test(lower)) field = 'продажи';
-    else if (/аналитик|analyst|data/i.test(lower)) field = 'аналитика';
+    // Тон
+    let tone: 'formal' | 'friendly' | 'neutral' = 'neutral';
+    if (/уважаем|рассмотр|предлага|позвол/i.test(lower)) tone = 'formal';
+    if (/привет|рад|готов|открыт/i.test(lower)) tone = 'friendly';
     
-    return {
-      hasExperience: /опыт|experience|работал|работала/i.test(text),
-      yearsHint,
-      skills: [...new Set(skills)].slice(0, 3),
-      hasAchievements,
-      field
-    };
+    return { isConfident, isStructured, isCreative, isConcise, tone };
   }
 
-  // Улучшенный промпт с few-shot примерами
-  private buildPrompt(resumeText: string, score: number): string {
-    const facts = this.extractKeyFacts(resumeText);
-    const shortText = resumeText.slice(0, 600).replace(/\n+/g, ' ').trim();
+  // Выбираем подходящую цитату
+  private pickQuote(score: number, style: ReturnType<typeof this.analyzeStyle>): string {
+    let category: keyof typeof QUOTES;
     
-    // Контекст на основе оценки
-    let scoreContext = '';
     if (score >= 8) {
-      scoreContext = 'Резюме отличное (8-10 баллов). Похвалите конкретное достоинство.';
-    } else if (score >= 6) {
-      scoreContext = 'Резюме хорошее (6-7 баллов). Отметьте сильную сторону и дайте один совет.';
-    } else if (score >= 4) {
-      scoreContext = 'Резюме среднее (4-5 баллов). Найдите позитив и дайте конкретный совет.';
+      category = 'success';
+    } else if (style.isConfident) {
+      category = 'confidence';
+    } else if (style.isStructured) {
+      category = 'quality';
+    } else if (score >= 5) {
+      category = 'action';
     } else {
-      scoreContext = 'Резюме слабое (1-3 балла). Мягко укажите главную проблему и путь решения.';
+      category = 'growth';
     }
     
-    // Факты для персонализации
-    const factsStr = [
-      facts.yearsHint,
-      facts.field ? `сфера: ${facts.field}` : null,
-      facts.skills.length > 0 ? `навыки: ${facts.skills.join(', ')}` : null,
-      facts.hasAchievements ? 'есть достижения' : null
-    ].filter(Boolean).join('; ');
-
-    return `Ты HR-эксперт. Напиши краткий отзыв о резюме для кандидата.
-
-ПРАВИЛА:
-- Обращайся на "вы" напрямую к кандидату
-- 1-2 предложения максимум
-- Упомяни что-то конкретное из резюме (навык, опыт, сферу)
-- ${scoreContext}
-
-ПРИМЕРЫ ХОРОШИХ ОТВЕТОВ:
-- "Ваш опыт в Python и аналитике данных впечатляет. Добавьте конкретные метрики проектов — это усилит резюме."
-- "Вы чётко описали свои достижения в продажах. Отличная структура резюме!"
-- "У вас есть потенциал в дизайне. Рекомендую добавить ссылку на портфолио — это критично для вашей сферы."
-- "Ваш управленческий опыт виден. Усильте раздел достижений конкретными цифрами."
-
-ПЛОХИЕ ОТВЕТЫ (не делай так):
-- "Это хорошее резюме" (слишком общее)
-- "Бочко Артемий - мужчина..." (не обращайся в 3 лице)
-- "Резюме демонстрирует..." (слишком формально)
-
-РЕЗЮМЕ (оценка ${score}/10):
-${shortText}
-
-ФАКТЫ: ${factsStr || 'стандартное резюме'}
-
-Твой отзыв (1-2 предложения, обращение на "вы"):`;
+    const quotes = QUOTES[category];
+    return quotes[Math.floor(Math.random() * quotes.length)];
   }
 
-  private parseResponse(content: string): string | null {
-    if (!content || content.length < 15) return null;
+  // Промпт про СТИЛЬ, не содержание
+  private buildPrompt(resumeText: string, score: number): string {
+    const style = this.analyzeStyle(resumeText);
+    const quote = this.pickQuote(score, style);
+    
+    // Описание стиля для AI
+    const styleDesc: string[] = [];
+    if (style.isConfident) styleDesc.push('уверенный тон');
+    if (style.isStructured) styleDesc.push('хорошая структура');
+    if (style.isCreative) styleDesc.push('творческий подход');
+    if (style.isConcise) styleDesc.push('лаконичность');
+    if (style.tone === 'formal') styleDesc.push('деловой стиль');
+    if (style.tone === 'friendly') styleDesc.push('дружелюбный тон');
+    
+    const styleStr = styleDesc.length > 0 ? styleDesc.join(', ') : 'нейтральный стиль';
+
+    return `Напиши короткий отзыв о СТИЛЕ резюме (не о содержании). Обращайся на "вы".
+
+Стиль резюме: ${styleStr}
+Оценка: ${score}/10
+Цитата для вдохновения: "${quote}"
+
+Напиши 1 предложение про впечатление от стиля подачи + добавь цитату.
+Пример: "Ваше резюме производит уверенное впечатление. ${quote}"
+
+Ответ:`;
+  }
+
+  private parseResponse(content: string, fallbackQuote: string): string | null {
+    if (!content || content.length < 10) return null;
     
     let cleaned = content
-      .replace(/```[\s\S]*?```/g, '')
-      .replace(/\{[\s\S]*?\}/g, '')
-      .replace(/^[\s\n"'`\-•]+/, '')
+      .replace(/^[\s\n"'`\-•:]+/, '')
       .replace(/[\s\n"'`]+$/, '')
-      .replace(/^(Ответ|Отзыв|Summary|Response)[:\s]*/i, '')
+      .replace(/^(Ответ|Отзыв)[:\s]*/i, '')
       .trim();
     
-    // Берём первые 2 предложения
-    const sentences = cleaned.match(/[^.!?]+[.!?]+/g);
-    if (sentences && sentences.length > 0) {
-      const result = sentences.slice(0, 2).join(' ').trim();
-      if (result.length >= 30 && result.length <= 250) {
-        return result;
+    // Если ответ слишком короткий - добавляем цитату
+    if (cleaned.length < 30 && cleaned.length > 0) {
+      cleaned = cleaned + ' ' + fallbackQuote;
+    }
+    
+    // Ограничиваем длину
+    if (cleaned.length > 180) {
+      // Ищем конец предложения
+      const endMatch = cleaned.slice(0, 180).match(/.*[.!?]/);
+      if (endMatch) {
+        cleaned = endMatch[0];
+      } else {
+        cleaned = cleaned.slice(0, 177) + '...';
       }
     }
     
-    // Если не получилось разбить на предложения
-    if (cleaned.length > 250) {
-      cleaned = cleaned.slice(0, 247) + '...';
+    // Добавляем точку если нет
+    if (cleaned.length >= 20 && !/[.!?]$/.test(cleaned)) {
+      cleaned += '.';
     }
     
-    return cleaned.length >= 30 ? cleaned : null;
+    return cleaned.length >= 20 ? cleaned : null;
   }
 
-  // Валидация ответа - проверяем что он соответствует требованиям
-  private validateResponse(response: string): boolean {
-    const lower = response.toLowerCase();
+  private isValidResponse(response: string): boolean {
+    // Должно быть обращение на "вы"
+    if (!/ваш|вы|вам|вас/i.test(response)) return false;
     
-    // Должно быть обращение на "вы" или "ваш"
-    const hasYouForm = /\bвы\b|\bваш|\bвам\b|\bвас\b/i.test(response);
+    // Не должно быть в 3 лице
+    if (/\bон\b|\bона\b|\bкандидат\b|\bсоискатель\b/i.test(response)) return false;
     
-    // Не должно быть обращения в 3 лице
-    const hasThirdPerson = /\bон\b|\bона\b|\bэтот человек|\bкандидат\b|\bсоискатель\b/i.test(lower);
+    // Не должно быть советов (это делает алгоритм!)
+    if (/добавьте|укажите|рекомендую|стоит добавить|нужно указать|следует|попробуйте/i.test(response)) return false;
     
-    // Не должно быть слишком общим
-    const tooGeneric = /^(это |резюме |данное )/i.test(response);
+    // Не должно быть про конкретные навыки/опыт (это делает алгоритм!)
+    if (/python|java|excel|sql|опыт работы|образование|навыки в/i.test(response)) return false;
     
-    // Не должно содержать имя в 3 лице (паттерн "Имя Фамилия - это/является")
-    const hasNameThirdPerson = /[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+\s*[-–—]\s*(это|является|мужчина|женщина)/i.test(response);
-    
-    return hasYouForm && !hasThirdPerson && !tooGeneric && !hasNameThirdPerson;
+    return true;
   }
 
   async analyzeRulesOnly(resumeText: string): Promise<AnalysisResult> {
@@ -197,76 +209,73 @@ ${shortText}
       return null;
     }
 
-    // Делаем до 2 попыток получить хороший ответ
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+    const style = this.analyzeStyle(resumeText);
+    const fallbackQuote = this.pickQuote(score, style);
 
-        console.log(`[AI] Попытка ${attempt}, запрос к ${this.model}...`);
-        const startTime = Date.now();
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
-        const response = await fetch(`${this.ollamaUrl}/api/generate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: this.model,
-            prompt: this.buildPrompt(resumeText, score),
-            stream: false,
-            options: {
-              temperature: 0.7, // Немного выше для разнообразия
-              num_predict: 100, // Больше токенов для полного ответа
-              top_p: 0.9,
-              repeat_penalty: 1.2, // Избегаем повторений
-            }
-          }),
-          signal: controller.signal
-        });
+      console.log(`[AI] Запрос к ${this.model}...`);
+      const startTime = Date.now();
 
-        clearTimeout(timeoutId);
-        const elapsed = Date.now() - startTime;
-        console.log(`[AI] Ответ за ${elapsed}ms`);
+      const response = await fetch(`${this.ollamaUrl}/api/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: this.model,
+          prompt: this.buildPrompt(resumeText, score),
+          stream: false,
+          options: {
+            temperature: 0.7,
+            num_predict: 80,
+            top_p: 0.9,
+            repeat_penalty: 1.15,
+          }
+        }),
+        signal: controller.signal
+      });
 
-        if (!response.ok) {
-          console.error(`[AI] Ошибка: ${response.status}`);
-          continue;
-        }
+      clearTimeout(timeoutId);
+      console.log(`[AI] Ответ за ${Date.now() - startTime}ms`);
 
-        const data: OllamaResponse = await response.json();
-        
-        if (!data.response) {
-          console.log('[AI] Пустой ответ');
-          continue;
-        }
-
-        console.log('[AI] Сырой ответ:', data.response);
-        
-        const parsed = this.parseResponse(data.response);
-        
-        if (!parsed) {
-          console.log('[AI] Не удалось распарсить ответ');
-          continue;
-        }
-        
-        // Валидируем ответ
-        if (!this.validateResponse(parsed)) {
-          console.log('[AI] Ответ не прошёл валидацию, пробуем ещё раз');
-          continue;
-        }
-        
-        console.log('[AI] Финальный ответ:', parsed);
-        return parsed;
-
-      } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          console.log(`[AI] Таймаут на попытке ${attempt}`);
-        } else {
-          console.error('[AI] Ошибка:', error);
-        }
+      if (!response.ok) {
+        console.error(`[AI] Ошибка: ${response.status}`);
+        return null;
       }
+
+      const data: OllamaResponse = await response.json();
+      
+      if (!data.response) {
+        console.log('[AI] Пустой ответ');
+        return null;
+      }
+
+      console.log('[AI] Сырой:', data.response);
+      
+      const parsed = this.parseResponse(data.response, fallbackQuote);
+      
+      if (!parsed) {
+        console.log('[AI] Не удалось распарсить');
+        return null;
+      }
+      
+      if (!this.isValidResponse(parsed)) {
+        console.log('[AI] Не прошёл валидацию');
+        return null;
+      }
+      
+      console.log('[AI] Финал:', parsed);
+      return parsed;
+
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('[AI] Таймаут');
+      } else {
+        console.error('[AI] Ошибка:', error);
+      }
+      return null;
     }
-    
-    return null;
   }
 
   async analyze(resumeText: string): Promise<AnalysisResult> {

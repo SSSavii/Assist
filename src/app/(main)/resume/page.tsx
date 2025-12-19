@@ -16,7 +16,6 @@ export default function ResumePage() {
   const [fileName, setFileName] = useState('');
   const [fileWarning, setFileWarning] = useState<string | null>(null);
   
-  // AI состояния
   const [aiStatus, setAiStatus] = useState<'idle' | 'thinking' | 'ready' | 'failed'>('idle');
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [aiProgress, setAiProgress] = useState(0);
@@ -25,7 +24,6 @@ export default function ResumePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const aiAbortRef = useRef<AbortController | null>(null);
 
-  // Запуск AI анализа в фоне
   const startAIAnalysis = useCallback(async (text: string) => {
     if (text.length < 100) return;
     
@@ -38,9 +36,8 @@ export default function ResumePage() {
     setAiSummary(null);
     setAiProgress(0);
     
-    // Анимация прогресса (15 секунд максимум)
     const startTime = Date.now();
-    const maxTime = 15000;
+    const maxTime = 10000;
     
     const progressInterval = setInterval(() => {
       const elapsed = Date.now() - startTime;
@@ -50,7 +47,7 @@ export default function ResumePage() {
       if (elapsed >= maxTime) {
         clearInterval(progressInterval);
       }
-    }, 200);
+    }, 150);
     
     try {
       const response = await fetch('/api/resume-ai-summary', {
@@ -85,7 +82,6 @@ export default function ResumePage() {
     }
   }, []);
 
-  // Запускаем AI когда текст достаточно длинный
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
       if (resumeText.length >= 100) {
@@ -94,7 +90,7 @@ export default function ResumePage() {
         setAiStatus('idle');
         setAiSummary(null);
       }
-    }, 800); // Чуть больше debounce
+    }, 600);
     
     return () => clearTimeout(debounceTimer);
   }, [resumeText, startAIAnalysis]);
@@ -185,7 +181,6 @@ export default function ResumePage() {
     }
   };
 
-  // AI статус компонент
   const AIStatusIndicator = () => {
     if (resumeText.length < 100) return null;
     
@@ -201,16 +196,15 @@ export default function ResumePage() {
             </div>
             <div className="flex-1">
               <div className="flex justify-between items-center mb-1">
-                <span className="text-sm font-medium text-purple-700">AI формирует персональный отзыв...</span>
+                <span className="text-sm font-medium text-purple-700">AI оценивает стиль...</span>
                 <span className="text-xs text-purple-500">{aiProgress}%</span>
               </div>
               <div className="w-full bg-purple-100 rounded-full h-1.5">
                 <div 
-                  className="bg-purple-500 h-1.5 rounded-full transition-all duration-300"
+                  className="bg-purple-500 h-1.5 rounded-full transition-all duration-200"
                   style={{ width: `${aiProgress}%` }}
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">Анализируем ваши навыки и опыт...</p>
             </div>
           </div>
         )}
@@ -218,13 +212,13 @@ export default function ResumePage() {
         {aiStatus === 'ready' && (
           <div className="flex items-center gap-2 text-green-600">
             <LottieSticker name="checkmark" size={20} />
-            <span className="text-sm font-medium">Персональный отзыв готов!</span>
+            <span className="text-sm font-medium">AI готов!</span>
           </div>
         )}
         
         {aiStatus === 'failed' && (
           <div className="flex items-center gap-2 text-gray-500">
-            <span className="text-sm">Будет использован стандартный анализ</span>
+            <span className="text-sm">Используем стандартный анализ</span>
           </div>
         )}
       </div>
@@ -234,7 +228,6 @@ export default function ResumePage() {
   return (
     <div className="min-h-screen bg-white p-4">
       <div className="max-w-2xl mx-auto">
-        {/* Шапка */}
         <div className="bg-gray-50 rounded-lg shadow-sm p-4 mb-4">
           <button
             onClick={() => router.back()}
@@ -249,14 +242,13 @@ export default function ResumePage() {
             <LottieSticker name="ba_logo" size={48} />
             <div>
               <h1 className="text-2xl font-bold text-black">AI Анализ резюме</h1>
-              <p className="text-black mt-1">Персональный разбор от AI</p>
+              <p className="text-black mt-1">Профессиональный разбор с AI</p>
             </div>
           </div>
         </div>
 
         {!analysis ? (
           <div className="bg-gray-50 rounded-lg shadow-sm p-6">
-            {/* Кнопка загрузки файла */}
             <div className="mb-4">
               <input
                 ref={fileInputRef}
@@ -334,7 +326,6 @@ export default function ResumePage() {
 
             <div className="text-center text-gray-500 mb-4">или</div>
 
-            {/* Поле для текста */}
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2 text-black">
                 Вставьте текст резюме:
@@ -361,7 +352,6 @@ export default function ResumePage() {
               </div>
             </div>
 
-            {/* AI статус */}
             <AIStatusIndicator />
             
             {error && (
@@ -386,33 +376,30 @@ export default function ResumePage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Формируем результаты...
+                  Анализируем...
                 </span>
               ) : (
                 <>
                   Получить анализ
                   {aiStatus === 'ready' && (
-                    <span className="ml-2 text-xs bg-white/20 px-2 py-0.5 rounded">✨ AI</span>
+                    <span className="ml-2 text-xs bg-white/20 px-2 py-0.5 rounded">+ AI</span>
                   )}
                 </>
               )}
             </button>
 
-            {/* Подсказка */}
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-start">
                 <LottieSticker name="fire" size={24} className="mr-2 flex-shrink-0" />
                 <div className="text-sm text-blue-800">
                   <p className="font-medium mb-1">Совет:</p>
-                  <p>Для PDF с дизайном лучше скопировать текст вручную. AI даст персональный отзыв на основе ваших навыков и опыта.</p>
+                  <p>Для PDF с дизайном лучше скопировать текст вручную. AI оценит стиль подачи вашего резюме.</p>
                 </div>
               </div>
             </div>
           </div>
         ) : (
-          /* Результаты */
           <div className="space-y-4">
-            {/* Оценка */}
             <div className="bg-gray-50 rounded-lg shadow-sm p-6">
               <div className="flex justify-between items-start mb-4">
                 <h2 className="text-xl font-bold text-black">Результаты анализа</h2>
@@ -448,10 +435,9 @@ export default function ResumePage() {
                   </div>
                 </div>
               </div>
-              <p className="text-black leading-relaxed text-lg">{analysis.summary}</p>
+              <p className="text-black leading-relaxed text-lg italic">&ldquo;{analysis.summary}&rdquo;</p>
             </div>
 
-            {/* Практические рекомендации */}
             {analysis.nudges && analysis.nudges.length > 0 && (
               <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-6 border border-purple-200">
                 <h3 className="font-bold mb-4 text-black text-lg flex items-center">
@@ -476,7 +462,6 @@ export default function ResumePage() {
               </div>
             )}
 
-            {/* Сильные стороны */}
             {analysis.strengths && analysis.strengths.length > 0 && (
               <div className="bg-green-50 rounded-lg p-6 border border-green-200">
                 <h3 className="font-bold mb-3 text-black text-lg flex items-center">
@@ -494,7 +479,6 @@ export default function ResumePage() {
               </div>
             )}
 
-            {/* Зоны роста */}
             {analysis.weaknesses && analysis.weaknesses.length > 0 && (
               <div className="bg-orange-50 rounded-lg p-6 border border-orange-200">
                 <h3 className="font-bold mb-3 text-black text-lg flex items-center">
@@ -512,7 +496,6 @@ export default function ResumePage() {
               </div>
             )}
 
-            {/* Рекомендации */}
             {analysis.recommendations && analysis.recommendations.length > 0 && (
               <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
                 <h3 className="font-bold mb-3 text-black text-lg flex items-center">
@@ -530,7 +513,6 @@ export default function ResumePage() {
               </div>
             )}
 
-            {/* Быстрый старт */}
             {analysis.quickStart && analysis.quickStart.length > 0 && (
               <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-lg p-6 text-white">
                 <h3 className="font-bold mb-4 text-lg flex items-center">
@@ -548,7 +530,6 @@ export default function ResumePage() {
               </div>
             )}
 
-            {/* Футер */}
             <div className="flex justify-center py-4">
               <LottieSticker name="heart_fire" size={40} />
             </div>
