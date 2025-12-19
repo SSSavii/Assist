@@ -14,6 +14,7 @@ export default function ResumePage() {
   const [uploadLoading, setUploadLoading] = useState(false);
   const [error, setError] = useState('');
   const [fileName, setFileName] = useState('');
+  const [fileWarning, setFileWarning] = useState<string | null>(null);
   
   // AI состояния
   const [aiStatus, setAiStatus] = useState<'idle' | 'thinking' | 'ready' | 'failed'>('idle');
@@ -28,7 +29,6 @@ export default function ResumePage() {
   const startAIAnalysis = useCallback(async (text: string) => {
     if (text.length < 100) return;
     
-    // Отменяем предыдущий запрос
     if (aiAbortRef.current) {
       aiAbortRef.current.abort();
     }
@@ -38,16 +38,19 @@ export default function ResumePage() {
     setAiSummary(null);
     setAiProgress(0);
     
-    // Анимация прогресса (20 секунд максимум)
+    // Анимация прогресса (15 секунд максимум)
+    const startTime = Date.now();
+    const maxTime = 15000;
+    
     const progressInterval = setInterval(() => {
-      setAiProgress(prev => {
-        if (prev >= 95) {
-          clearInterval(progressInterval);
-          return 95;
-        }
-        return prev + 5;
-      });
-    }, 1000);
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(95, (elapsed / maxTime) * 100);
+      setAiProgress(Math.round(progress));
+      
+      if (elapsed >= maxTime) {
+        clearInterval(progressInterval);
+      }
+    }, 200);
     
     try {
       const response = await fetch('/api/resume-ai-summary', {
@@ -91,7 +94,7 @@ export default function ResumePage() {
         setAiStatus('idle');
         setAiSummary(null);
       }
-    }, 500); // Debounce 500ms
+    }, 800); // Чуть больше debounce
     
     return () => clearTimeout(debounceTimer);
   }, [resumeText, startAIAnalysis]);
@@ -102,12 +105,20 @@ export default function ResumePage() {
 
     setFileName(file.name);
     setError('');
+    setFileWarning(null);
     setUploadLoading(true);
 
     try {
       const result = await parseResumeFile(file);
       setResumeText(result.text);
-      // AI анализ запустится автоматически через useEffect
+      
+      if (result.metadata.warning) {
+        setFileWarning(result.metadata.warning);
+      } else if (result.metadata.quality === 'fixed') {
+        setFileWarning('Формат PDF был сложным, текст автоматически исправлен. Проверьте корректность.');
+      }
+      
+      console.log('File parsed:', result.metadata);
     } catch (err) {
       console.error('Ошибка загрузки файла:', err);
       setError(err instanceof Error ? err.message : 'Не удалось обработать файл');
@@ -162,6 +173,7 @@ export default function ResumePage() {
     setResumeText('');
     setFileName('');
     setError('');
+    setFileWarning(null);
     setAiStatus('idle');
     setAiSummary(null);
     setAiProgress(0);
@@ -178,40 +190,41 @@ export default function ResumePage() {
     if (resumeText.length < 100) return null;
     
     return (
-      <div className="mb-4 p-3 rounded-lg border">
+      <div className="mb-4 p-3 rounded-lg border bg-gray-50">
         {aiStatus === 'thinking' && (
           <div className="flex items-center gap-3">
-            <div className="relative w-8 h-8">
-              <svg className="animate-spin w-8 h-8 text-purple-500" viewBox="0 0 24 24">
+            <div className="relative w-6 h-6">
+              <svg className="animate-spin w-6 h-6 text-purple-500" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
             </div>
             <div className="flex-1">
               <div className="flex justify-between items-center mb-1">
-                <span className="text-sm font-medium text-purple-700">AI анализирует резюме...</span>
+                <span className="text-sm font-medium text-purple-700">AI формирует персональный отзыв...</span>
                 <span className="text-xs text-purple-500">{aiProgress}%</span>
               </div>
               <div className="w-full bg-purple-100 rounded-full h-1.5">
                 <div 
-                  className="bg-purple-500 h-1.5 rounded-full transition-all duration-500"
+                  className="bg-purple-500 h-1.5 rounded-full transition-all duration-300"
                   style={{ width: `${aiProgress}%` }}
                 />
               </div>
+              <p className="text-xs text-gray-500 mt-1">Анализируем ваши навыки и опыт...</p>
             </div>
           </div>
         )}
         
         {aiStatus === 'ready' && (
           <div className="flex items-center gap-2 text-green-600">
-            <LottieSticker name="checkmark" size={24} />
-            <span className="text-sm font-medium">AI анализ готов!</span>
+            <LottieSticker name="checkmark" size={20} />
+            <span className="text-sm font-medium">Персональный отзыв готов!</span>
           </div>
         )}
         
         {aiStatus === 'failed' && (
           <div className="flex items-center gap-2 text-gray-500">
-            <span className="text-sm">AI недоступен — будет использован алгоритмический анализ</span>
+            <span className="text-sm">Будет использован стандартный анализ</span>
           </div>
         )}
       </div>
@@ -236,13 +249,12 @@ export default function ResumePage() {
             <LottieSticker name="ba_logo" size={48} />
             <div>
               <h1 className="text-2xl font-bold text-black">AI Анализ резюме</h1>
-              <p className="text-black mt-1">Профессиональный разбор за 10 секунд</p>
+              <p className="text-black mt-1">Персональный разбор от AI</p>
             </div>
           </div>
         </div>
 
         {!analysis ? (
-          /* Форма ввода */
           <div className="bg-gray-50 rounded-lg shadow-sm p-6">
             {/* Кнопка загрузки файла */}
             <div className="mb-4">
@@ -285,6 +297,7 @@ export default function ResumePage() {
                   )}
                 </div>
               </button>
+              
               {fileName && !uploadLoading && (
                 <div className="mt-2 flex items-center justify-between text-sm text-green-600 bg-green-50 p-2 rounded">
                   <span className="flex items-center">
@@ -295,6 +308,7 @@ export default function ResumePage() {
                     onClick={() => {
                       setFileName('');
                       setResumeText('');
+                      setFileWarning(null);
                       setAiStatus('idle');
                       if (fileInputRef.current) fileInputRef.current.value = '';
                     }}
@@ -302,6 +316,18 @@ export default function ResumePage() {
                   >
                     ✕
                   </button>
+                </div>
+              )}
+              
+              {fileWarning && (
+                <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-start">
+                    <LottieSticker name="exclamation" size={20} className="mr-2 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-yellow-800">
+                      <p className="font-medium mb-1">Внимание</p>
+                      <p>{fileWarning}</p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -335,7 +361,7 @@ export default function ResumePage() {
               </div>
             </div>
 
-            {/* AI статус индикатор */}
+            {/* AI статус */}
             <AIStatusIndicator />
             
             {error && (
@@ -364,9 +390,9 @@ export default function ResumePage() {
                 </span>
               ) : (
                 <>
-                  Проанализировать резюме
+                  Получить анализ
                   {aiStatus === 'ready' && (
-                    <span className="ml-2 text-xs bg-white/20 px-2 py-0.5 rounded">+ AI</span>
+                    <span className="ml-2 text-xs bg-white/20 px-2 py-0.5 rounded">✨ AI</span>
                   )}
                 </>
               )}
@@ -378,7 +404,7 @@ export default function ResumePage() {
                 <LottieSticker name="fire" size={24} className="mr-2 flex-shrink-0" />
                 <div className="text-sm text-blue-800">
                   <p className="font-medium mb-1">Совет:</p>
-                  <p>Для лучшего результата убедитесь, что резюме содержит: опыт работы, образование, навыки и достижения с цифрами.</p>
+                  <p>Для PDF с дизайном лучше скопировать текст вручную. AI даст персональный отзыв на основе ваших навыков и опыта.</p>
                 </div>
               </div>
             </div>
@@ -422,7 +448,7 @@ export default function ResumePage() {
                   </div>
                 </div>
               </div>
-              <p className="text-black leading-relaxed">{analysis.summary}</p>
+              <p className="text-black leading-relaxed text-lg">{analysis.summary}</p>
             </div>
 
             {/* Практические рекомендации */}
@@ -522,7 +548,7 @@ export default function ResumePage() {
               </div>
             )}
 
-            {/* Футер с лого */}
+            {/* Футер */}
             <div className="flex justify-center py-4">
               <LottieSticker name="heart_fire" size={40} />
             </div>

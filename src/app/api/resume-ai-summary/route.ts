@@ -1,17 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAIAnalyzer } from '@/lib/resume/ai-analyzer';
 
-// Отдельный endpoint для AI summary (вызывается в фоне)
 export async function POST(request: NextRequest) {
   try {
-    const { resumeText } = await request.json();
+    const { resumeText, score } = await request.json();
 
     if (!resumeText || typeof resumeText !== 'string' || resumeText.length < 100) {
       return NextResponse.json({ summary: null });
     }
 
     const analyzer = getAIAnalyzer();
-    const summary = await analyzer.getAISummary(resumeText);
+    
+    // Если score не передан, быстро вычисляем
+    let finalScore = score;
+    if (typeof finalScore !== 'number') {
+      const quickResult = await analyzer.analyzeRulesOnly(resumeText);
+      finalScore = quickResult.score;
+    }
+    
+    const summary = await analyzer.getAISummary(resumeText, finalScore);
 
     return NextResponse.json({ summary });
   } catch (error) {

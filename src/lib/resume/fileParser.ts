@@ -159,6 +159,8 @@ async function parseTXT(file: File): Promise<string> {
 export async function parseResumeFile(file: File): Promise<{
   text: string;
   metadata: {
+    warning: any;
+    quality: string;
     fileName: string;
     fileSize: number;
     fileType: string;
@@ -227,10 +229,12 @@ export async function parseResumeFile(file: File): Promise<{
   return {
     text,
     metadata: {
-      fileName: file.name,
-      fileSize: file.size,
-      fileType: file.type,
-      extractedLength: text.length
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        extractedLength: text.length,
+        warning: undefined,
+        quality: ""
     }
   };
 }
