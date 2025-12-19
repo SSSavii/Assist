@@ -3,7 +3,7 @@ import { getAIAnalyzer } from '@/lib/resume/ai-analyzer';
 
 export async function POST(request: NextRequest) {
   try {
-    const { resumeText } = await request.json();
+    const { resumeText, aiSummary } = await request.json();
 
     if (!resumeText || typeof resumeText !== 'string') {
       return NextResponse.json(
@@ -19,21 +19,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (resumeText.length > 50000) {
-      return NextResponse.json(
-        { error: 'Резюме слишком длинное (максимум 50000 символов)' },
-        { status: 400 }
-      );
-    }
-
     const analyzer = getAIAnalyzer();
-    const result = await analyzer.analyze(resumeText);
+    
+    // Быстрый анализ правилами
+    const result = await analyzer.analyzeRulesOnly(resumeText);
+    
+    // Если клиент уже получил AI summary - используем его
+    if (aiSummary && typeof aiSummary === 'string' && aiSummary.length > 20) {
+      result.summary = aiSummary;
+    }
 
     return NextResponse.json(result);
   } catch (error) {
     console.error('Resume analysis error:', error);
     return NextResponse.json(
-      { error: 'Ошибка анализа резюме. Попробуйте ещё раз.' },
+      { error: 'Ошибка анализа резюме' },
       { status: 500 }
     );
   }

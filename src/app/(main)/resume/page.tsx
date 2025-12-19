@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { parseResumeFile } from '@/lib/resume/fileParser';
 import LottieSticker, { ScoreSticker } from '@/app/components/LottieSticker';
@@ -14,8 +14,87 @@ export default function ResumePage() {
   const [uploadLoading, setUploadLoading] = useState(false);
   const [error, setError] = useState('');
   const [fileName, setFileName] = useState('');
+  
+  // AI состояния
+  const [aiStatus, setAiStatus] = useState<'idle' | 'thinking' | 'ready' | 'failed'>('idle');
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [aiProgress, setAiProgress] = useState(0);
+  
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const aiAbortRef = useRef<AbortController | null>(null);
+
+  // Запуск AI анализа в фоне
+  const startAIAnalysis = useCallback(async (text: string) => {
+    if (text.length < 100) return;
+    
+    // Отменяем предыдущий запрос
+    if (aiAbortRef.current) {
+      aiAbortRef.current.abort();
+    }
+    
+    aiAbortRef.current = new AbortController();
+    setAiStatus('thinking');
+    setAiSummary(null);
+    setAiProgress(0);
+    
+    // Анимация прогресса (20 секунд максимум)
+    const progressInterval = setInterval(() => {
+      setAiProgress(prev => {
+        if (prev >= 95) {
+          clearInterval(progressInterval);
+          return 95;
+        }
+        return prev + 5;
+      });
+    }, 1000);
+    
+    try {
+      const response = await fetch('/api/resume-ai-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resumeText: text }),
+        signal: aiAbortRef.current.signal
+      });
+      
+      clearInterval(progressInterval);
+      
+      if (!response.ok) {
+        setAiStatus('failed');
+        return;
+      }
+      
+      const data = await response.json();
+      
+      if (data.summary) {
+        setAiSummary(data.summary);
+        setAiStatus('ready');
+        setAiProgress(100);
+      } else {
+        setAiStatus('failed');
+      }
+    } catch (err) {
+      clearInterval(progressInterval);
+      if (err instanceof Error && err.name !== 'AbortError') {
+        console.error('AI analysis error:', err);
+      }
+      setAiStatus('failed');
+    }
+  }, []);
+
+  // Запускаем AI когда текст достаточно длинный
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      if (resumeText.length >= 100) {
+        startAIAnalysis(resumeText);
+      } else {
+        setAiStatus('idle');
+        setAiSummary(null);
+      }
+    }, 500); // Debounce 500ms
+    
+    return () => clearTimeout(debounceTimer);
+  }, [resumeText, startAIAnalysis]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -28,7 +107,7 @@ export default function ResumePage() {
     try {
       const result = await parseResumeFile(file);
       setResumeText(result.text);
-      console.log('File parsed successfully:', result.metadata);
+      // AI анализ запустится автоматически через useEffect
     } catch (err) {
       console.error('Ошибка загрузки файла:', err);
       setError(err instanceof Error ? err.message : 'Не удалось обработать файл');
@@ -57,7 +136,10 @@ export default function ResumePage() {
       const response = await fetch('/api/resume-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resumeText })
+        body: JSON.stringify({ 
+          resumeText,
+          aiSummary: aiStatus === 'ready' ? aiSummary : null
+        })
       });
       
       if (!response.ok) {
@@ -80,9 +162,60 @@ export default function ResumePage() {
     setResumeText('');
     setFileName('');
     setError('');
+    setAiStatus('idle');
+    setAiSummary(null);
+    setAiProgress(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    if (aiAbortRef.current) {
+      aiAbortRef.current.abort();
+    }
+  };
+
+  // AI статус компонент
+  const AIStatusIndicator = () => {
+    if (resumeText.length < 100) return null;
+    
+    return (
+      <div className="mb-4 p-3 rounded-lg border">
+        {aiStatus === 'thinking' && (
+          <div className="flex items-center gap-3">
+            <div className="relative w-8 h-8">
+              <svg className="animate-spin w-8 h-8 text-purple-500" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-sm font-medium text-purple-700">AI анализирует резюме...</span>
+                <span className="text-xs text-purple-500">{aiProgress}%</span>
+              </div>
+              <div className="w-full bg-purple-100 rounded-full h-1.5">
+                <div 
+                  className="bg-purple-500 h-1.5 rounded-full transition-all duration-500"
+                  style={{ width: `${aiProgress}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {aiStatus === 'ready' && (
+          <div className="flex items-center gap-2 text-green-600">
+            <LottieSticker name="checkmark" size={24} />
+            <span className="text-sm font-medium">AI анализ готов!</span>
+          </div>
+        )}
+        
+        {aiStatus === 'failed' && (
+          <div className="flex items-center gap-2 text-gray-500">
+            <span className="text-sm">AI недоступен — будет использован алгоритмический анализ</span>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -162,6 +295,7 @@ export default function ResumePage() {
                     onClick={() => {
                       setFileName('');
                       setResumeText('');
+                      setAiStatus('idle');
                       if (fileInputRef.current) fileInputRef.current.value = '';
                     }}
                     className="text-red-500 hover:text-red-700"
@@ -200,6 +334,9 @@ export default function ResumePage() {
                 </div>
               </div>
             </div>
+
+            {/* AI статус индикатор */}
+            <AIStatusIndicator />
             
             {error && (
               <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg border border-red-200 flex items-start">
@@ -223,10 +360,15 @@ export default function ResumePage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Анализируем резюме...
+                  Формируем результаты...
                 </span>
               ) : (
-                'Проанализировать резюме'
+                <>
+                  Проанализировать резюме
+                  {aiStatus === 'ready' && (
+                    <span className="ml-2 text-xs bg-white/20 px-2 py-0.5 rounded">+ AI</span>
+                  )}
+                </>
               )}
             </button>
 

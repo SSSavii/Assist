@@ -17,7 +17,7 @@ export class AIResumeAnalyzer {
   constructor() {
     this.ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
     this.model = process.env.OLLAMA_MODEL || 'qwen2.5:0.5b';
-    this.timeout = 5000; // 5 секунд таймаут
+    this.timeout = 20000; // 20 секунд - даём больше времени
     this.fallbackAnalyzer = new ResumeAnalyzer();
     this.nudgeSystem = new NudgeSystem();
   }
@@ -38,73 +38,54 @@ export class AIResumeAnalyzer {
     }
   }
 
-  private buildPrompt(resumeText: string, ruleBasedScore: number): string {
-    // Ограничиваем текст для маленькой модели
-    const truncatedText = resumeText.slice(0, 1500);
+  // УЛЬТРА-КОРОТКИЙ промпт
+  private buildPrompt(resumeText: string): string {
+    // Берём только первые 800 символов - самое важное
+    const short = resumeText.slice(0, 800).replace(/\n+/g, ' ').trim();
     
-    return `Ты HR-эксперт. Оцени резюме кратко.
+    return `Резюме: "${short}"
 
-РЕЗЮМЕ:
-${truncatedText}
-
-Алгоритм дал оценку: ${ruleBasedScore}/10
-
-Напиши ТОЛЬКО JSON (без пояснений):
-{
-  "score": ${ruleBasedScore},
-  "summary": "краткая оценка в 1-2 предложения на русском"
-}`;
+Напиши 1 предложение оценки на русском:`;
   }
 
-  private parseResponse(content: string, fallbackScore: number): { score: number; summary: string } | null {
-    try {
-      // Убираем возможные артефакты
-      let cleaned = content
-        .replace(/```json\n?/g, '')
-        .replace(/```\n?/g, '')
-        .replace(/[\r\n]+/g, ' ')
-        .trim();
-      
-      // Ищем JSON
-      const jsonMatch = cleaned.match(/\{[^{}]*"score"[^{}]*"summary"[^{}]*\}/);
-      if (!jsonMatch) {
-        // Пробуем найти summary напрямую
-        const summaryMatch = cleaned.match(/"summary"\s*:\s*"([^"]+)"/);
-        if (summaryMatch) {
-          return {
-            score: fallbackScore,
-            summary: summaryMatch[1].slice(0, 200)
-          };
-        }
-        return null;
-      }
-      
-      const parsed = JSON.parse(jsonMatch[0]);
-      
-      return {
-        score: typeof parsed.score === 'number' ? 
-          Math.min(10, Math.max(1, Math.round(parsed.score * 10) / 10)) : 
-          fallbackScore,
-        summary: typeof parsed.summary === 'string' ? 
-          parsed.summary.slice(0, 200) : 
-          ''
-      };
-    } catch (e) {
-      console.error('AI response parse error:', e);
-      return null;
+  private parseResponse(content: string): string | null {
+    if (!content || content.length < 10) return null;
+    
+    // Берём первое предложение, убираем мусор
+    let cleaned = content
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/\{[\s\S]*?\}/g, '')
+      .replace(/^[\s\n"'`]+/, '')
+      .replace(/[\s\n"'`]+$/, '')
+      .trim();
+    
+    // Берём первое предложение
+    const firstSentence = cleaned.split(/[.!?]/)[0];
+    
+    if (firstSentence && firstSentence.length >= 20 && firstSentence.length <= 200) {
+      return firstSentence.trim() + '.';
     }
+    
+    // Если слишком длинное - обрезаем
+    if (cleaned.length > 200) {
+      return cleaned.slice(0, 197) + '...';
+    }
+    
+    return cleaned.length >= 20 ? cleaned : null;
   }
 
-  async analyze(resumeText: string): Promise<AnalysisResult> {
-    // Всегда сначала получаем rule-based анализ
-    const ruleBasedResult = await this.fallbackAnalyzer.analyze(resumeText);
-    
-    // Проверяем доступность Ollama
+  // Быстрый анализ только правилами (для мгновенного результата)
+  async analyzeRulesOnly(resumeText: string): Promise<AnalysisResult> {
+    return this.fallbackAnalyzer.analyze(resumeText);
+  }
+
+  // Попытка получить AI summary (может быть медленной)
+  async getAISummary(resumeText: string): Promise<string | null> {
     const ollamaAvailable = await this.checkOllamaAvailable();
     
     if (!ollamaAvailable) {
-      console.log('[AI] Ollama не доступен, используем алгоритмический анализ');
-      return ruleBasedResult;
+      console.log('[AI] Ollama недоступен');
+      return null;
     }
 
     try {
@@ -112,63 +93,71 @@ ${truncatedText}
       const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
       console.log(`[AI] Запрос к ${this.model}...`);
+      const startTime = Date.now();
 
       const response = await fetch(`${this.ollamaUrl}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: this.model,
-          prompt: this.buildPrompt(resumeText, ruleBasedResult.score),
+          prompt: this.buildPrompt(resumeText),
           stream: false,
           options: {
-            temperature: 0.3,
-            num_predict: 150, // Маленький лимит для скорости
-            top_p: 0.9
+            temperature: 0.5,
+            num_predict: 50, // Максимум 50 токенов - очень мало
+            top_p: 0.9,
+            stop: ['\n', '.', '!', '?'] // Останавливаемся на первом предложении
           }
         }),
         signal: controller.signal
       });
 
       clearTimeout(timeoutId);
+      const elapsed = Date.now() - startTime;
+      console.log(`[AI] Ответ за ${elapsed}ms`);
 
       if (!response.ok) {
-        console.error(`[AI] Ollama ошибка: ${response.status}`);
-        return ruleBasedResult;
+        console.error(`[AI] Ошибка: ${response.status}`);
+        return null;
       }
 
       const data: OllamaResponse = await response.json();
       
       if (!data.response) {
-        console.log('[AI] Пустой ответ от модели');
-        return ruleBasedResult;
+        console.log('[AI] Пустой ответ');
+        return null;
       }
 
-      console.log('[AI] Ответ получен:', data.response.slice(0, 100));
-
-      const aiResult = this.parseResponse(data.response, ruleBasedResult.score);
-
-      if (!aiResult || !aiResult.summary) {
-        console.log('[AI] Не удалось распарсить ответ');
-        return ruleBasedResult;
-      }
-
-      // Комбинируем: AI даёт summary, остальное из rule-based
-      console.log('[AI] Успешно! Используем AI summary');
+      console.log('[AI] Сырой ответ:', data.response);
       
-      return {
-        ...ruleBasedResult,
-        summary: aiResult.summary,
-        score: aiResult.score
-      };
+      const parsed = this.parseResponse(data.response);
+      console.log('[AI] Обработанный:', parsed);
+      
+      return parsed;
 
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
-        console.log('[AI] Таймаут 5 секунд, используем алгоритмический анализ');
+        console.log('[AI] Таймаут');
       } else {
         console.error('[AI] Ошибка:', error);
       }
-      return ruleBasedResult;
+      return null;
     }
+  }
+
+  // Полный анализ с попыткой AI
+  async analyze(resumeText: string): Promise<AnalysisResult> {
+    // Сначала быстрый rule-based
+    const result = await this.analyzeRulesOnly(resumeText);
+    
+    // Пробуем получить AI summary
+    const aiSummary = await this.getAISummary(resumeText);
+    
+    if (aiSummary) {
+      result.summary = aiSummary;
+    }
+    
+    return result;
   }
 }
 
