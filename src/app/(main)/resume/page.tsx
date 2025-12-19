@@ -283,15 +283,12 @@ export default function ResumePage() {
               <p className="text-black leading-relaxed">{analysis.summary}</p>
             </div>
 
-            {/* Наджи */}
+            {/* Практические рекомендации */}
             {analysis.nudges && analysis.nudges.length > 0 && (
               <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-6 border border-purple-200">
                 <h3 className="font-bold mb-4 text-black text-lg flex items-center">
                   <LottieSticker name="fire" size={28} className="mr-2" />
-                  Поведенческие рекомендации
-                  <span className="ml-2 text-xs bg-purple-200 text-purple-700 px-2 py-1 rounded-full">
-                    наджи
-                  </span>
+                  Практические рекомендации
                 </h3>
                 {analysis.nudges.map((nudge: any, i: number) => (
                   <div key={i} className="mb-3 p-4 bg-white rounded-lg shadow-sm border-l-4 border-purple-400">
@@ -318,32 +315,32 @@ export default function ResumePage() {
                   <LottieSticker name="checkmark" size={28} className="mr-2" />
                   Сильные стороны
                 </h3>
-                <ul className="space-y-2">
+                <ol className="space-y-2">
                   {analysis.strengths.map((item: string, i: number) => (
                     <li key={i} className="flex items-start bg-white p-3 rounded-lg">
-                      <LottieSticker name="checkmark" size={20} className="mr-2 flex-shrink-0" />
+                      <span className="text-green-600 mr-3 font-bold min-w-[24px]">{i + 1}.</span>
                       <span className="text-black">{item}</span>
                     </li>
                   ))}
-                </ul>
+                </ol>
               </div>
             )}
 
-            {/* Слабые стороны */}
+            {/* Зоны роста */}
             {analysis.weaknesses && analysis.weaknesses.length > 0 && (
               <div className="bg-orange-50 rounded-lg p-6 border border-orange-200">
                 <h3 className="font-bold mb-3 text-black text-lg flex items-center">
                   <LottieSticker name="exclamation" size={28} className="mr-2" />
                   Зоны роста
                 </h3>
-                <ul className="space-y-2">
+                <ol className="space-y-2">
                   {analysis.weaknesses.map((item: string, i: number) => (
                     <li key={i} className="flex items-start bg-white p-3 rounded-lg">
-                      <LottieSticker name="exclamation" size={20} className="mr-2 flex-shrink-0" />
+                      <span className="text-orange-600 mr-3 font-bold min-w-[24px]">{i + 1}.</span>
                       <span className="text-black">{item}</span>
                     </li>
                   ))}
-                </ul>
+                </ol>
               </div>
             )}
 
@@ -352,7 +349,7 @@ export default function ResumePage() {
               <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
                 <h3 className="font-bold mb-3 text-black text-lg flex items-center">
                   <LottieSticker name="megaphone" size={28} className="mr-2" />
-                  Практические рекомендации
+                  Рекомендации
                 </h3>
                 <ol className="space-y-2">
                   {analysis.recommendations.map((rec: string, i: number) => (
@@ -366,20 +363,22 @@ export default function ResumePage() {
             )}
 
             {/* Быстрый старт */}
-            <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-lg p-6 text-white">
-              <h3 className="font-bold mb-4 text-lg flex items-center">
-                <LottieSticker name="heart_a_plus" size={32} className="mr-2" />
-                Быстрый старт
-              </h3>
-              <div className="space-y-2">
-                {analysis.quickStart?.map((step: string, i: number) => (
-                  <div key={i} className="bg-white/20 backdrop-blur rounded-lg p-3 flex items-center">
-                    <span className="text-2xl font-bold mr-3 w-8">{i + 1}</span>
-                    <p className="text-sm">{step}</p>
-                  </div>
-                ))}
+            {analysis.quickStart && analysis.quickStart.length > 0 && (
+              <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-lg p-6 text-white">
+                <h3 className="font-bold mb-4 text-lg flex items-center">
+                  <LottieSticker name="heart_a_plus" size={32} className="mr-2" />
+                  Быстрый старт
+                </h3>
+                <div className="space-y-2">
+                  {analysis.quickStart.map((step: string, i: number) => (
+                    <div key={i} className="bg-white/20 backdrop-blur rounded-lg p-3 flex items-center">
+                      <span className="text-2xl font-bold mr-3 w-8">{i + 1}</span>
+                      <p className="text-sm">{step}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Футер с лого */}
             <div className="flex justify-center py-4">

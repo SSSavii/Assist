@@ -3,7 +3,7 @@ export interface Nudge {
   type: 'social_proof' | 'framing' | 'loss_aversion' | 'anchoring' | 'simplification' | 'default_effect' | 'commitment' | 'scarcity';
   priority: 'high' | 'medium' | 'low';
   actionTime?: string;
-  topic: string; // Добавляем явную тему для дедупликации
+  topic: string;
 }
 
 interface NudgeTemplate {
@@ -65,7 +65,7 @@ export class NudgeSystem {
 
   private nudgeTemplates: Record<string, NudgeTemplate> = {
     
-    // === SOCIAL PROOF ===
+    // === SOCIAL PROOF (Проверено на практике) ===
     no_summary: {
       check: (_, metrics) => !metrics?.hasSummary,
       nudge: {
@@ -102,7 +102,7 @@ export class NudgeSystem {
     weak_action_verbs: {
       check: (_, metrics) => (metrics?.actionVerbsCount || 0) < 4,
       nudge: {
-        message: "Используйте глаголы действия: «запустил», «увеличил», «оптимизировал».",
+        message: "Используйте глаголы действия: «запустил», «увеличил», «оптимизировал» – они усиливают восприятие опыта.",
         type: "social_proof",
         priority: "high",
         actionTime: "5 мин",
@@ -110,7 +110,7 @@ export class NudgeSystem {
       }
     },
 
-    // === LOSS AVERSION ===
+    // === LOSS AVERSION (Критично для откликов) ===
     no_contacts: {
       check: (_, metrics) => !metrics?.hasEmail && !metrics?.hasPhone,
       nudge: {
@@ -158,7 +158,7 @@ export class NudgeSystem {
       }
     },
 
-    // === FRAMING ===
+    // === FRAMING (Акцент на результате) ===
     passive_voice: {
       check: (text) => {
         const passive = (text.match(/работал с|занимался|отвечал за|выполнял|участвовал в/gi) || []).length;
@@ -201,7 +201,7 @@ export class NudgeSystem {
       }
     },
 
-    // === ANCHORING ===
+    // === ANCHORING (Эффект первого впечатления) ===
     weak_start: {
       check: (text) => {
         const firstLines = text.split('\n').slice(0, 3).join(' ');
@@ -229,11 +229,11 @@ export class NudgeSystem {
       }
     },
 
-    // === SIMPLIFICATION ===
+    // === SIMPLIFICATION (Лёгкость восприятия) ===
     no_structure: {
       check: (_, metrics) => (metrics?.sectionsCount || 0) < 3,
       nudge: {
-        message: "Добавьте секции: Summary → Опыт → Навыки → Образование.",
+        message: "Рекомендуемая структура: Summary → Опыт → Навыки → Образование.",
         type: "simplification",
         priority: "high",
         actionTime: "5 мин",
@@ -278,7 +278,7 @@ export class NudgeSystem {
       }
     },
 
-    // === DEFAULT EFFECT ===
+    // === DEFAULT EFFECT (Стандартное требование) ===
     no_languages: {
       check: (text) => !/английск|english|b1|b2|c1|c2|intermediate|upper-intermediate|advanced|fluent|native/i.test(text),
       nudge: {
@@ -305,7 +305,7 @@ export class NudgeSystem {
       }
     },
 
-    // === COMMITMENT ===
+    // === COMMITMENT (Важно для доверия) ===
     no_dates: {
       check: (text) => (text.match(/20\d{2}|19\d{2}/g) || []).length < 2,
       nudge: {
@@ -332,7 +332,7 @@ export class NudgeSystem {
       }
     },
 
-    // === SCARCITY ===
+    // === SCARCITY (Повышает доверие) ===
     no_unique_value: {
       check: (text) => {
         const uniqueMarkers = ['сертифик', 'лицензи', 'патент', 'публикац', 'награ', 'грант', 
@@ -371,7 +371,6 @@ export class NudgeSystem {
     
     Object.values(this.nudgeTemplates).forEach((template) => {
       if (template.check(resumeText, metrics)) {
-        // Пропускаем, если тема уже использована
         if (usedTopics.has(template.nudge.topic)) {
           return;
         }
@@ -381,7 +380,6 @@ export class NudgeSystem {
       }
     });
     
-    // Сортировка по приоритету
     const priorityOrder = { high: 0, medium: 1, low: 2 };
     nudges.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
     
@@ -390,14 +388,14 @@ export class NudgeSystem {
   
   static getNudgeTypeLabel(type: Nudge['type']): string {
     const labels: Record<Nudge['type'], string> = {
-      'social_proof': 'Социальное доказательство',
-      'framing': 'Фрейминг',
-      'loss_aversion': 'Неприятие потерь',
-      'anchoring': 'Эффект якоря',
-      'simplification': 'Упрощение',
-      'default_effect': 'Эффект умолчания',
-      'commitment': 'Обязательство',
-      'scarcity': 'Дефицит'
+      'social_proof': 'Проверено на практике',
+      'framing': 'Акцент на результате',
+      'loss_aversion': 'Критично для откликов',
+      'anchoring': 'Эффект первого впечатления',
+      'simplification': 'Лёгкость восприятия',
+      'default_effect': 'Стандартное требование',
+      'commitment': 'Важно для доверия',
+      'scarcity': 'Повышает доверие'
     };
     return labels[type] || type;
   }
