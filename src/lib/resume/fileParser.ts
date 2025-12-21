@@ -391,14 +391,21 @@ async function ocrPage(
   totalPages: number,
   onProgress?: ProgressCallback
 ): Promise<string> {
+  // Показываем начало распознавания страницы
+  const baseProgress = 55 + ((pageNum - 1) / totalPages) * 40; // 55-95%
+  const pageProgressRange = 40 / totalPages; // Сколько % на одну страницу
+  
+  onProgress?.(Math.round(baseProgress), `Распознаём страницу ${pageNum}/${totalPages}...`);
+  
   const worker = await Tesseract.createWorker('rus+eng', 1, {
     logger: (m: any) => {
-      if (onProgress && m.status === 'recognizing text') {
-        const pageProgress = m.progress * 100;
-        const overallProgress = ((pageNum - 1) / totalPages * 100) + (pageProgress / totalPages);
+      // Обрабатываем ТОЛЬКО статус распознавания текста
+      if (onProgress && m.status === 'recognizing text' && typeof m.progress === 'number') {
+        const pageProgress = m.progress * pageProgressRange;
+        const totalProgress = baseProgress + pageProgress;
         onProgress(
-          Math.round(overallProgress), 
-          `Распознаём страницу ${pageNum}/${totalPages}...`
+          Math.round(Math.min(95, totalProgress)), // Не больше 95% до завершения
+          `Распознаём страницу ${pageNum}/${totalPages}... ${Math.round(m.progress * 100)}%`
         );
       }
     }
@@ -473,17 +480,25 @@ async function parsePDF(
   
   // Качество плохое — пробуем OCR
   console.log('🔄 Качество текста низкое, запускаем OCR...');
-  onProgress?.(45, 'Текст нечитаемый, запускаем распознавание...');
+  
+  // Этап 1: Подготовка к OCR (45-50%)
+  onProgress?.(45, 'Текст нечитаемый, подготовка к распознаванию...');
   
   try {
     const Tesseract = await loadTesseract();
+    
+    // Этап 2: Загрузка модуля (50-55%)
     onProgress?.(50, 'Загружаем модуль распознавания...');
+    
+    // Небольшая пауза чтобы пользователь увидел статус
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    onProgress?.(55, `Начинаем распознавание ${pageCount} страниц...`);
     
     let ocrText = '';
     
+    // Этап 3: Распознавание страниц (55-95%)
     for (let i = 1; i <= pageCount; i++) {
-      onProgress?.(50 + (i / pageCount) * 45, `Распознаём страницу ${i}/${pageCount}...`);
-      
       const page = await pdf.getPage(i);
       const canvas = await renderPageToCanvas(page);
       
@@ -492,9 +507,7 @@ async function parsePDF(
         Tesseract, 
         i, 
         pageCount,
-        (progress, status) => {
-          onProgress?.(50 + (i - 1) / pageCount * 45 + progress / pageCount * 0.45, status);
-        }
+        onProgress
       );
       
       ocrText += pageText + '\n\n';
@@ -504,6 +517,9 @@ async function parsePDF(
       canvas.height = 0;
     }
     
+    // Этап 4: Завершение (95-100%)
+    onProgress?.(98, 'Проверяем результат...');
+    
     const ocrQuality = checkTextQuality(ocrText);
     
     if (ocrQuality.isGood && ocrQuality.score > quality.score) {
@@ -512,15 +528,18 @@ async function parsePDF(
     }
     
     if (quality.score >= ocrQuality.score) {
+      onProgress?.(100, 'Готово!');
       return { text: fullText, pageCount, ocrUsed: false, ocrPages: 0, columnsDetected };
     }
     
+    onProgress?.(100, 'Распознавание завершено!');
     return { text: ocrText, pageCount, ocrUsed: true, ocrPages: ocrPagesCount, columnsDetected: false };
     
   } catch (ocrError) {
     console.error('❌ Ошибка OCR:', ocrError);
     
     if (fullText.trim().length > 50) {
+      onProgress?.(100, 'Используем базовый текст');
       return { text: fullText, pageCount, ocrUsed: false, ocrPages: 0, columnsDetected };
     }
     
