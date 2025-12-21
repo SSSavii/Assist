@@ -1,18 +1,96 @@
+/* src/app/globals.css */
+
 @import "tailwindcss";
 
 :root {
   --background: #ffffff;
-  --foreground: #ffffff;
+  --foreground: #171717;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-@keyframes spin {
+/* ============================================
+   ШРИФТЫ - font-display: swap для быстрой загрузки
+   ============================================ */
+
+@font-face {
+  font-family: 'Cera Pro';
+  src: url('/fonts/CeraPro-Regular.woff2') format('woff2'),
+       url('/fonts/CeraPro-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cera Pro';
+  src: url('/fonts/CeraPro-Light.woff2') format('woff2'),
+       url('/fonts/CeraPro-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cera Pro';
+  src: url('/fonts/CeraPro-Medium.woff2') format('woff2'),
+       url('/fonts/CeraPro-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cera Pro';
+  src: url('/fonts/CeraPro-Bold.woff2') format('woff2'),
+       url('/fonts/CeraPro-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vasek';
+  src: url('/fonts/Vasek-Italic.woff2') format('woff2'),
+       url('/fonts/Vasek-Italic.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ============================================
+   БАЗОВЫЕ СТИЛИ
+   ============================================ */
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ============================================
+   АНИМАЦИИ
+   ============================================ */
+
+@keyframes spin-keyframes {
   from {
     transform: translateX(0);
   }
@@ -21,36 +99,11 @@
   }
 }
 
-main:has(textarea:focus) + footer {
-  display: none;
-}
-
 .spin-animation {
-  animation-name: spin;
+  animation-name: spin-keyframes;
   animation-duration: var(--spin-duration, 5s);
   animation-timing-function: cubic-bezier(0.1, 0.7, 0.3, 1);
   animation-fill-mode: forwards;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #ededed;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-}
-
-body, html {
-  touch-action: manipulation; 
-  -webkit-user-select: none;
-  user-select: none;
-  margin: 0;
-  padding: 0;
 }
 
 @keyframes pulse-fade-out {
@@ -72,53 +125,60 @@ body, html {
   animation: pulse-fade-out ease-in-out forwards;
 }
 
-/* Оптимизированные шрифты Cera Pro */
-@font-face {
-  font-family: 'Cera Pro';
-  src: url('/fonts/CeraPro-Regular.woff2') format('woff2'),
-       url('/fonts/CeraPro-Regular.woff') format('woff');
-  font-weight: 400;
-  font-style: normal;
-  font-display: block;
+@keyframes loading-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-@font-face {
-  font-family: 'Cera Pro';
-  src: url('/fonts/CeraPro-Light.woff2') format('woff2'),
-       url('/fonts/CeraPro-Light.woff') format('woff');
-  font-weight: 300;
-  font-style: normal;
-  font-display: block;
+/* ============================================
+   УТИЛИТЫ
+   ============================================ */
+
+/* Скрытие футера при фокусе на textarea */
+main:has(textarea:focus) + footer {
+  display: none;
 }
 
-@font-face {
-  font-family: 'Cera Pro';
-  src: url('/fonts/CeraPro-Medium.woff2') format('woff2'),
-       url('/fonts/CeraPro-Medium.woff') format('woff');
-  font-weight: 500;
-  font-style: normal;
-  font-display: block;
+/* Отключение подсветки при тапе */
+button, a {
+  -webkit-tap-highlight-color: transparent;
 }
 
-@font-face {
-  font-family: 'Cera Pro';
-  src: url('/fonts/CeraPro-Bold.woff2') format('woff2'),
-       url('/fonts/CeraPro-Bold.woff') format('woff');
-  font-weight: 700;
-  font-style: normal;
-  font-display: block;
+/* ============================================
+   ОБЩИЕ КОМПОНЕНТЫ ЗАГРУЗКИ
+   ============================================ */
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  height: -webkit-fill-available;
+  background-color: #FFFFFF;
+  font-family: 'Cera Pro', sans-serif;
+  color: #666666;
+  gap: 16px;
 }
 
-/* Шрифт Vasek для логотипа */
-@font-face {
-  font-family: 'Vasek';
-  font-style: italic;
-  font-weight: 400;
-  src: url('/fonts/Vasek-Italic.woff2') format('woff2'),
-       url('/fonts/Vasek-Italic.woff') format('woff'),
-       url('/fonts/Vasek-Italic_0.ttf') format('truetype');
-  font-display: block;
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #EA0000;
+  border-radius: 50%;
+  animation: loading-spin 1s linear infinite;
 }
 
-/* Google Fonts для профиля (если используются) - оптимизированная загрузка */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&family=Unbounded:wght@400;500;600;700&display=block');
+.error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #FFFFFF;
+  font-family: 'Cera Pro', sans-serif;
+  color: #FF0000;
+  padding: 20px;
+  text-align: center;
+}

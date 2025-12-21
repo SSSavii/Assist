@@ -1,9 +1,11 @@
+// src/app/(main)/profile/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useUser } from '@/app/context/UserContext';
 import {
   ChevronRight,
   UserCircle,
@@ -13,14 +15,9 @@ import {
   FileText,
 } from 'lucide-react';
 
-type UserProfile = {
-  id: number;
-  first_name: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-  balance_crystals: number;
-};
+// ============================================
+// ТИПЫ
+// ============================================
 
 interface Winning {
   id: number;
@@ -29,10 +26,14 @@ interface Winning {
   prize_type: string;
 }
 
+// ============================================
+// КОМПОНЕНТЫ
+// ============================================
+
 interface ProfileLinkProps {
-  icon?: React.ElementType; // Делаем необязательным, так как может быть картинка
-  imageSrc?: string;        // Добавляем проп для картинки
-  iconBgColor?: string;     // Необязателен, если есть картинка
+  icon?: React.ElementType;
+  imageSrc?: string;
+  iconBgColor?: string;
   text: string;
   subText?: string;
   href?: string;
@@ -42,7 +43,6 @@ interface ProfileLinkProps {
 function ProfileLink({ icon: Icon, imageSrc, iconBgColor, text, subText, href, onClick }: ProfileLinkProps) {
   const content = (
     <>
-      {/* Если передана картинка, показываем её, иначе показываем иконку с фоном */}
       {imageSrc ? (
         <div className="relative h-10 w-10 flex-shrink-0">
           <Image 
@@ -87,187 +87,120 @@ function ProfileLink({ icon: Icon, imageSrc, iconBgColor, text, subText, href, o
 }
 
 interface BalanceDisplayProps {
-    icon: React.ElementType;
-    iconBgColor: string;
-    text: string;
-    balance: number;
+  icon: React.ElementType;
+  iconBgColor: string;
+  text: string;
+  balance: number;
 }
 
 function BalanceDisplay({ icon: Icon, iconBgColor, text, balance }: BalanceDisplayProps) {
-    return (
-        <div className="flex items-center w-full p-3 bg-gray-100 rounded-lg">
-            <div className={`p-2 rounded-md ${iconBgColor}`}>
-                <Icon className="h-5 w-5 text-white" />
-            </div>
-            <span className="ml-4 font-semibold flex-grow">{text}</span>
-            <span className="font-bold text-lg">{balance.toLocaleString('ru-RU')}</span>
-        </div>
-    );
+  return (
+    <div className="flex items-center w-full p-3 bg-gray-100 rounded-lg">
+      <div className={`p-2 rounded-md ${iconBgColor}`}>
+        <Icon className="h-5 w-5 text-white" />
+      </div>
+      <span className="ml-4 font-semibold flex-grow">{text}</span>
+      <span className="font-bold text-lg">{balance.toLocaleString('ru-RU')}</span>
+    </div>
+  );
 }
 
-// Функция предзагрузки аватарки
-const preloadAvatar = (url: string): Promise<void> => {
-  return new Promise((resolve) => {
-    const img = new window.Image();
-    img.src = url;
-    img.onload = () => resolve();
-    img.onerror = () => resolve(); // Resolve даже при ошибке
-  });
-};
+// ============================================
+// ОСНОВНОЙ КОМПОНЕНТ
+// ============================================
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const { user, loading, error } = useUser();
+  
   const [winnings, setWinnings] = useState<Winning[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [avatarLoaded, setAvatarLoaded] = useState(false);
   const [winningsLoading, setWinningsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isNavigationPressed, setIsNavigationPressed] = useState(false);
 
+  // Загружаем выигрыши после загрузки user
+  useEffect(() => {
+    if (!user) return;
+    
+    const tg = window.Telegram?.WebApp;
+    if (!tg?.initData) return;
+
+    setWinningsLoading(true);
+    
+    fetch('/api/user/winnings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: tg.initData }),
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Не удалось загрузить историю выигрышей');
+        return res.json();
+      })
+      .then(data => {
+        setWinnings(data);
+      })
+      .catch(err => {
+        console.error('Winnings fetch error:', err);
+      })
+      .finally(() => {
+        setWinningsLoading(false);
+      });
+  }, [user]);
+
+  // Обработчики переходов
   const handleNavigationClick = () => {
+    const tg = window.Telegram?.WebApp;
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('light');
+    }
     router.push('/navigation');
   };
 
-  const handleCommunityClick = () => {
+  const handleTelegramLink = (url: string) => {
     const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.openTelegramLink('https://t.me/+6flpcSdc4sg5OTAy');
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('light');
     }
+    tg?.openTelegramLink(url);
   };
 
-  const handleRandomCoffeeClick = () => {
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.openTelegramLink('https://t.me/c/2782276287/324');
-    }
-  };
-
-  const handleSupportClick = () => {
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.openTelegramLink('https://t.me/KISLVVS');
-    }
-  };
-
-  const handleCooperationClick = () => {
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.openTelegramLink('https://t.me/lesya_syeva');
-    }
-  };
-
-  useEffect(() => {
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      
-      const photoUrl = tg.initDataUnsafe?.user?.photo_url;
-      
-      // Если есть аватарка - предзагружаем её
-      if (photoUrl) {
-        preloadAvatar(photoUrl).then(() => {
-          setAvatarLoaded(true);
-        });
-      } else {
-        // Если нет аватарки - сразу помечаем как загруженную
-        setAvatarLoaded(true);
-      }
-      
-      fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData: tg.initData }),
-      })
-      .then(response => {
-        if (!response.ok) throw new Error('Не удалось загрузить данные пользователя');
-        return response.json();
-      })
-      .then(data => {
-        if (data && data.error) {
-            throw new Error(data.error);
-        }
-        const fullUserData = {
-            ...data,
-            photo_url: photoUrl,
-        };
-        setUser(fullUserData);
-        
-        // Загружаем историю выигрышей после загрузки профиля
-        setWinningsLoading(true);
-        return fetch('/api/user/winnings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ initData: tg.initData }),
-        });
-      })
-      .then(response => {
-        if (!response.ok) throw new Error('Не удалось загрузить историю выигрышей');
-        return response.json();
-      })
-      .then(winningsData => {
-        setWinnings(winningsData);
-      })
-      .catch(err => {
-        console.error("Profile fetch error:", err);
-        setError(err.message);
-      })
-      .finally(() => {
-        setLoading(false);
-        setWinningsLoading(false);
-      });
-    } else {
-        setLoading(false);
-        setAvatarLoaded(true);
-        setError("Приложение необходимо открыть в Telegram");
-    }
-  }, []);
-
-  // Показываем загрузку пока не загрузились данные И аватарка
-  if (loading || !avatarLoaded) {
+  // Загрузка
+  if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center h-full bg-white gap-4">
+      <div className="flex flex-col justify-center items-center h-screen bg-white gap-4">
         <div className="loading-spinner"></div>
-        <p className="text-gray-500">Загрузка данных профиля...</p>
-        <style jsx>{`
-          .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3b82f6;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-          }
-          
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
+        <p className="text-gray-500 font-medium">Загрузка профиля...</p>
       </div>
     );
   }
 
+  // Ошибка
   if (error || !user) {
-      return (
-        <div className="flex justify-center items-center h-full bg-white">
-            <p className="text-red-500">{error || "Не удалось загрузить профиль."}</p>
-        </div>
-      );
+    return (
+      <div className="flex flex-col justify-center items-center h-screen bg-white gap-4 px-4">
+        <p className="text-red-500 text-center">{error || "Не удалось загрузить профиль"}</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="px-6 py-2 bg-red-500 text-white rounded-lg"
+        >
+          Перезагрузить
+        </button>
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col items-center bg-white text-black p-4 pt-8 pb-20">
+    <div className="flex flex-col items-center bg-white text-black p-4 pt-8 pb-20 min-h-screen">
+      {/* Аватар и имя */}
       <div className="flex flex-col items-center">
         {user.photo_url ? (
           <Image
             src={user.photo_url}
-            alt="User Avatar"
+            alt="Avatar"
             width={150}
             height={150}
             priority
-            quality={100}
             className="rounded-full"
+            unoptimized
           />
         ) : (
           <UserCircle className="h-24 w-24 text-gray-300" />
@@ -277,44 +210,45 @@ export default function ProfilePage() {
         </h2>
       </div>
 
+      {/* Меню */}
       <div className="w-full max-w-md mt-10 space-y-3">
         {/* Баланс */}
         <BalanceDisplay 
-            icon={Wallet}
-            iconBgColor="bg-green-500"
-            text="Баланс"
-            balance={user.balance_crystals}
+          icon={Wallet}
+          iconBgColor="bg-green-500"
+          text="Баланс"
+          balance={user.balance_crystals}
         />
 
-        {/* Random Coffee - Картинка Frame 30.png */}
+        {/* Random Coffee */}
         <ProfileLink
           imageSrc="/profile/Frame 30.png"
           text="Random coffee"
-          onClick={handleRandomCoffeeClick}
+          onClick={() => handleTelegramLink('https://t.me/c/2782276287/324')}
         />
 
-        {/* Сообщество - Картинка Frame 30-2.png */}
+        {/* Сообщество */}
         <ProfileLink
           imageSrc="/profile/Frame 30-2.png"
           text="Сообщество АССИСТ+"
-          onClick={handleCommunityClick}
+          onClick={() => handleTelegramLink('https://t.me/+6flpcSdc4sg5OTAy')}
         />
 
-        {/* Поддержка - Картинка Frame 30-3.png */}
+        {/* Поддержка */}
         <ProfileLink
           imageSrc="/profile/Frame 30-3.png"
           text="Поддержка"
-          onClick={handleSupportClick}
+          onClick={() => handleTelegramLink('https://t.me/KISLVVS')}
         />
 
-        {/* Сотрудничество - Картинка Frame 30-4.png */}
+        {/* Сотрудничество */}
         <ProfileLink
           imageSrc="/profile/Frame 30-4.png"
           text="Сотрудничество"
-          onClick={handleCooperationClick}
+          onClick={() => handleTelegramLink('https://t.me/lesya_syeva')}
         />
         
-        {/* Анализ резюме - новая кнопка */}
+        {/* AI Анализ резюме */}
         <ProfileLink
           icon={FileText}
           iconBgColor="bg-purple-500"
@@ -323,7 +257,7 @@ export default function ProfilePage() {
           href="/resume"
         />
 
-        {/* Кнопка навигации по каналу АССИСТ+ */}
+        {/* Кнопка навигации */}
         <button
           className={`flex items-center justify-between w-full p-5 bg-gradient-to-r from-[#F34444] to-[#D72525] rounded-3xl transition-transform shadow-lg ${isNavigationPressed ? 'scale-[0.98]' : ''}`}
           onClick={handleNavigationClick}
@@ -345,7 +279,7 @@ export default function ProfilePage() {
         </button>
       </div>
 
-      {/* Раздел истории выигрышей */}
+      {/* История выигрышей */}
       <div className="w-full max-w-md mt-8">
         <div className="flex items-center mb-4">
           <Gift className="h-6 w-6 text-red-500 mr-2" />
@@ -375,11 +309,11 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    winning.prize_type === 'rare' 
+                    winning.prize_type === 'rare' || winning.prize_type === 'very_rare'
                       ? 'bg-purple-100 text-purple-800' 
                       : 'bg-blue-100 text-blue-800'
                   }`}>
-                    {winning.prize_type === 'rare' ? 'Редкий приз' : 'Обычный приз'}
+                    {winning.prize_type === 'rare' || winning.prize_type === 'very_rare' ? 'Редкий' : 'Обычный'}
                   </span>
                 </div>
               </div>
