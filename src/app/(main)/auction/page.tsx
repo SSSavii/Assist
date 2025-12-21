@@ -1,13 +1,11 @@
-// src/app/(main)/auction/page.tsx
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useUser } from '@/app/context/UserContext';
 
-// --- КОМПОНЕНТ РУЛЕТКИ (ИСПРАВЛЕННЫЙ) ---
+// --- КОМПОНЕНТ РУЛЕТКИ (ВСТАВЛЕН СЮДА ДЛЯ УДОБСТВА) ---
 
 type ReelPrize = { name: string; icon: string };
 
@@ -35,17 +33,13 @@ const POST_ANIMATION_DELAY = 1000;
 function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: HorizontalTextSlotMachineProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
+    
     const [reelItems, setReelItems] = useState<ReelPrize[]>([]);
+    
     const [transform, setTransform] = useState('translateX(0px)');
     const [isAnimating, setIsAnimating] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSpinIdRef = useRef<number>(-1);
-    
-    // ИСПРАВЛЕНИЕ: сохраняем onSpinEnd в ref чтобы не перезапускать эффект
-    const onSpinEndRef = useRef(onSpinEnd);
-    useEffect(() => {
-        onSpinEndRef.current = onSpinEnd;
-    });
 
     useLayoutEffect(() => {
         if (containerRef.current && prizes.length > 0 && reelItems.length === 0) {
@@ -55,7 +49,7 @@ function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: 
             const initialReel = Array.from({ length: 200 }, () => shuffle(prizes)).flat();
             setReelItems(initialReel);
         }
-    }, [prizes, reelItems.length]);
+    }, [prizes]);
 
     useEffect(() => {
         if (reelItems.length === 0 || 
@@ -80,7 +74,7 @@ function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: 
         setIsAnimating(false);
         setTransform('translateX(0px)');
         
-        const startTimeout = setTimeout(() => {
+        setTimeout(() => {
             setIsAnimating(true);
             setTransform(`translateX(${finalPosition}px)`);
 
@@ -90,18 +84,15 @@ function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: 
                 setIsAnimating(false);
                 
                 setTimeout(() => {
-                    // ИСПРАВЛЕНИЕ: используем ref для вызова актуальной функции
-                    onSpinEndRef.current();
+                    onSpinEnd();
                 }, POST_ANIMATION_DELAY);
             }, ANIMATION_DURATION);
         }, 50);
 
         return () => {
-            clearTimeout(startTimeout);
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
         };
-    // ИСПРАВЛЕНИЕ: убрали onSpinEnd из зависимостей
-    }, [winningPrize, spinId, containerWidth, reelItems]);
+    }, [winningPrize, spinId, containerWidth, reelItems, onSpinEnd]);
 
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-red-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
@@ -143,7 +134,116 @@ function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: 
     );
 }
 
-// --- ТИПЫ И КОНФИГУРАЦИЯ ---
+// --- ОСНОВНОЙ КОМПОНЕНТ СТРАНИЦЫ ---
+
+const GlobalStyles = () => (
+  <>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    {/* Preload шрифтов */}
+    <link
+      rel="preload"
+      href="/fonts/CeraPro-Regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossOrigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/fonts/CeraPro-Medium.woff2"
+      as="font"
+      type="font/woff2"
+      crossOrigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/fonts/CeraPro-Bold.woff2"
+      as="font"
+      type="font/woff2"
+      crossOrigin="anonymous"
+    />
+    
+    {/* Preload иконки кристаллов */}
+    <link
+      rel="preload"
+      href="/images/322.png"
+      as="image"
+      fetchPriority="high"
+    />
+    
+    {/* Preload изображений призов (удалены 3000 и 2000) */}
+    <link rel="preload" href="/prizes/closed-event.png" as="image" />
+    <link rel="preload" href="/prizes/individual-60min.png" as="image" />
+    <link rel="preload" href="/prizes/breakfast.png" as="image" />
+    <link rel="preload" href="/prizes/entrepreneur-analysis.png" as="image" />
+    <link rel="preload" href="/prizes/lifehacks.png" as="image" />
+    <link rel="preload" href="/prizes/lottery-10min.png" as="image" />
+    <link rel="preload" href="/prizes/weekly-call.png" as="image" />
+    <link rel="preload" href="/prizes/1000-aplus.png" as="image" />
+    <link rel="preload" href="/prizes/resume.png" as="image" />
+    <link rel="preload" href="/prizes/500-aplus.png" as="image" />
+    <link rel="preload" href="/prizes/team-analysis.png" as="image" />
+    <link rel="preload" href="/prizes/checklist.png" as="image" />
+    <link rel="preload" href="/prizes/100-aplus.png" as="image" />
+    <link rel="preload" href="/prizes/250-aplus.png" as="image" />
+    
+    <style jsx global>{`
+      * {
+        box-sizing: border-box;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow-x: hidden;
+      }
+      
+      @font-face {
+        font-family: 'Cera Pro';
+        src: url('/fonts/CeraPro-Regular.woff2') format('woff2'),
+             url('/fonts/CeraPro-Regular.woff') format('woff');
+        font-weight: 400;
+        font-style: normal;
+        font-display: block;
+      }
+      
+      @font-face {
+        font-family: 'Cera Pro';
+        src: url('/fonts/CeraPro-Light.woff2') format('woff2'),
+             url('/fonts/CeraPro-Light.woff') format('woff');
+        font-weight: 300;
+        font-style: normal;
+        font-display: block;
+      }
+      
+      @font-face {
+        font-family: 'Cera Pro';
+        src: url('/fonts/CeraPro-Medium.woff2') format('woff2'),
+             url('/fonts/CeraPro-Medium.woff') format('woff');
+        font-weight: 500;
+        font-style: normal;
+        font-display: block;
+      }
+      
+      @font-face {
+        font-family: 'Cera Pro';
+        src: url('/fonts/CeraPro-Bold.woff2') format('woff2'),
+             url('/fonts/CeraPro-Bold.woff') format('woff');
+        font-weight: 700;
+        font-style: normal;
+        font-display: block;
+      }
+      
+      body {
+        font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      }
+    `}</style>
+  </>
+);
 
 type Prize = {
   name: string;
@@ -155,21 +255,42 @@ type Prize = {
 };
 
 const ALL_PRIZES: Prize[] = [
+  // Нереальный шанс
   { name: 'Приглашение на закрытое мероприятие', type: 'impossible', probability: 0, canWin: false, deliveryType: 'manual', image: '/prizes/closed-event.png' },
   { name: 'Индивидуальный разбор от предпринимателя (60 минут)', type: 'impossible', probability: 0, canWin: false, deliveryType: 'manual', image: '/prizes/individual-60min.png' },
   { name: 'Завтрак с предпринимателем', type: 'impossible', probability: 0, canWin: false, deliveryType: 'manual', image: '/prizes/breakfast.png' },
+  
+  // Очень маленький шанс
   { name: 'Разбор 1 запроса от предпринимателя с выручкой от 100 млн рублей в год', type: 'very_rare', probability: 0.167, canWin: true, deliveryType: 'manual', image: '/prizes/entrepreneur-analysis.png' },
   { name: 'Пакет практических лайфхаков', type: 'very_rare', probability: 0.167, canWin: true, deliveryType: 'bot_message', image: '/prizes/lifehacks.png' },
+  
+  // Маленький шанс
   { name: 'Участие в розыгрыше на 10-ти минутный онлайн-мини-разбор', type: 'rare', probability: 0.5, canWin: true, deliveryType: 'manual', image: '/prizes/lottery-10min.png' },
   { name: 'Участие в еженедельном созвоне с БА', type: 'rare', probability: 0.5, canWin: true, deliveryType: 'manual', image: '/prizes/weekly-call.png' },
   { name: '1000 A+', type: 'rare', probability: 8.5, canWin: true, deliveryType: 'instant', image: '/prizes/1000-aplus.png' },
   { name: 'Разбор вашего резюме', type: 'rare', probability: 0.5, canWin: true, deliveryType: 'manual', image: '/prizes/resume.png' },
+  
+  // Хороший шанс
   { name: '500 A+', type: 'common', probability: 25.5, canWin: true, deliveryType: 'instant', image: '/prizes/500-aplus.png' },
   { name: 'Разбор запроса от команды', type: 'common', probability: 5, canWin: true, deliveryType: 'manual', image: '/prizes/team-analysis.png' },
+  
+  // Отличный шанс
   { name: 'Чек-лист', type: 'excellent', probability: 18.17, canWin: true, deliveryType: 'bot_message', image: '/prizes/checklist.png' },
   { name: '100 A+', type: 'excellent', probability: 18.17, canWin: true, deliveryType: 'instant', image: '/prizes/100-aplus.png' },
   { name: '250 A+', type: 'excellent', probability: 18.16, canWin: true, deliveryType: 'instant', image: '/prizes/250-aplus.png' },
 ];
+
+interface UserProfile {
+  id: number;
+  tg_id: number;
+  balance_crystals: number;
+  cases_to_open: number;
+  bot_started?: boolean;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  has_spun_before?: boolean;
+}
 
 interface DailyLimit {
   remaining: number;
@@ -180,24 +301,22 @@ interface DailyLimit {
 const CASE_COST = 500;
 const PREMIUM_ITEM_COST = 40000;
 
+// Функция предзагрузки изображений
 const preloadImages = (imageUrls: string[]): Promise<void[]> => {
   const promises = imageUrls.map((url) => {
-    return new Promise<void>((resolve) => {
+    return new Promise<void>((resolve, reject) => {
       const img = new window.Image();
       img.src = url;
       img.onload = () => resolve();
-      img.onerror = () => resolve();
+      img.onerror = () => resolve(); // Resolve даже при ошибке, чтобы не блокировать загрузку
     });
   });
   return Promise.all(promises);
 };
 
-// --- ОСНОВНОЙ КОМПОНЕНТ ---
-
 export default function ShopPage() {
   const router = useRouter();
-  const { user, loading: userLoading, error: userError, updateBalance, updateUser } = useUser();
-  
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [dailyLimit, setDailyLimit] = useState<DailyLimit | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [winningPrize, setWinningPrize] = useState<Prize | null>(null);
@@ -209,66 +328,79 @@ export default function ShopPage() {
   const hasSpunRef = useRef(false);
   const isProcessingPrizeRef = useRef(false);
   const [isFirstSpin, setIsFirstSpin] = useState(true);
-  
-  // ИСПРАВЛЕНИЕ: сохраняем winningPrize в ref для доступа из handleSpinEnd
-  const winningPrizeRef = useRef<Prize | null>(null);
-  useEffect(() => {
-    winningPrizeRef.current = winningPrize;
-  }, [winningPrize]);
 
+  // Предзагрузка всех изображений
   useEffect(() => {
     const imagesToPreload = [
       '/images/322.png',
       ...ALL_PRIZES.map(prize => prize.image)
     ];
+
     preloadImages(imagesToPreload).then(() => {
       setImagesLoaded(true);
     });
   }, []);
 
   useEffect(() => {
-    if (userLoading || !user) return;
-
     const tg = window.Telegram?.WebApp;
-    if (!tg?.initData) {
+    if (!tg) {
+      setError("Telegram WebApp не найден. Откройте приложение в Telegram.");
       setIsLoading(false);
       return;
     }
 
-    setIsFirstSpin(!user.has_spun_before);
+    tg.ready();
 
-    fetch('/api/user/daily-limit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        initData: tg.initData,
-        action: 'check'
+    Promise.all([
+      fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: tg.initData }),
+      }).then(response => {
+        if (!response.ok) throw new Error('Не удалось загрузить данные пользователя');
+        return response.json();
       }),
-    })
-    .then(response => {
-      if (!response.ok) throw new Error('Не удалось загрузить лимиты');
-      return response.json();
-    })
-    .then(limitData => {
+      
+      fetch('/api/user/daily-limit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          initData: tg.initData,
+          action: 'check'
+        }),
+      }).then(response => {
+        if (!response.ok) throw new Error('Не удалось загрузить лимиты');
+        return response.json();
+      })
+    ])
+    .then(([userData, limitData]) => {
+      if (userData && userData.error) {
+        throw new Error(userData.error);
+      }
+      setUser(userData);
       setDailyLimit(limitData);
+      setIsFirstSpin(!userData.has_spun_before);
     })
     .catch(err => {
-      console.error("Daily limit fetch error:", err);
+      console.error("Shop page fetch error:", err);
       setError(err.message);
     })
     .finally(() => {
       setIsLoading(false);
     });
-  }, [user, userLoading]);
+  }, []);
 
   const getRandomPrize = (): Prize => {
+    // Если это первый спин - гарантированно выдаём плейбук
     if (isFirstSpin) {
       const playbook = ALL_PRIZES.find(p => p.name === 'Пакет практических лайфхаков');
       if (playbook) {
+        console.log('[FIRST SPIN] Guaranteed prize: Пакет практических лайфхаков');
         return playbook;
       }
     }
     
+    // Обычная логика для последующих спинов
     const winnablePrizes = ALL_PRIZES.filter(p => p.canWin);
     const totalProbability = winnablePrizes.reduce((sum, prize) => sum + prize.probability, 0);
     
@@ -304,7 +436,12 @@ export default function ShopPage() {
 
         if (response.ok) {
           const data = await response.json();
-          updateBalance(data.newBalance);
+          
+          setUser(prev => prev ? {
+            ...prev,
+            balance_crystals: data.newBalance
+          } : null);
+          
           tg.showAlert(`🎉 Поздравляем! Вы выиграли: ${prize.name}\n\n✨ Плюсы начислены на ваш баланс!`);
         }
       } else if (prize.deliveryType === 'bot_message') {
@@ -356,24 +493,6 @@ export default function ShopPage() {
     } finally {
       isProcessingPrizeRef.current = false;
     }
-  };
-
-  // ИСПРАВЛЕНИЕ: используем ref для получения актуального winningPrize
-  const handleSpinEnd = () => {
-    const prize = winningPrizeRef.current;
-    if (prize && !isProcessingPrizeRef.current) {
-      window.Telegram?.WebApp?.HapticFeedback.notificationOccurred('success');
-      handlePrizeDelivery(prize);
-    }
-    
-    if (isFirstSpin) {
-      setIsFirstSpin(false);
-    }
-    
-    setTimeout(() => {
-      setIsSpinning(false);
-      hasSpunRef.current = false;
-    }, 500);
   };
 
   const handleSpin = async () => {
@@ -435,7 +554,10 @@ export default function ShopPage() {
 
       const limitData = await limitResponse.json();
       
-      updateBalance(spendData.newBalance);
+      setUser(prev => prev ? { 
+        ...prev, 
+        balance_crystals: spendData.newBalance
+      } : null);
 
       setDailyLimit({
         remaining: limitData.remaining,
@@ -458,6 +580,23 @@ export default function ShopPage() {
     }
   };
 
+  const handleSpinEnd = () => {
+    if (winningPrize && !isProcessingPrizeRef.current) {
+      window.Telegram?.WebApp?.HapticFeedback.notificationOccurred('success');
+      handlePrizeDelivery(winningPrize);
+    }
+    
+    // После первого спина сбрасываем флаг
+    if (isFirstSpin) {
+      setIsFirstSpin(false);
+    }
+    
+    setTimeout(() => {
+      setIsSpinning(false);
+      hasSpunRef.current = false;
+    }, 500);
+  };
+
   const handleOpenBot = async () => {
     const tg = window.Telegram?.WebApp;
     if (tg?.HapticFeedback) {
@@ -472,7 +611,7 @@ export default function ShopPage() {
       });
 
       if (response.ok) {
-        updateUser({ bot_started: true });
+        setUser(prev => prev ? { ...prev, bot_started: true } : null);
       }
     } catch (error) {
       console.error('Error notifying bot:', error);
@@ -513,7 +652,11 @@ export default function ShopPage() {
       }
 
       const data = await response.json();
-      updateBalance(data.newBalance);
+
+      setUser(prev => prev ? {
+        ...prev,
+        balance_crystals: data.newBalance
+      } : null);
 
       tg?.HapticFeedback.notificationOccurred('success');
       tg?.showAlert('🎉 Покупка успешно совершена!\n\n📞 Администратор свяжется с вами в ближайшее время для организации созвона.');
@@ -535,19 +678,39 @@ export default function ShopPage() {
     router.push('/auction/prizes');
   };
 
-  if (userLoading || isLoading || !imagesLoaded) {
+  // Показываем загрузку пока не загрузились данные И изображения
+  if (isLoading || !imagesLoaded) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
         <p>Загрузка...</p>
-      </div>
-    );
-  }
-
-  if (userError) {
-    return (
-      <div className="error-container">
-        <p>{userError}</p>
+        <style jsx>{`
+          .loading-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #FFFFFF;
+            font-family: 'Cera Pro', sans-serif;
+            color: #666666;
+            gap: 16px;
+          }
+          
+          .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #EA0000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          }
+          
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     );
   }
@@ -562,6 +725,7 @@ export default function ShopPage() {
 
   return (
     <>
+      <GlobalStyles />
       <div className="shop-wrapper">
         <main className="shop-container">
           <div className="shop-header">
@@ -723,6 +887,7 @@ export default function ShopPage() {
             width: 100%;
             max-width: 343px;
             background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
+            border: 2px solid #D72525;
             color: white;
             padding: 16px;
             border-radius: 16px;
@@ -861,6 +1026,9 @@ export default function ShopPage() {
             gap: 10px;
             width: 100%;
             max-width: 343px;
+            flex: none;
+            order: 5;
+            flex-grow: 0;
           }
 
           .premium-section {
@@ -872,6 +1040,9 @@ export default function ShopPage() {
             width: 100%;
             background: #F1F1F1;
             border-radius: 16px;
+            flex: none;
+            order: 0;
+            flex-grow: 0;
             box-sizing: border-box;
           }
 
@@ -879,11 +1050,17 @@ export default function ShopPage() {
             margin: 0;
             width: 100%;
             font-family: 'Cera Pro', sans-serif;
+            font-style: normal;
             font-weight: 500;
             font-size: 24px;
             line-height: 100%;
+            leading-trim: both;
+            text-edge: cap;
             letter-spacing: -0.03em;
             color: #000000;
+            flex: none;
+            order: 0;
+            flex-grow: 0;
           }
 
           .product-item {
@@ -893,6 +1070,10 @@ export default function ShopPage() {
             padding: 4px 0px;
             gap: 16px;
             width: 100%;
+            flex: none;
+            order: 1;
+            align-self: stretch;
+            flex-grow: 0;
           }
 
           .product-text {
@@ -902,24 +1083,36 @@ export default function ShopPage() {
             padding: 0px;
             gap: 4px;
             flex: 1;
+            order: 0;
+            flex-grow: 1;
           }
 
           .product-name {
             font-family: 'Cera Pro', sans-serif;
+            font-style: normal;
             font-weight: 500;
             font-size: 16px;
             line-height: 100%;
             letter-spacing: -0.05em;
             color: #000000;
+            flex: none;
+            order: 0;
+            align-self: stretch;
+            flex-grow: 0;
           }
 
           .product-description {
             font-family: 'Cera Pro', sans-serif;
+            font-style: normal;
             font-weight: 300;
             font-size: 16px;
             line-height: 110%;
             letter-spacing: -0.02em;
             color: #000000;
+            flex: none;
+            order: 1;
+            align-self: stretch;
+            flex-grow: 0;
           }
 
           .purchase-section {
@@ -928,21 +1121,34 @@ export default function ShopPage() {
             align-items: flex-end;
             padding: 0px;
             gap: 8px;
+            flex: none;
+            order: 1;
+            flex-grow: 0;
           }
 
           .buy-button {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 8px 32px;
+            gap: 10px;
             background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
             border-radius: 30px;
+            flex: none;
+            order: 0;
+            align-self: stretch;
+            flex-grow: 0;
             border: none;
             cursor: pointer;
             transition: opacity 0.2s;
             font-family: 'Cera Pro', sans-serif;
+            font-style: normal;
             font-weight: 500;
             font-size: 16px;
+            line-height: 100%;
+            text-align: center;
+            letter-spacing: -0.05em;
             color: #FFFFFF;
           }
 
@@ -959,19 +1165,35 @@ export default function ShopPage() {
             display: flex;
             flex-direction: row;
             align-items: center;
+            padding: 0px;
             gap: 10px;
+            flex: none;
+            order: 1;
+            flex-grow: 0;
           }
 
           .price-value {
             font-family: 'Cera Pro', sans-serif;
+            font-style: normal;
             font-weight: 500;
             font-size: 20px;
+            line-height: 100%;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            letter-spacing: -0.03em;
             color: #000000;
+            flex: none;
+            order: 0;
+            flex-grow: 0;
           }
 
           .crystal-icon {
             width: 25px;
             height: 25px;
+            flex: none;
+            order: 1;
+            flex-grow: 0;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1000,6 +1222,12 @@ export default function ShopPage() {
 
             .premium-title {
               font-size: 20px;
+            }
+          }
+
+          @supports (-webkit-touch-callout: none) {
+            .shop-wrapper {
+              min-height: -webkit-fill-available;
             }
           }
         `}</style>
