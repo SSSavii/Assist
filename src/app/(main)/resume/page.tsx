@@ -16,7 +16,6 @@ export default function ResumePage() {
   const [fileName, setFileName] = useState('');
   const [fileWarning, setFileWarning] = useState<string | null>(null);
   
-  // Новый state для прогресса загрузки/OCR
   const [uploadProgress, setUploadProgress] = useState<{ 
     progress: number; 
     status: string 
@@ -112,20 +111,20 @@ export default function ResumePage() {
     setUploadProgress({ progress: 0, status: 'Начинаем обработку...' });
 
     try {
-      // Передаём callback для отображения прогресса
       const result = await parseResumeFile(file, (progress, status) => {
         setUploadProgress({ progress, status });
       });
       
       setResumeText(result.text);
       
-      // Показываем предупреждения
       if (result.metadata.warning) {
         setFileWarning(result.metadata.warning);
       } else if (result.metadata.quality === 'ocr') {
         setFileWarning(
           `Текст распознан через OCR (${result.metadata.ocrPages} стр.). Проверьте корректность.`
         );
+      } else if (result.metadata.columnsDetected) {
+        setFileWarning('Обнаружен двухколоночный макет. Текст объединён автоматически.');
       } else if (result.metadata.quality === 'poor') {
         setFileWarning('Качество текста низкое. Рекомендуем проверить или вставить вручную.');
       }
@@ -247,7 +246,6 @@ export default function ResumePage() {
     );
   };
 
-  // Компонент для отображения прогресса загрузки/OCR
   const UploadProgressIndicator = () => {
     if (!uploadLoading || !uploadProgress) return null;
     
@@ -290,16 +288,10 @@ export default function ResumePage() {
               </p>
               <p className="text-xs text-orange-600 mt-1">
                 PDF содержит изображения или сложный дизайн. 
-                Это может занять 15-45 секунд в зависимости от количества страниц.
+                Это может занять 15-45 секунд.
               </p>
             </div>
           </div>
-        )}
-        
-        {!isOCR && uploadProgress.progress < 45 && (
-          <p className="text-xs text-blue-600 mt-2">
-            Извлекаем текст из документа...
-          </p>
         )}
       </div>
     );
@@ -370,10 +362,8 @@ export default function ResumePage() {
                 </div>
               </button>
               
-              {/* Прогресс загрузки/OCR */}
               <UploadProgressIndicator />
               
-              {/* Успешная загрузка */}
               {fileName && !uploadLoading && (
                 <div className="mt-3 flex items-center justify-between text-sm text-green-600 bg-green-50 p-3 rounded-lg border border-green-200">
                   <span className="flex items-center">
@@ -399,7 +389,6 @@ export default function ResumePage() {
                 </div>
               )}
               
-              {/* Предупреждение о качестве */}
               {fileWarning && (
                 <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <div className="flex items-start">
@@ -460,12 +449,6 @@ export default function ResumePage() {
                   <div>
                     <p className="font-medium">Ошибка</p>
                     <p className="text-sm mt-1">{error}</p>
-                    {error.includes('скопировать') && (
-                      <p className="text-xs mt-2 text-red-600">
-                        💡 Откройте PDF, нажмите Ctrl+A (выделить всё), затем Ctrl+C (копировать) 
-                        и вставьте в поле выше.
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>
@@ -505,8 +488,8 @@ export default function ResumePage() {
                   <p className="font-medium mb-1">Как работает:</p>
                   <ul className="list-disc list-inside space-y-1 text-xs">
                     <li>Обычные PDF — текст извлекается мгновенно</li>
-                    <li>Дизайнерские PDF (Canva, Figma) — автоматически распознаём через OCR</li>
-                    <li>Если OCR не справился — вставьте текст вручную</li>
+                    <li>Двухколоночные PDF — колонки объединяются автоматически</li>
+                    <li>Дизайнерские PDF — распознаём через OCR</li>
                   </ul>
                 </div>
               </div>
@@ -514,6 +497,7 @@ export default function ResumePage() {
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Оценка */}
             <div className="bg-gray-50 rounded-lg shadow-sm p-6">
               <div className="flex justify-between items-start mb-4">
                 <h2 className="text-xl font-bold text-black">Результаты анализа</h2>
@@ -552,81 +536,88 @@ export default function ResumePage() {
               <p className="text-black leading-relaxed text-lg italic">&ldquo;{analysis.summary}&rdquo;</p>
             </div>
 
+            {/* Практические рекомендации (nudges) - БЕЗ нумерации */}
             {analysis.nudges && analysis.nudges.length > 0 && (
               <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-6 border border-purple-200">
                 <h3 className="font-bold mb-4 text-black text-lg flex items-center">
                   <LottieSticker name="fire" size={28} className="mr-2" />
                   Практические рекомендации
                 </h3>
-                {analysis.nudges.map((nudge: any, i: number) => (
-                  <div key={i} className="mb-3 p-4 bg-white rounded-lg shadow-sm border-l-4 border-purple-400">
-                    <div className="flex justify-between items-start">
-                      <p className="text-black flex-1">{nudge.message}</p>
-                      {nudge.actionTime && (
-                        <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded whitespace-nowrap">
-                          ⏱ {nudge.actionTime}
-                        </span>
-                      )}
+                <div className="space-y-3">
+                  {analysis.nudges.map((nudge: any, i: number) => (
+                    <div key={i} className="p-4 bg-white rounded-lg shadow-sm border-l-4 border-purple-400">
+                      <div className="flex justify-between items-start">
+                        <p className="text-black flex-1">{nudge.message}</p>
+                        {nudge.actionTime && (
+                          <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded whitespace-nowrap">
+                            ⏱ {nudge.actionTime}
+                          </span>
+                        )}
+                      </div>
+                      <span className="inline-block mt-2 text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">
+                        {NudgeSystem.getNudgeTypeLabel(nudge.type)}
+                      </span>
                     </div>
-                    <span className="inline-block mt-2 text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">
-                      {NudgeSystem.getNudgeTypeLabel(nudge.type)}
-                    </span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
 
+            {/* Сильные стороны - БЕЗ нумерации, с галочками */}
             {analysis.strengths && analysis.strengths.length > 0 && (
               <div className="bg-green-50 rounded-lg p-6 border border-green-200">
                 <h3 className="font-bold mb-3 text-black text-lg flex items-center">
                   <LottieSticker name="checkmark" size={28} className="mr-2" />
                   Сильные стороны
                 </h3>
-                <ol className="space-y-2">
+                <div className="space-y-2">
                   {analysis.strengths.map((item: string, i: number) => (
-                    <li key={i} className="flex items-start bg-white p-3 rounded-lg">
-                      <span className="text-green-600 mr-3 font-bold min-w-[24px]">{i + 1}.</span>
+                    <div key={i} className="flex items-start bg-white p-3 rounded-lg">
+                      <span className="text-green-500 mr-3 text-lg">✓</span>
                       <span className="text-black">{item}</span>
-                    </li>
+                    </div>
                   ))}
-                </ol>
+                </div>
               </div>
             )}
 
+            {/* Зоны роста - БЕЗ нумерации, с точками */}
             {analysis.weaknesses && analysis.weaknesses.length > 0 && (
               <div className="bg-orange-50 rounded-lg p-6 border border-orange-200">
                 <h3 className="font-bold mb-3 text-black text-lg flex items-center">
                   <LottieSticker name="exclamation" size={28} className="mr-2" />
                   Зоны роста
                 </h3>
-                <ol className="space-y-2">
+                <div className="space-y-2">
                   {analysis.weaknesses.map((item: string, i: number) => (
-                    <li key={i} className="flex items-start bg-white p-3 rounded-lg">
-                      <span className="text-orange-600 mr-3 font-bold min-w-[24px]">{i + 1}.</span>
+                    <div key={i} className="flex items-start bg-white p-3 rounded-lg">
+                      <span className="text-orange-500 mr-3 text-lg">•</span>
                       <span className="text-black">{item}</span>
-                    </li>
+                    </div>
                   ))}
-                </ol>
+                </div>
               </div>
             )}
 
+            {/* Рекомендации - БЕЗ нумерации, со стрелками */}
             {analysis.recommendations && analysis.recommendations.length > 0 && (
               <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
                 <h3 className="font-bold mb-3 text-black text-lg flex items-center">
                   <LottieSticker name="megaphone" size={28} className="mr-2" />
                   Рекомендации
                 </h3>
-                <ol className="space-y-2">
+                <div className="space-y-2">
                   {analysis.recommendations.map((rec: string, i: number) => (
-                    <li key={i} className="flex items-start bg-white p-3 rounded-lg">
-                      <span className="text-blue-600 mr-3 font-bold min-w-[24px]">{i + 1}.</span>
+                    <div key={i} className="flex items-start bg-white p-3 rounded-lg">
+                      <span className="text-blue-500 mr-3 text-lg">→</span>
                       <span className="text-black">{rec}</span>
-                    </li>
+                    </div>
                   ))}
-                </ol>
+                </div>
               </div>
             )}
 
+            {/* Быстрый старт - ОСТАВЛЯЕМ нумерацию */}
             {analysis.quickStart && analysis.quickStart.length > 0 && (
               <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-lg p-6 text-white">
                 <h3 className="font-bold mb-4 text-lg flex items-center">

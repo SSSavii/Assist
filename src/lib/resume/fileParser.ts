@@ -17,6 +17,7 @@ export interface ParseResult {
     warning?: string;
     ocrUsed?: boolean;
     ocrPages?: number;
+    columnsDetected?: boolean;
   };
 }
 
@@ -65,7 +66,6 @@ async function loadTesseract(): Promise<any> {
     throw new Error('Tesseract.js можно использовать только в браузере');
   }
   
-  // Динамический импорт для code splitting
   const Tesseract = await import('tesseract.js');
   return Tesseract.default || Tesseract;
 }
@@ -84,19 +84,17 @@ function checkTextQuality(text: string): {
 
   const trimmed = text.trim();
   
-  // Слишком короткий текст для резюме
   if (trimmed.length < 100) {
     return { isGood: false, score: 1, reason: 'Текст слишком короткий' };
   }
   
-  // Паттерн: отдельные буквы с пробелами (признак проблемного PDF)
-  // Например: "P y t h o n" или ") k o o l t u O"
+  // Паттерн: отдельные буквы с пробелами
   const singleLetterRuns = trimmed.match(/(\s[a-zA-Zа-яА-ЯёЁ]\s){3,}/g) || [];
   if (singleLetterRuns.length >= 3) {
     return { isGood: false, score: 2, reason: 'Буквы разделены пробелами' };
   }
   
-  // Паттерн: reversed текст или мусор
+  // Паттерн: много скобок и спецсимволов
   const reversedPattern = /[)(\]\[}{><]/g;
   const brackets = (trimmed.match(reversedPattern) || []).length;
   const bracketRatio = brackets / trimmed.length;
@@ -104,7 +102,6 @@ function checkTextQuality(text: string): {
     return { isGood: false, score: 2, reason: 'Много скобок и спецсимволов' };
   }
   
-  // Проверяем соотношение пробелов к буквам
   const letters = (trimmed.match(/[a-zA-Zа-яА-ЯёЁ]/g) || []).length;
   const spaces = (trimmed.match(/\s/g) || []).length;
   
@@ -113,18 +110,15 @@ function checkTextQuality(text: string): {
   }
   
   const spaceToLetterRatio = spaces / letters;
-  // Нормальный текст: ~0.15-0.25, проблемный: >0.5
   if (spaceToLetterRatio > 0.5) {
     return { isGood: false, score: 3, reason: 'Слишком много пробелов между символами' };
   }
   
-  // Проверяем наличие осмысленных слов (минимум 3 буквы подряд)
   const words = trimmed.match(/[a-zA-Zа-яА-ЯёЁ]{3,}/g) || [];
   if (words.length < 20) {
     return { isGood: false, score: 3, reason: 'Мало распознаваемых слов' };
   }
   
-  // Проверяем ключевые слова резюме
   const resumeKeywords = [
     'опыт', 'работа', 'образование', 'навык', 'компания', 'должность',
     'experience', 'education', 'skills', 'работал', 'university', 'manager'
@@ -134,13 +128,145 @@ function checkTextQuality(text: string): {
   ).length;
   
   if (foundKeywords === 0) {
-    // Нет ключевых слов, но текст может быть нормальным
     return { isGood: true, score: 6, reason: 'Нет типичных слов резюме' };
   }
   
-  // Хороший текст
   const qualityScore = Math.min(10, 5 + foundKeywords + (words.length > 50 ? 2 : 0));
   return { isGood: true, score: qualityScore };
+}
+
+/**
+ * Интерфейс для текстового элемента PDF
+ */
+interface TextItem {
+  str: string;
+  transform: number[];
+  width?: number;
+  height?: number;
+}
+
+/**
+ * Извлечение текста из отсортированных элементов
+ */
+function extractTextFromItems(items: TextItem[]): string {
+  if (items.length === 0) return '';
+  
+  let lastY = -1;
+  const result: string[] = [];
+  
+  for (const item of items) {
+    if (!item.str.trim()) continue;
+    
+    const y = Math.round(item.transform[5]);
+    
+    if (lastY !== -1 && Math.abs(y - lastY) > 8) {
+      result.push('\n');
+    } else if (lastY !== -1 && result.length > 0) {
+      const lastChar = result[result.length - 1];
+      if (lastChar !== '\n' && lastChar !== ' ') {
+        result.push(' ');
+      }
+    }
+    
+    result.push(item.str);
+    lastY = y;
+  }
+  
+  return result.join('').trim();
+}
+
+/**
+ * Умный парсинг страницы PDF с определением колонок
+ */
+async function parsePageWithColumnDetection(page: any): Promise<{ text: string; hasColumns: boolean }> {
+  const textContent = await page.getTextContent();
+  const items = textContent.items as TextItem[];
+  
+  if (items.length === 0) {
+    return { text: '', hasColumns: false };
+  }
+  
+  // Фильтруем пустые элементы
+  const validItems = items.filter(item => item.str && item.str.trim());
+  
+  if (validItems.length === 0) {
+    return { text: '', hasColumns: false };
+  }
+  
+  // Получаем размеры страницы
+  const viewport = page.getViewport({ scale: 1 });
+  const pageWidth = viewport.width;
+  
+  // Анализируем распределение x-координат для определения колонок
+  const xCoords = validItems.map(item => item.transform[4]);
+  const minX = Math.min(...xCoords);
+  const maxX = Math.max(...xCoords);
+  const textWidth = maxX - minX;
+  
+  // Находим "центр" страницы и проверяем, есть ли разрыв в тексте
+  const midPoint = minX + textWidth / 2;
+  
+  // Группируем элементы по левой/правой стороне
+  const leftItems: TextItem[] = [];
+  const rightItems: TextItem[] = [];
+  
+  // Определяем границу между колонками более умно
+  // Сортируем x-координаты и ищем большой разрыв
+  const sortedX = [...xCoords].sort((a, b) => a - b);
+  let maxGap = 0;
+  let gapPosition = midPoint;
+  
+  for (let i = 1; i < sortedX.length; i++) {
+    const gap = sortedX[i] - sortedX[i - 1];
+    if (gap > maxGap && sortedX[i - 1] > minX + textWidth * 0.2 && sortedX[i] < maxX - textWidth * 0.2) {
+      maxGap = gap;
+      gapPosition = (sortedX[i - 1] + sortedX[i]) / 2;
+    }
+  }
+  
+  // Если разрыв достаточно большой (>15% ширины текста), считаем что есть колонки
+  const hasColumns = maxGap > textWidth * 0.15 && maxGap > 30;
+  
+  if (hasColumns) {
+    console.log(`📊 Обнаружены колонки! Разрыв: ${maxGap.toFixed(0)}px, граница: ${gapPosition.toFixed(0)}px`);
+    
+    for (const item of validItems) {
+      const x = item.transform[4];
+      if (x < gapPosition) {
+        leftItems.push(item);
+      } else {
+        rightItems.push(item);
+      }
+    }
+    
+    // Сортируем каждую колонку по Y (сверху вниз), затем по X
+    const sortItems = (a: TextItem, b: TextItem) => {
+      const yDiff = b.transform[5] - a.transform[5];
+      if (Math.abs(yDiff) > 5) return yDiff;
+      return a.transform[4] - b.transform[4];
+    };
+    
+    leftItems.sort(sortItems);
+    rightItems.sort(sortItems);
+    
+    // Собираем текст: сначала левая колонка, потом правая
+    const leftText = extractTextFromItems(leftItems);
+    const rightText = extractTextFromItems(rightItems);
+    
+    // Добавляем разделитель между колонками
+    const combinedText = leftText + '\n\n---\n\n' + rightText;
+    
+    return { text: combinedText, hasColumns: true };
+  }
+  
+  // Одноколоночный макет - стандартная обработка
+  const sortedItems = validItems.sort((a, b) => {
+    const yDiff = b.transform[5] - a.transform[5];
+    if (Math.abs(yDiff) > 5) return yDiff;
+    return a.transform[4] - b.transform[4];
+  });
+  
+  return { text: extractTextFromItems(sortedItems), hasColumns: false };
 }
 
 /**
@@ -154,7 +280,6 @@ async function renderPageToCanvas(page: any, scale: number = 2.5): Promise<HTMLC
   canvas.height = viewport.height;
   canvas.width = viewport.width;
   
-  // Белый фон для лучшего OCR
   context.fillStyle = 'white';
   context.fillRect(0, 0, canvas.width, canvas.height);
   
@@ -190,6 +315,11 @@ async function ocrPage(
   });
   
   try {
+    // Используем PSM 1 для автоматического определения макета (включая колонки)
+    await worker.setParameters({
+      tessedit_pageseg_mode: '1', // Automatic page segmentation with OSD
+    });
+    
     const { data: { text } } = await worker.recognize(canvas);
     return text;
   } finally {
@@ -198,12 +328,18 @@ async function ocrPage(
 }
 
 /**
- * Парсинг PDF с fallback на OCR
+ * Парсинг PDF с fallback на OCR и умным определением колонок
  */
 async function parsePDF(
   file: File, 
   onProgress?: ProgressCallback
-): Promise<{ text: string; pageCount: number; ocrUsed: boolean; ocrPages: number }> {
+): Promise<{ 
+  text: string; 
+  pageCount: number; 
+  ocrUsed: boolean; 
+  ocrPages: number;
+  columnsDetected: boolean;
+}> {
   onProgress?.(5, 'Загружаем PDF...');
   
   const pdfjsLib = await loadPdfJs();
@@ -216,19 +352,26 @@ async function parsePDF(
   let fullText = '';
   let ocrUsed = false;
   let ocrPagesCount = 0;
+  let columnsDetected = false;
   
-  // Сначала пробуем извлечь текст обычным способом
-  onProgress?.(15, 'Извлекаем текст...');
+  // Извлекаем текст с умным определением колонок
+  onProgress?.(15, 'Анализируем структуру документа...');
   
   for (let i = 1; i <= pageCount; i++) {
     const page = await pdf.getPage(i);
-    const textContent = await page.getTextContent();
-    const pageText = textContent.items
-      .map((item: any) => item.str || '')
-      .join(' ');
-    fullText += pageText + '\n';
+    const result = await parsePageWithColumnDetection(page);
+    
+    fullText += result.text + '\n\n';
+    
+    if (result.hasColumns) {
+      columnsDetected = true;
+    }
     
     onProgress?.(15 + (i / pageCount) * 25, `Читаем страницу ${i}/${pageCount}...`);
+  }
+  
+  if (columnsDetected) {
+    console.log('✅ Обнаружен двухколоночный макет, текст объединён корректно');
   }
   
   // Проверяем качество
@@ -237,7 +380,7 @@ async function parsePDF(
   
   if (quality.isGood && quality.score >= 5) {
     onProgress?.(100, 'Готово!');
-    return { text: fullText, pageCount, ocrUsed: false, ocrPages: 0 };
+    return { text: fullText, pageCount, ocrUsed: false, ocrPages: 0, columnsDetected };
   }
   
   // Качество плохое — пробуем OCR
@@ -269,32 +412,28 @@ async function parsePDF(
       ocrText += pageText + '\n\n';
       ocrPagesCount++;
       
-      // Очищаем canvas для экономии памяти
       canvas.width = 0;
       canvas.height = 0;
     }
     
-    // Проверяем качество OCR результата
     const ocrQuality = checkTextQuality(ocrText);
     
     if (ocrQuality.isGood && ocrQuality.score > quality.score) {
       onProgress?.(100, 'Распознавание завершено!');
-      return { text: ocrText, pageCount, ocrUsed: true, ocrPages: ocrPagesCount };
+      return { text: ocrText, pageCount, ocrUsed: true, ocrPages: ocrPagesCount, columnsDetected: false };
     }
     
-    // OCR не помог — возвращаем лучший из двух вариантов
     if (quality.score >= ocrQuality.score) {
-      return { text: fullText, pageCount, ocrUsed: false, ocrPages: 0 };
+      return { text: fullText, pageCount, ocrUsed: false, ocrPages: 0, columnsDetected };
     }
     
-    return { text: ocrText, pageCount, ocrUsed: true, ocrPages: ocrPagesCount };
+    return { text: ocrText, pageCount, ocrUsed: true, ocrPages: ocrPagesCount, columnsDetected: false };
     
   } catch (ocrError) {
     console.error('❌ Ошибка OCR:', ocrError);
     
-    // OCR не сработал, но есть хоть какой-то текст
     if (fullText.trim().length > 50) {
-      return { text: fullText, pageCount, ocrUsed: false, ocrPages: 0 };
+      return { text: fullText, pageCount, ocrUsed: false, ocrPages: 0, columnsDetected };
     }
     
     throw new Error(
@@ -367,13 +506,34 @@ async function parseTXT(file: File, onProgress?: ProgressCallback): Promise<stri
 }
 
 /**
+ * Очистка текста от артефактов колонок и лишних символов
+ */
+function cleanupText(text: string): string {
+  return text
+    // Нормализация переносов строк
+    .replace(/\r\n/g, '\n')
+    // Убираем разделитель колонок если он остался
+    .replace(/\n---\n/g, '\n\n')
+    // Убираем множественные переносы
+    .replace(/\n{3,}/g, '\n\n')
+    // Нормализация пробелов
+    .replace(/\t/g, ' ')
+    .replace(/[ ]{2,}/g, ' ')
+    // Убираем пробелы в начале строк
+    .replace(/\n +/g, '\n')
+    // Убираем символы-артефакты PDF (№, специальные символы в начале строк)
+    .replace(/^[№#•◦▪▸►→●○]\s*/gm, '')
+    .replace(/\n[№#•◦▪▸►→●○]\s*/g, '\n')
+    .trim();
+}
+
+/**
  * Универсальная функция парсинга файлов с поддержкой OCR
  */
 export async function parseResumeFile(
   file: File,
   onProgress?: ProgressCallback
 ): Promise<ParseResult> {
-  // Проверка размера
   if (file.size > 15 * 1024 * 1024) {
     throw new Error('Файл слишком большой (максимум 15MB)');
   }
@@ -382,6 +542,7 @@ export async function parseResumeFile(
   let pageCount: number | undefined;
   let ocrUsed = false;
   let ocrPages = 0;
+  let columnsDetected = false;
   let quality: 'good' | 'ocr' | 'poor' = 'good';
   let warning: string | undefined;
   
@@ -395,10 +556,13 @@ export async function parseResumeFile(
       pageCount = result.pageCount;
       ocrUsed = result.ocrUsed;
       ocrPages = result.ocrPages;
+      columnsDetected = result.columnsDetected;
       
       if (ocrUsed) {
         quality = 'ocr';
         warning = `Использовано распознавание текста (OCR) для ${ocrPages} страниц. Проверьте корректность.`;
+      } else if (columnsDetected) {
+        warning = 'Обнаружен двухколоночный макет. Текст объединён автоматически.';
       }
     } 
     else if (
@@ -420,12 +584,7 @@ export async function parseResumeFile(
     }
     
     // Очистка текста
-    text = text
-      .replace(/\r\n/g, '\n')
-      .replace(/\n{3,}/g, '\n\n')
-      .replace(/\t/g, ' ')
-      .replace(/[ ]{2,}/g, ' ')
-      .trim();
+    text = cleanupText(text);
     
     // Финальная проверка
     if (!text || text.length < 50) {
@@ -449,7 +608,7 @@ export async function parseResumeFile(
       warning = (warning ? warning + ' ' : '') + 'Текст обрезан до 50000 символов.';
     }
     
-    console.log(`✅ Успешно извлечено ${text.length} символов из ${file.name}${ocrUsed ? ' (с OCR)' : ''}`);
+    console.log(`✅ Успешно извлечено ${text.length} символов из ${file.name}${ocrUsed ? ' (с OCR)' : ''}${columnsDetected ? ' (колонки)' : ''}`);
     
     return {
       text,
@@ -462,7 +621,8 @@ export async function parseResumeFile(
         quality,
         warning,
         ocrUsed,
-        ocrPages
+        ocrPages,
+        columnsDetected
       }
     };
     
