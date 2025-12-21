@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useUser } from '@/app/context/UserContext';
 
-// --- КОМПОНЕНТ РУЛЕТКИ (ОРИГИНАЛЬНЫЙ) ---
+// --- КОМПОНЕНТ РУЛЕТКИ (ИСПРАВЛЕННЫЙ) ---
 
 type ReelPrize = { name: string; icon: string };
 
@@ -35,13 +35,17 @@ const POST_ANIMATION_DELAY = 1000;
 function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: HorizontalTextSlotMachineProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
-    
     const [reelItems, setReelItems] = useState<ReelPrize[]>([]);
-    
     const [transform, setTransform] = useState('translateX(0px)');
     const [isAnimating, setIsAnimating] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSpinIdRef = useRef<number>(-1);
+    
+    // ИСПРАВЛЕНИЕ: сохраняем onSpinEnd в ref чтобы не перезапускать эффект
+    const onSpinEndRef = useRef(onSpinEnd);
+    useEffect(() => {
+        onSpinEndRef.current = onSpinEnd;
+    });
 
     useLayoutEffect(() => {
         if (containerRef.current && prizes.length > 0 && reelItems.length === 0) {
@@ -51,7 +55,7 @@ function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: 
             const initialReel = Array.from({ length: 200 }, () => shuffle(prizes)).flat();
             setReelItems(initialReel);
         }
-    }, [prizes]);
+    }, [prizes, reelItems.length]);
 
     useEffect(() => {
         if (reelItems.length === 0 || 
@@ -76,7 +80,7 @@ function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: 
         setIsAnimating(false);
         setTransform('translateX(0px)');
         
-        setTimeout(() => {
+        const startTimeout = setTimeout(() => {
             setIsAnimating(true);
             setTransform(`translateX(${finalPosition}px)`);
 
@@ -86,15 +90,18 @@ function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: 
                 setIsAnimating(false);
                 
                 setTimeout(() => {
-                    onSpinEnd();
+                    // ИСПРАВЛЕНИЕ: используем ref для вызова актуальной функции
+                    onSpinEndRef.current();
                 }, POST_ANIMATION_DELAY);
             }, ANIMATION_DURATION);
         }, 50);
 
         return () => {
+            clearTimeout(startTimeout);
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
         };
-    }, [winningPrize, spinId, containerWidth, reelItems, onSpinEnd]);
+    // ИСПРАВЛЕНИЕ: убрали onSpinEnd из зависимостей
+    }, [winningPrize, spinId, containerWidth, reelItems]);
 
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden border-2 border-red-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100">
@@ -173,7 +180,6 @@ interface DailyLimit {
 const CASE_COST = 500;
 const PREMIUM_ITEM_COST = 40000;
 
-// Функция предзагрузки изображений
 const preloadImages = (imageUrls: string[]): Promise<void[]> => {
   const promises = imageUrls.map((url) => {
     return new Promise<void>((resolve) => {
@@ -190,8 +196,6 @@ const preloadImages = (imageUrls: string[]): Promise<void[]> => {
 
 export default function ShopPage() {
   const router = useRouter();
-  
-  // Используем контекст для пользователя
   const { user, loading: userLoading, error: userError, updateBalance, updateUser } = useUser();
   
   const [dailyLimit, setDailyLimit] = useState<DailyLimit | null>(null);
@@ -205,20 +209,23 @@ export default function ShopPage() {
   const hasSpunRef = useRef(false);
   const isProcessingPrizeRef = useRef(false);
   const [isFirstSpin, setIsFirstSpin] = useState(true);
+  
+  // ИСПРАВЛЕНИЕ: сохраняем winningPrize в ref для доступа из handleSpinEnd
+  const winningPrizeRef = useRef<Prize | null>(null);
+  useEffect(() => {
+    winningPrizeRef.current = winningPrize;
+  }, [winningPrize]);
 
-  // Предзагрузка всех изображений
   useEffect(() => {
     const imagesToPreload = [
       '/images/322.png',
       ...ALL_PRIZES.map(prize => prize.image)
     ];
-
     preloadImages(imagesToPreload).then(() => {
       setImagesLoaded(true);
     });
   }, []);
 
-  // Загрузка лимитов когда user готов
   useEffect(() => {
     if (userLoading || !user) return;
 
@@ -228,7 +235,6 @@ export default function ShopPage() {
       return;
     }
 
-    // Проверяем первый спин
     setIsFirstSpin(!user.has_spun_before);
 
     fetch('/api/user/daily-limit', {
@@ -256,16 +262,13 @@ export default function ShopPage() {
   }, [user, userLoading]);
 
   const getRandomPrize = (): Prize => {
-    // Если это первый спин - гарантированно выдаём плейбук
     if (isFirstSpin) {
       const playbook = ALL_PRIZES.find(p => p.name === 'Пакет практических лайфхаков');
       if (playbook) {
-        console.log('[FIRST SPIN] Guaranteed prize: Пакет практических лайфхаков');
         return playbook;
       }
     }
     
-    // Обычная логика для последующих спинов
     const winnablePrizes = ALL_PRIZES.filter(p => p.canWin);
     const totalProbability = winnablePrizes.reduce((sum, prize) => sum + prize.probability, 0);
     
@@ -355,6 +358,24 @@ export default function ShopPage() {
     }
   };
 
+  // ИСПРАВЛЕНИЕ: используем ref для получения актуального winningPrize
+  const handleSpinEnd = () => {
+    const prize = winningPrizeRef.current;
+    if (prize && !isProcessingPrizeRef.current) {
+      window.Telegram?.WebApp?.HapticFeedback.notificationOccurred('success');
+      handlePrizeDelivery(prize);
+    }
+    
+    if (isFirstSpin) {
+      setIsFirstSpin(false);
+    }
+    
+    setTimeout(() => {
+      setIsSpinning(false);
+      hasSpunRef.current = false;
+    }, 500);
+  };
+
   const handleSpin = async () => {
     const tg = window.Telegram?.WebApp;
 
@@ -414,7 +435,6 @@ export default function ShopPage() {
 
       const limitData = await limitResponse.json();
       
-      // Обновляем баланс через контекст
       updateBalance(spendData.newBalance);
 
       setDailyLimit({
@@ -436,23 +456,6 @@ export default function ShopPage() {
       tg?.HapticFeedback.notificationOccurred('error');
       tg?.showAlert(err instanceof Error ? err.message : 'Произошла ошибка. Попробуйте еще раз.');
     }
-  };
-
-  const handleSpinEnd = () => {
-    if (winningPrize && !isProcessingPrizeRef.current) {
-      window.Telegram?.WebApp?.HapticFeedback.notificationOccurred('success');
-      handlePrizeDelivery(winningPrize);
-    }
-    
-    // После первого спина сбрасываем флаг
-    if (isFirstSpin) {
-      setIsFirstSpin(false);
-    }
-    
-    setTimeout(() => {
-      setIsSpinning(false);
-      hasSpunRef.current = false;
-    }, 500);
   };
 
   const handleOpenBot = async () => {
@@ -532,7 +535,6 @@ export default function ShopPage() {
     router.push('/auction/prizes');
   };
 
-  // Показываем загрузку пока не загрузились данные И изображения
   if (userLoading || isLoading || !imagesLoaded) {
     return (
       <div className="loading-container">
@@ -721,7 +723,6 @@ export default function ShopPage() {
             width: 100%;
             max-width: 343px;
             background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
-            border: 2px solid #D72525;
             color: white;
             padding: 16px;
             border-radius: 16px;
@@ -860,9 +861,6 @@ export default function ShopPage() {
             gap: 10px;
             width: 100%;
             max-width: 343px;
-            flex: none;
-            order: 5;
-            flex-grow: 0;
           }
 
           .premium-section {
@@ -874,9 +872,6 @@ export default function ShopPage() {
             width: 100%;
             background: #F1F1F1;
             border-radius: 16px;
-            flex: none;
-            order: 0;
-            flex-grow: 0;
             box-sizing: border-box;
           }
 
@@ -884,17 +879,11 @@ export default function ShopPage() {
             margin: 0;
             width: 100%;
             font-family: 'Cera Pro', sans-serif;
-            font-style: normal;
             font-weight: 500;
             font-size: 24px;
             line-height: 100%;
-            leading-trim: both;
-            text-edge: cap;
             letter-spacing: -0.03em;
             color: #000000;
-            flex: none;
-            order: 0;
-            flex-grow: 0;
           }
 
           .product-item {
@@ -904,10 +893,6 @@ export default function ShopPage() {
             padding: 4px 0px;
             gap: 16px;
             width: 100%;
-            flex: none;
-            order: 1;
-            align-self: stretch;
-            flex-grow: 0;
           }
 
           .product-text {
@@ -917,36 +902,24 @@ export default function ShopPage() {
             padding: 0px;
             gap: 4px;
             flex: 1;
-            order: 0;
-            flex-grow: 1;
           }
 
           .product-name {
             font-family: 'Cera Pro', sans-serif;
-            font-style: normal;
             font-weight: 500;
             font-size: 16px;
             line-height: 100%;
             letter-spacing: -0.05em;
             color: #000000;
-            flex: none;
-            order: 0;
-            align-self: stretch;
-            flex-grow: 0;
           }
 
           .product-description {
             font-family: 'Cera Pro', sans-serif;
-            font-style: normal;
             font-weight: 300;
             font-size: 16px;
             line-height: 110%;
             letter-spacing: -0.02em;
             color: #000000;
-            flex: none;
-            order: 1;
-            align-self: stretch;
-            flex-grow: 0;
           }
 
           .purchase-section {
@@ -955,34 +928,21 @@ export default function ShopPage() {
             align-items: flex-end;
             padding: 0px;
             gap: 8px;
-            flex: none;
-            order: 1;
-            flex-grow: 0;
           }
 
           .buy-button {
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 8px 32px;
-            gap: 10px;
             background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
             border-radius: 30px;
-            flex: none;
-            order: 0;
-            align-self: stretch;
-            flex-grow: 0;
             border: none;
             cursor: pointer;
             transition: opacity 0.2s;
             font-family: 'Cera Pro', sans-serif;
-            font-style: normal;
             font-weight: 500;
             font-size: 16px;
-            line-height: 100%;
-            text-align: center;
-            letter-spacing: -0.05em;
             color: #FFFFFF;
           }
 
@@ -999,35 +959,19 @@ export default function ShopPage() {
             display: flex;
             flex-direction: row;
             align-items: center;
-            padding: 0px;
             gap: 10px;
-            flex: none;
-            order: 1;
-            flex-grow: 0;
           }
 
           .price-value {
             font-family: 'Cera Pro', sans-serif;
-            font-style: normal;
             font-weight: 500;
             font-size: 20px;
-            line-height: 100%;
-            display: flex;
-            align-items: center;
-            text-align: center;
-            letter-spacing: -0.03em;
             color: #000000;
-            flex: none;
-            order: 0;
-            flex-grow: 0;
           }
 
           .crystal-icon {
             width: 25px;
             height: 25px;
-            flex: none;
-            order: 1;
-            flex-grow: 0;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1056,12 +1000,6 @@ export default function ShopPage() {
 
             .premium-title {
               font-size: 20px;
-            }
-          }
-
-          @supports (-webkit-touch-callout: none) {
-            .shop-wrapper {
-              min-height: -webkit-fill-available;
             }
           }
         `}</style>
