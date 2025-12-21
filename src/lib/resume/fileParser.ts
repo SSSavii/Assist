@@ -1,5 +1,5 @@
-/* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
@@ -25,6 +25,27 @@ export interface ParseResult {
  * Callback для отображения прогресса
  */
 export type ProgressCallback = (progress: number, status: string) => void;
+
+/**
+ * Интерфейс для текстового элемента PDF
+ */
+interface TextItem {
+  str: string;
+  transform: number[];
+  width?: number;
+  height?: number;
+}
+
+/**
+ * Строка текста (группа элементов на одной Y-координате)
+ */
+interface TextLine {
+  y: number;
+  items: TextItem[];
+  minX: number;
+  maxX: number;
+  text: string;
+}
 
 /**
  * Динамическая загрузка PDF.js
@@ -136,43 +157,157 @@ function checkTextQuality(text: string): {
 }
 
 /**
- * Интерфейс для текстового элемента PDF
+ * Группировка элементов в строки по Y-координате
  */
-interface TextItem {
-  str: string;
-  transform: number[];
-  width?: number;
-  height?: number;
+function groupItemsIntoLines(items: TextItem[], yTolerance: number = 5): TextLine[] {
+  if (items.length === 0) return [];
+  
+  // Сортируем по Y (сверху вниз), затем по X
+  const sorted = [...items].sort((a, b) => {
+    const yDiff = b.transform[5] - a.transform[5]; // Y в PDF идёт снизу вверх
+    if (Math.abs(yDiff) > yTolerance) return yDiff;
+    return a.transform[4] - b.transform[4]; // X слева направо
+  });
+  
+  const lines: TextLine[] = [];
+  let currentLine: TextItem[] = [];
+  let currentY = sorted[0].transform[5];
+  
+  for (const item of sorted) {
+    const y = item.transform[5];
+    
+    if (Math.abs(y - currentY) > yTolerance) {
+      // Новая строка
+      if (currentLine.length > 0) {
+        lines.push(createLine(currentLine));
+      }
+      currentLine = [item];
+      currentY = y;
+    } else {
+      currentLine.push(item);
+    }
+  }
+  
+  // Последняя строка
+  if (currentLine.length > 0) {
+    lines.push(createLine(currentLine));
+  }
+  
+  return lines;
 }
 
 /**
- * Извлечение текста из отсортированных элементов
+ * Создание объекта строки из элементов
  */
-function extractTextFromItems(items: TextItem[]): string {
-  if (items.length === 0) return '';
+function createLine(items: TextItem[]): TextLine {
+  // Сортируем элементы по X
+  const sorted = [...items].sort((a, b) => a.transform[4] - b.transform[4]);
   
-  let lastY = -1;
-  const result: string[] = [];
+  const xCoords = sorted.map(item => item.transform[4]);
+  const minX = Math.min(...xCoords);
+  const maxX = Math.max(...xCoords);
   
-  for (const item of items) {
-    if (!item.str.trim()) continue;
+  // Собираем текст с учётом пробелов между элементами
+  let text = '';
+  let lastX = -1;
+  let lastWidth = 0;
+  
+  for (const item of sorted) {
+    const x = item.transform[4];
+    const width = item.width || item.str.length * 5; // примерная ширина
     
-    const y = Math.round(item.transform[5]);
-    
-    if (lastY !== -1 && Math.abs(y - lastY) > 8) {
-      result.push('\n');
-    } else if (lastY !== -1 && result.length > 0) {
-      const lastChar = result[result.length - 1];
-      if (lastChar !== '\n' && lastChar !== ' ') {
-        result.push(' ');
+    if (lastX !== -1) {
+      const gap = x - (lastX + lastWidth);
+      if (gap > 10) {
+        text += ' ';
       }
     }
     
-    result.push(item.str);
-    lastY = y;
+    text += item.str;
+    lastX = x;
+    lastWidth = width;
   }
   
-  return result.join('').trim();
+  return {
+    y: sorted[0].transform[5],
+    items: sorted,
+    minX,
+    maxX,
+    text: text.trim()
+  };
+}
+
+/**
+ * Определение границы между колонками
+ */
+function detectColumnBoundary(lines: TextLine[], pageWidth: number): { 
+  hasColumns: boolean; 
+  boundary: number;
+  leftLines: TextLine[];
+  rightLines: TextLine[];
+} {
+  if (lines.length < 3) {
+    return { hasColumns: false, boundary: 0, leftLines: lines, rightLines: [] };
+  }
+  
+  // Собираем все X-координаты начала строк
+  const lineStarts = lines.map(l => l.minX);
+  const lineEnds = lines.map(l => l.maxX);
+  
+  const minStart = Math.min(...lineStarts);
+  const maxEnd = Math.max(...lineEnds);
+  const textWidth = maxEnd - minStart;
+  
+  // Ищем строки, которые начинаются справа от середины
+  const midPoint = minStart + textWidth * 0.4; // 40% от левого края
+  
+  // Считаем сколько строк начинаются слева и справа
+  const leftStartLines = lines.filter(l => l.minX < midPoint);
+  const rightStartLines = lines.filter(l => l.minX >= midPoint);
+  
+  // Если есть значительное количество строк с обеих сторон - это колонки
+  const leftRatio = leftStartLines.length / lines.length;
+  const rightRatio = rightStartLines.length / lines.length;
+  
+  console.log(`📊 Анализ колонок: левых ${leftStartLines.length}, правых ${rightStartLines.length}, midPoint: ${midPoint.toFixed(0)}`);
+  
+  // Колонки есть если минимум 20% строк с каждой стороны
+  if (leftRatio >= 0.2 && rightRatio >= 0.2) {
+    // Находим более точную границу
+    // Ищем gap между концами левых строк и началами правых
+    const leftEnds = leftStartLines.map(l => l.maxX);
+    const rightStarts = rightStartLines.map(l => l.minX);
+    
+    const avgLeftEnd = leftEnds.reduce((a, b) => a + b, 0) / leftEnds.length;
+    const avgRightStart = rightStarts.reduce((a, b) => a + b, 0) / rightStarts.length;
+    
+    const boundary = (avgLeftEnd + avgRightStart) / 2;
+    
+    console.log(`✅ Обнаружены колонки! Граница: ${boundary.toFixed(0)}px`);
+    
+    // Разделяем строки по колонкам
+    const leftLines: TextLine[] = [];
+    const rightLines: TextLine[] = [];
+    
+    for (const line of lines) {
+      // Определяем колонку по центру строки
+      const lineCenter = (line.minX + line.maxX) / 2;
+      
+      if (lineCenter < boundary) {
+        leftLines.push(line);
+      } else {
+        rightLines.push(line);
+      }
+    }
+    
+    // Сортируем каждую колонку по Y (сверху вниз)
+    leftLines.sort((a, b) => b.y - a.y);
+    rightLines.sort((a, b) => b.y - a.y);
+    
+    return { hasColumns: true, boundary, leftLines, rightLines };
+  }
+  
+  return { hasColumns: false, boundary: 0, leftLines: lines, rightLines: [] };
 }
 
 /**
@@ -197,76 +332,31 @@ async function parsePageWithColumnDetection(page: any): Promise<{ text: string; 
   const viewport = page.getViewport({ scale: 1 });
   const pageWidth = viewport.width;
   
-  // Анализируем распределение x-координат для определения колонок
-  const xCoords = validItems.map(item => item.transform[4]);
-  const minX = Math.min(...xCoords);
-  const maxX = Math.max(...xCoords);
-  const textWidth = maxX - minX;
+  // Группируем элементы в строки
+  const lines = groupItemsIntoLines(validItems);
   
-  // Находим "центр" страницы и проверяем, есть ли разрыв в тексте
-  const midPoint = minX + textWidth / 2;
+  console.log(`📄 Страница: ${validItems.length} элементов → ${lines.length} строк`);
   
-  // Группируем элементы по левой/правой стороне
-  const leftItems: TextItem[] = [];
-  const rightItems: TextItem[] = [];
+  // Определяем колонки
+  const columnResult = detectColumnBoundary(lines, pageWidth);
   
-  // Определяем границу между колонками более умно
-  // Сортируем x-координаты и ищем большой разрыв
-  const sortedX = [...xCoords].sort((a, b) => a - b);
-  let maxGap = 0;
-  let gapPosition = midPoint;
-  
-  for (let i = 1; i < sortedX.length; i++) {
-    const gap = sortedX[i] - sortedX[i - 1];
-    if (gap > maxGap && sortedX[i - 1] > minX + textWidth * 0.2 && sortedX[i] < maxX - textWidth * 0.2) {
-      maxGap = gap;
-      gapPosition = (sortedX[i - 1] + sortedX[i]) / 2;
-    }
-  }
-  
-  // Если разрыв достаточно большой (>15% ширины текста), считаем что есть колонки
-  const hasColumns = maxGap > textWidth * 0.15 && maxGap > 30;
-  
-  if (hasColumns) {
-    console.log(`📊 Обнаружены колонки! Разрыв: ${maxGap.toFixed(0)}px, граница: ${gapPosition.toFixed(0)}px`);
+  if (columnResult.hasColumns) {
+    // Собираем текст из колонок
+    const leftText = columnResult.leftLines.map(l => l.text).join('\n');
+    const rightText = columnResult.rightLines.map(l => l.text).join('\n');
     
-    for (const item of validItems) {
-      const x = item.transform[4];
-      if (x < gapPosition) {
-        leftItems.push(item);
-      } else {
-        rightItems.push(item);
-      }
-    }
+    console.log(`📝 Левая колонка: ${columnResult.leftLines.length} строк`);
+    console.log(`📝 Правая колонка: ${columnResult.rightLines.length} строк`);
     
-    // Сортируем каждую колонку по Y (сверху вниз), затем по X
-    const sortItems = (a: TextItem, b: TextItem) => {
-      const yDiff = b.transform[5] - a.transform[5];
-      if (Math.abs(yDiff) > 5) return yDiff;
-      return a.transform[4] - b.transform[4];
-    };
-    
-    leftItems.sort(sortItems);
-    rightItems.sort(sortItems);
-    
-    // Собираем текст: сначала левая колонка, потом правая
-    const leftText = extractTextFromItems(leftItems);
-    const rightText = extractTextFromItems(rightItems);
-    
-    // Добавляем разделитель между колонками
-    const combinedText = leftText + '\n\n---\n\n' + rightText;
+    // Объединяем: сначала левая колонка, потом правая
+    const combinedText = leftText + '\n\n' + rightText;
     
     return { text: combinedText, hasColumns: true };
   }
   
-  // Одноколоночный макет - стандартная обработка
-  const sortedItems = validItems.sort((a, b) => {
-    const yDiff = b.transform[5] - a.transform[5];
-    if (Math.abs(yDiff) > 5) return yDiff;
-    return a.transform[4] - b.transform[4];
-  });
-  
-  return { text: extractTextFromItems(sortedItems), hasColumns: false };
+  // Одноколоночный макет
+  const text = lines.map(l => l.text).join('\n');
+  return { text, hasColumns: false };
 }
 
 /**
@@ -315,9 +405,8 @@ async function ocrPage(
   });
   
   try {
-    // Используем PSM 1 для автоматического определения макета (включая колонки)
     await worker.setParameters({
-      tessedit_pageseg_mode: '1', // Automatic page segmentation with OSD
+      tessedit_pageseg_mode: '1',
     });
     
     const { data: { text } } = await worker.recognize(canvas);
@@ -354,7 +443,6 @@ async function parsePDF(
   let ocrPagesCount = 0;
   let columnsDetected = false;
   
-  // Извлекаем текст с умным определением колонок
   onProgress?.(15, 'Анализируем структуру документа...');
   
   for (let i = 1; i <= pageCount; i++) {
@@ -371,7 +459,7 @@ async function parsePDF(
   }
   
   if (columnsDetected) {
-    console.log('✅ Обнаружен двухколоночный макет, текст объединён корректно');
+    console.log('✅ Обнаружен многоколоночный макет, текст объединён корректно');
   }
   
   // Проверяем качество
@@ -506,14 +594,12 @@ async function parseTXT(file: File, onProgress?: ProgressCallback): Promise<stri
 }
 
 /**
- * Очистка текста от артефактов колонок и лишних символов
+ * Очистка текста от артефактов
  */
 function cleanupText(text: string): string {
   return text
     // Нормализация переносов строк
     .replace(/\r\n/g, '\n')
-    // Убираем разделитель колонок если он остался
-    .replace(/\n---\n/g, '\n\n')
     // Убираем множественные переносы
     .replace(/\n{3,}/g, '\n\n')
     // Нормализация пробелов
@@ -521,9 +607,10 @@ function cleanupText(text: string): string {
     .replace(/[ ]{2,}/g, ' ')
     // Убираем пробелы в начале строк
     .replace(/\n +/g, '\n')
-    // Убираем символы-артефакты PDF (№, специальные символы в начале строк)
-    .replace(/^[№#•◦▪▸►→●○]\s*/gm, '')
-    .replace(/\n[№#•◦▪▸►→●○]\s*/g, '\n')
+    // Убираем артефакты типа "К" или "RN" на отдельных строках (мусор из PDF)
+    .replace(/\n[A-ZА-Я]{1,3}\n/g, '\n')
+    // Убираем одиночные буквы/символы на строках
+    .replace(/\n[№#•◦▪▸►→●○К]\n/g, '\n')
     .trim();
 }
 
