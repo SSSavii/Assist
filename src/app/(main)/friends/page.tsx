@@ -18,7 +18,18 @@ export default function FriendsPage() {
     if (wrapperRef.current) {
       wrapperRef.current.scrollTop = 0;
     }
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    
+    const timeoutId = setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant'
+      });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 10);
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
   // Таймер до конца месяца
@@ -128,9 +139,9 @@ export default function FriendsPage() {
     <div className="friends-wrapper" ref={wrapperRef}>
       <main className="friends-container">
         <div className="content-container">
-          {/* Header Image */}
+          {/* Header Image - ОРИГИНАЛЬНАЯ СТРУКТУРА */}
           <div className="header-section">
-            <div className="header-image-container">
+            <div className="header-image-absolute">
               <Image 
                 src="/images/friends-header.png" 
                 alt="Приглашай друзей" 
@@ -148,12 +159,12 @@ export default function FriendsPage() {
           </div>
 
           {/* Buttons */}
-          <div className="buttons-container">
+          <div className="buttons-overlay">
             {/* Счётчик приглашений */}
             <div className="info-card">
               <div className="info-row">
                 <span className="info-label">Вы пригласили:</span>
-                <span className="info-value">
+                <span className="info-value" style={{ color: '#ff0000ff' }}>
                   &nbsp;{user?.referral_count || 0}
                 </span>
               </div>
@@ -162,14 +173,14 @@ export default function FriendsPage() {
             {/* Статистика */}
             <div className="stats-row">
               <div className="stat-card">
-                <div className="stat-value">
+                <div className="stat-value" style={{ color: '#ff0000ff' }}>
                   {timeLeft.days}д {timeLeft.hours}ч
                 </div>
                 <div className="stat-label">Осталось времени<br />до конца розыгрыша</div>
               </div>
 
               <div className="stat-card">
-                <div className="stat-value">
+                <div className="stat-value" style={{ color: '#ff0000ff' }}>
                   {user?.current_month_referrals || 0}
                 </div>
                 <div className="stat-label">Вы пригласили<br />в этом розыгрыше</div>
@@ -183,7 +194,11 @@ export default function FriendsPage() {
             </button>
 
             {/* Пригласить */}
-            <button className="invite-button" onClick={handleInviteFriend}>
+            <button 
+              className="invite-button" 
+              onClick={handleInviteFriend}
+              style={{ background: 'linear-gradient(243.66deg, #ff0000ff 10.36%, #E72525 86.45%)' }}
+            >
               <span className="invite-text">Пригласить друга</span>
               <span className="invite-bonus">500 А+</span>
               <div className="glow-top"></div>
@@ -204,6 +219,7 @@ export default function FriendsPage() {
           overflow-x: hidden;
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
+          scroll-behavior: auto;
           padding-bottom: 0;
         }
 
@@ -239,15 +255,20 @@ export default function FriendsPage() {
         .header-section {
           width: 100%;
           position: relative;
+          height: 300px;
           margin-bottom: -10px;
           z-index: 0;
         }
 
-        .header-image-container {
+        .header-image-absolute {
+          position: absolute;
+          top: 0;
+          left: 0;
           width: 100%;
+          z-index: 0;
         }
 
-        .buttons-container {
+        .buttons-overlay {
           position: relative;
           z-index: 1;
           display: flex;
@@ -267,6 +288,9 @@ export default function FriendsPage() {
           height: 72px;
           background: #F1F1F1;
           border-radius: 15px;
+          flex: none;
+          align-self: stretch;
+          flex-grow: 0;
           box-sizing: border-box;
         }
 
@@ -277,10 +301,14 @@ export default function FriendsPage() {
           padding: 0px;
           gap: 0px;
           height: 24px;
+          flex: none;
+          order: 0;
+          flex-grow: 0;
         }
 
         .info-label {
-          font-family: 'Cera Pro', sans-serif;
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-style: normal;
           font-weight: 500;
           font-size: 24px;
           line-height: 100%;
@@ -288,18 +316,24 @@ export default function FriendsPage() {
           align-items: center;
           letter-spacing: -0.03em;
           color: #000000;
+          flex: none;
+          order: 0;
+          flex-grow: 0;
           white-space: nowrap;
         }
 
         .info-value {
-          font-family: 'Cera Pro', sans-serif;
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-style: normal;
           font-weight: 500;
           font-size: 24px;
           line-height: 100%;
           display: flex;
           align-items: center;
           letter-spacing: -0.03em;
-          color: #ff0000;
+          flex: none;
+          order: 1;
+          flex-grow: 0;
         }
 
         .stats-row {
@@ -310,6 +344,9 @@ export default function FriendsPage() {
           gap: 8px;
           width: 100%;
           height: 103px;
+          flex: none;
+          align-self: stretch;
+          flex-grow: 0;
         }
 
         .stat-card {
@@ -322,23 +359,36 @@ export default function FriendsPage() {
           height: 103px;
           background: #F1F1F1;
           border-radius: 16px;
-          flex: 1;
+          flex: none;
+          order: 0;
+          flex-grow: 1;
           box-sizing: border-box;
         }
 
         .stat-value {
-          font-family: 'Cera Pro', sans-serif;
+          width: auto;
+          height: 21px;
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-style: normal;
           font-weight: 500;
           font-size: 32px;
           line-height: 110%;
+          leading-trim: both;
+          text-edge: cap;
           display: flex;
           align-items: flex-end;
           letter-spacing: -0.03em;
-          color: #ff0000;
+          flex: none;
+          order: 0;
+          flex-grow: 0;
         }
 
         .stat-label {
-          font-family: 'Cera Pro', sans-serif;
+          width: auto;
+          max-width: 136px;
+          height: 30px;
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-style: normal;
           font-weight: 400;
           font-size: 14px;
           line-height: 110%;
@@ -346,6 +396,9 @@ export default function FriendsPage() {
           align-items: flex-end;
           letter-spacing: -0.02em;
           color: #000000;
+          flex: none;
+          order: 1;
+          flex-grow: 0;
         }
 
         .rules-button {
@@ -359,6 +412,9 @@ export default function FriendsPage() {
           min-height: 65px;
           background: #F1F1F1;
           border-radius: 15px;
+          flex: none;
+          align-self: stretch;
+          flex-grow: 0;
           border: none;
           cursor: pointer;
           -webkit-tap-highlight-color: transparent;
@@ -367,7 +423,8 @@ export default function FriendsPage() {
         }
 
         .rules-title {
-          font-family: 'Cera Pro', sans-serif;
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-style: normal;
           font-weight: 400;
           font-size: 20px;
           line-height: 100%;
@@ -377,7 +434,8 @@ export default function FriendsPage() {
         }
 
         .rules-subtext {
-          font-family: 'Cera Pro', sans-serif;
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-style: normal;
           font-weight: 400;
           font-size: 11px;
           line-height: 110%;
@@ -400,8 +458,10 @@ export default function FriendsPage() {
           isolation: isolate;
           width: 100%;
           height: 69px;
-          background: linear-gradient(243.66deg, #ff0000 10.36%, #E72525 86.45%);
           border-radius: 15px;
+          flex: none;
+          align-self: stretch;
+          flex-grow: 0;
           border: none;
           cursor: pointer;
           -webkit-tap-highlight-color: transparent;
@@ -416,24 +476,36 @@ export default function FriendsPage() {
         }
 
         .invite-text {
-          font-family: 'Cera Pro', sans-serif;
+          width: 215px;
+          height: 20px;
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-style: normal;
           font-weight: 500;
           font-size: 20px;
           line-height: 100%;
           text-align: center;
           letter-spacing: -0.03em;
           color: #FFFFFF;
+          flex: none;
+          order: 0;
+          flex-grow: 0;
           z-index: 0;
         }
 
         .invite-bonus {
-          font-family: 'Cera Pro', sans-serif;
+          width: 203px;
+          height: 21px;
+          font-family: 'Cera Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-style: normal;
           font-weight: 400;
           font-size: 20px;
           line-height: 100%;
           text-align: center;
           letter-spacing: -0.02em;
           color: #FFFFFF;
+          flex: none;
+          order: 1;
+          flex-grow: 0;
           z-index: 1;
         }
 
@@ -445,6 +517,9 @@ export default function FriendsPage() {
           top: -23px;
           background: rgba(255, 255, 255, 0.8);
           filter: blur(50px);
+          flex: none;
+          order: 2;
+          flex-grow: 0;
           z-index: 2;
           pointer-events: none;
         }
@@ -457,6 +532,9 @@ export default function FriendsPage() {
           bottom: -32px;
           background: rgba(255, 255, 255, 0.8);
           filter: blur(75px);
+          flex: none;
+          order: 3;
+          flex-grow: 0;
           z-index: 3;
           pointer-events: none;
         }

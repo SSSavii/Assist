@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useUser } from '@/app/context/UserContext';
@@ -76,7 +76,7 @@ function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: 
     setIsAnimating(false);
     setTransform('translateX(0px)');
     
-    setTimeout(() => {
+    const startTimeout = setTimeout(() => {
       setIsAnimating(true);
       setTransform(`translateX(${finalPosition}px)`);
 
@@ -85,13 +85,16 @@ function HorizontalTextSlotMachine({ prizes, winningPrize, onSpinEnd, spinId }: 
       timeoutRef.current = setTimeout(() => {
         setIsAnimating(false);
         
-        setTimeout(() => {
+        const endTimeout = setTimeout(() => {
           onSpinEnd();
         }, POST_ANIMATION_DELAY);
+        
+        return () => clearTimeout(endTimeout);
       }, ANIMATION_DURATION);
     }, 50);
 
     return () => {
+      clearTimeout(startTimeout);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [winningPrize, spinId, containerWidth, reelItems, onSpinEnd]);
@@ -184,7 +187,7 @@ interface DailyLimit {
 const CASE_COST = 500;
 const PREMIUM_ITEM_COST = 40000;
 
-// Функция предзагрузки изображений (нужна для рулетки!)
+// Функция предзагрузки изображений
 const preloadImages = (imageUrls: string[]): Promise<void[]> => {
   const promises = imageUrls.map((url) => {
     return new Promise<void>((resolve) => {
@@ -217,7 +220,7 @@ export default function ShopPage() {
   const isProcessingPrizeRef = useRef(false);
   const [isFirstSpin, setIsFirstSpin] = useState(true);
 
-  // Предзагрузка изображений призов (критично для рулетки)
+  // Предзагрузка изображений призов
   useEffect(() => {
     const imagesToPreload = [
       '/images/322.png',
@@ -229,17 +232,21 @@ export default function ShopPage() {
     });
   }, []);
 
-  // Загрузка лимитов и проверка первого спина
+  // Загрузка лимитов
   useEffect(() => {
     if (!user) return;
     
     const tg = window.Telegram?.WebApp;
-    if (!tg?.initData) return;
+    if (!tg?.initData) {
+      setLimitLoading(false);
+      return;
+    }
 
     // Проверяем, крутил ли уже рулетку
-    setIsFirstSpin(!user.has_spun_before);
+    if (user.has_spun_before !== undefined) {
+      setIsFirstSpin(!user.has_spun_before);
+    }
 
-    // Загружаем лимиты
     fetch('/api/user/daily-limit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -257,6 +264,8 @@ export default function ShopPage() {
       })
       .catch(err => {
         console.error('Daily limit fetch error:', err);
+        // Устанавливаем дефолтные лимиты при ошибке
+        setDailyLimit({ remaining: 5, used: 0, maxLimit: 5 });
       })
       .finally(() => {
         setLimitLoading(false);
@@ -294,6 +303,7 @@ export default function ShopPage() {
     if (!tg || isProcessingPrizeRef.current) return;
 
     isProcessingPrizeRef.current = true;
+    console.log('[PRIZE DELIVERY] Starting delivery for:', prize.name);
 
     try {
       if (prize.deliveryType === 'instant') {
@@ -311,6 +321,9 @@ export default function ShopPage() {
           const data = await response.json();
           updateBalance(data.newBalance);
           tg.showAlert(`🎉 Поздравляем! Вы выиграли: ${prize.name}\n\n✨ Плюсы начислены на ваш баланс!`);
+        } else {
+          console.error('[PRIZE DELIVERY] Award prize failed');
+          tg.showAlert(`🎉 Вы выиграли: ${prize.name}`);
         }
       } else if (prize.deliveryType === 'bot_message') {
         await fetch('/api/bot/send-prize', {
@@ -344,6 +357,7 @@ export default function ShopPage() {
         tg.showAlert(`🎉 Поздравляем! Вы выиграли: ${prize.name}\n\n📞 С вами свяжутся в ближайшее время!`);
       }
 
+      // Сохраняем выигрыш
       await fetch('/api/user/save-winning', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -355,18 +369,46 @@ export default function ShopPage() {
         }),
       });
 
+      console.log('[PRIZE DELIVERY] Completed successfully');
     } catch (error) {
       console.error('Error delivering prize:', error);
-      tg.showAlert('❌ Произошла ошибка при начислении приза. Обратитесь в поддержку.');
+      tg.showAlert(`🎉 Вы выиграли: ${prize.name}\n\n⚠️ Возникла ошибка, но приз зарегистрирован.`);
     } finally {
       isProcessingPrizeRef.current = false;
     }
   };
 
+  // Обработчик окончания спина - используем useCallback для стабильной ссылки
+  const handleSpinEnd = useCallback(() => {
+    console.log('[SPIN END] Called, winningPrize:', winningPrize?.name);
+    
+    if (winningPrize && !isProcessingPrizeRef.current) {
+      window.Telegram?.WebApp?.HapticFeedback.notificationOccurred('success');
+      handlePrizeDelivery(winningPrize);
+    }
+    
+    // После первого спина сбрасываем флаг
+    if (isFirstSpin) {
+      setIsFirstSpin(false);
+      updateUser({ has_spun_before: true });
+    }
+    
+    // Сбрасываем состояние спина
+    setTimeout(() => {
+      setIsSpinning(false);
+      hasSpunRef.current = false;
+      setWinningPrize(null);
+      console.log('[SPIN END] Reset complete');
+    }, 500);
+  }, [winningPrize, isFirstSpin, updateUser]);
+
   const handleSpin = async () => {
     const tg = window.Telegram?.WebApp;
 
-    if (isSpinning || hasSpunRef.current || !user) return;
+    if (isSpinning || hasSpunRef.current || !user) {
+      console.log('[SPIN] Blocked - isSpinning:', isSpinning, 'hasSpunRef:', hasSpunRef.current, 'user:', !!user);
+      return;
+    }
 
     if (!user.bot_started) {
       tg?.showAlert('⚠️ Сначала запустите бота для получения призов!\n\nНажмите на красную кнопку выше.');
@@ -383,6 +425,7 @@ export default function ShopPage() {
       return;
     }
 
+    console.log('[SPIN] Starting spin...');
     setIsSpinning(true);
     setLocalError('');
     hasSpunRef.current = true;
@@ -391,6 +434,7 @@ export default function ShopPage() {
     try {
       tg?.HapticFeedback.impactOccurred('light');
 
+      // Списываем кристаллы
       const spendResponse = await fetch('/api/user/spend-crystals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -406,7 +450,9 @@ export default function ShopPage() {
       }
 
       const spendData = await spendResponse.json();
+      console.log('[SPIN] Crystals spent, new balance:', spendData.newBalance);
 
+      // Используем лимит
       const limitResponse = await fetch('/api/user/daily-limit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -421,47 +467,34 @@ export default function ShopPage() {
       }
 
       const limitData = await limitResponse.json();
+      console.log('[SPIN] Limit used:', limitData);
       
-      // Обновляем баланс через контекст
+      // Обновляем баланс и лимиты
       updateBalance(spendData.newBalance);
-
       setDailyLimit({
         remaining: limitData.remaining,
         used: limitData.used,
         maxLimit: dailyLimit?.maxLimit || 5
       });
 
+      // Небольшая задержка перед запуском анимации
       await new Promise(resolve => setTimeout(resolve, 100));
       
+      // Определяем приз и запускаем анимацию
       const prize = getRandomPrize();
-      setSpinKey(prev => prev + 1);
+      console.log('[SPIN] Prize selected:', prize.name);
+      
       setWinningPrize(prize);
+      setSpinKey(prev => prev + 1);
       
     } catch (err) {
+      console.error('[SPIN] Error:', err);
       setLocalError(err instanceof Error ? err.message : 'Неизвестная ошибка');
       setIsSpinning(false);
       hasSpunRef.current = false;
       tg?.HapticFeedback.notificationOccurred('error');
       tg?.showAlert(err instanceof Error ? err.message : 'Произошла ошибка. Попробуйте еще раз.');
     }
-  };
-
-  const handleSpinEnd = () => {
-    if (winningPrize && !isProcessingPrizeRef.current) {
-      window.Telegram?.WebApp?.HapticFeedback.notificationOccurred('success');
-      handlePrizeDelivery(winningPrize);
-    }
-    
-    // После первого спина сбрасываем флаг
-    if (isFirstSpin) {
-      setIsFirstSpin(false);
-      updateUser({ has_spun_before: true });
-    }
-    
-    setTimeout(() => {
-      setIsSpinning(false);
-      hasSpunRef.current = false;
-    }, 500);
   };
 
   const handleOpenBot = async () => {
@@ -519,8 +552,6 @@ export default function ShopPage() {
       }
 
       const data = await response.json();
-
-      // Обновляем баланс через контекст
       updateBalance(data.newBalance);
 
       tg?.HapticFeedback.notificationOccurred('success');
@@ -543,7 +574,7 @@ export default function ShopPage() {
     router.push('/auction/prizes');
   };
 
-  // Показываем загрузку пока не загрузились данные И изображения
+  // Показываем загрузку
   if (loading || !imagesLoaded || limitLoading) {
     return (
       <div className="loading-container">
@@ -562,11 +593,13 @@ export default function ShopPage() {
     );
   }
 
-  const isSpinDisabled = isSpinning || 
-                         !user || 
-                         !user.bot_started ||
-                         (user?.balance_crystals ?? 0) < CASE_COST || 
-                         (dailyLimit?.remaining ?? 0) <= 0;
+  // Проверяем доступность кнопки
+  const canSpin = user && 
+                  user.bot_started && 
+                  user.balance_crystals >= CASE_COST && 
+                  dailyLimit && 
+                  dailyLimit.remaining > 0 &&
+                  !isSpinning;
 
   const isBuyDisabled = isPurchasing || !user || (user?.balance_crystals ?? 0) < PREMIUM_ITEM_COST;
 
@@ -591,12 +624,12 @@ export default function ShopPage() {
         {/* Статистика */}
         <div className="stats-grid">
           <div className="stat-card">
-            <div className="stat-value">{dailyLimit?.remaining || 0}/{dailyLimit?.maxLimit || 5}</div>
+            <div className="stat-value">{dailyLimit?.remaining ?? 0}/{dailyLimit?.maxLimit ?? 5}</div>
             <div className="stat-label">Осталось<br/>открытий</div>
           </div>
           
           <div className="stat-card">
-            <div className="stat-value">{user?.balance_crystals?.toLocaleString('ru-RU') || 0}</div>
+            <div className="stat-value">{user?.balance_crystals?.toLocaleString('ru-RU') ?? 0}</div>
             <div className="stat-label">Текущий<br/>баланс</div>
           </div>
         </div>
@@ -605,20 +638,19 @@ export default function ShopPage() {
         <div className="slot-section">
           <div className="slot-machine">
             <HorizontalTextSlotMachine
-              key={spinKey}
-              spinId={spinKey}
               prizes={ALL_PRIZES.map(p => ({ name: p.name, icon: p.image }))}
               winningPrize={winningPrize ? { name: winningPrize.name, icon: winningPrize.image } : null}
               onSpinEnd={handleSpinEnd}
+              spinId={spinKey}
             />
           </div>
           
           <button 
             onClick={handleSpin}
-            disabled={isSpinDisabled}
+            disabled={!canSpin}
             className="spin-button"
           >
-            {isSpinning ? 'Крутится...' : `Крутить`}
+            {isSpinning ? 'Крутится...' : 'Крутить'}
           </button>
           
           <button 
