@@ -16,6 +16,12 @@ export default function ResumePage() {
   const [fileName, setFileName] = useState('');
   const [fileWarning, setFileWarning] = useState<string | null>(null);
   
+  // Новый state для прогресса загрузки/OCR
+  const [uploadProgress, setUploadProgress] = useState<{ 
+    progress: number; 
+    status: string 
+  } | null>(null);
+  
   const [aiStatus, setAiStatus] = useState<'idle' | 'thinking' | 'ready' | 'failed'>('idle');
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [aiProgress, setAiProgress] = useState(0);
@@ -103,18 +109,32 @@ export default function ResumePage() {
     setError('');
     setFileWarning(null);
     setUploadLoading(true);
+    setUploadProgress({ progress: 0, status: 'Начинаем обработку...' });
 
     try {
-      const result = await parseResumeFile(file);
+      // Передаём callback для отображения прогресса
+      const result = await parseResumeFile(file, (progress, status) => {
+        setUploadProgress({ progress, status });
+      });
+      
       setResumeText(result.text);
       
+      // Показываем предупреждения
       if (result.metadata.warning) {
         setFileWarning(result.metadata.warning);
-      } else if (result.metadata.quality === 'fixed') {
-        setFileWarning('Формат PDF был сложным, текст автоматически исправлен. Проверьте корректность.');
+      } else if (result.metadata.quality === 'ocr') {
+        setFileWarning(
+          `Текст распознан через OCR (${result.metadata.ocrPages} стр.). Проверьте корректность.`
+        );
+      } else if (result.metadata.quality === 'poor') {
+        setFileWarning('Качество текста низкое. Рекомендуем проверить или вставить вручную.');
       }
       
-      console.log('File parsed:', result.metadata);
+      console.log('File parsed:', {
+        ...result.metadata,
+        textPreview: result.text.substring(0, 100) + '...'
+      });
+      
     } catch (err) {
       console.error('Ошибка загрузки файла:', err);
       setError(err instanceof Error ? err.message : 'Не удалось обработать файл');
@@ -122,6 +142,7 @@ export default function ResumePage() {
       setResumeText('');
     } finally {
       setUploadLoading(false);
+      setUploadProgress(null);
     }
   };
 
@@ -170,6 +191,7 @@ export default function ResumePage() {
     setFileName('');
     setError('');
     setFileWarning(null);
+    setUploadProgress(null);
     setAiStatus('idle');
     setAiSummary(null);
     setAiProgress(0);
@@ -225,6 +247,64 @@ export default function ResumePage() {
     );
   };
 
+  // Компонент для отображения прогресса загрузки/OCR
+  const UploadProgressIndicator = () => {
+    if (!uploadLoading || !uploadProgress) return null;
+    
+    const isOCR = uploadProgress.progress > 45 && uploadProgress.progress < 100;
+    
+    return (
+      <div className={`mt-3 p-4 rounded-lg border ${
+        isOCR ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200'
+      }`}>
+        <div className="flex justify-between items-center mb-2">
+          <span className={`text-sm font-medium ${
+            isOCR ? 'text-orange-700' : 'text-blue-700'
+          }`}>
+            {uploadProgress.status}
+          </span>
+          <span className={`text-sm font-bold ${
+            isOCR ? 'text-orange-600' : 'text-blue-600'
+          }`}>
+            {uploadProgress.progress}%
+          </span>
+        </div>
+        
+        <div className={`w-full rounded-full h-2.5 ${
+          isOCR ? 'bg-orange-100' : 'bg-blue-100'
+        }`}>
+          <div 
+            className={`h-2.5 rounded-full transition-all duration-300 ${
+              isOCR ? 'bg-orange-500' : 'bg-blue-500'
+            }`}
+            style={{ width: `${uploadProgress.progress}%` }}
+          />
+        </div>
+        
+        {isOCR && (
+          <div className="mt-3 flex items-start gap-2">
+            <span className="text-lg">🔍</span>
+            <div>
+              <p className="text-sm font-medium text-orange-800">
+                Распознавание текста (OCR)
+              </p>
+              <p className="text-xs text-orange-600 mt-1">
+                PDF содержит изображения или сложный дизайн. 
+                Это может занять 15-45 секунд в зависимости от количества страниц.
+              </p>
+            </div>
+          </div>
+        )}
+        
+        {!isOCR && uploadProgress.progress < 45 && (
+          <p className="text-xs text-blue-600 mt-2">
+            Извлекаем текст из документа...
+          </p>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-white p-4">
       <div className="max-w-2xl mx-auto">
@@ -261,10 +341,10 @@ export default function ResumePage() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadLoading}
-                className={`w-full py-3 px-4 border-2 border-dashed rounded-lg transition-colors ${
+                className={`w-full py-4 px-4 border-2 border-dashed rounded-lg transition-colors ${
                   uploadLoading 
                     ? 'border-gray-200 bg-gray-100 cursor-not-allowed' 
-                    : 'border-gray-300 hover:border-red-400'
+                    : 'border-gray-300 hover:border-red-400 hover:bg-red-50'
                 }`}
               >
                 <div className="flex items-center justify-center">
@@ -290,11 +370,17 @@ export default function ResumePage() {
                 </div>
               </button>
               
+              {/* Прогресс загрузки/OCR */}
+              <UploadProgressIndicator />
+              
+              {/* Успешная загрузка */}
               {fileName && !uploadLoading && (
-                <div className="mt-2 flex items-center justify-between text-sm text-green-600 bg-green-50 p-2 rounded">
+                <div className="mt-3 flex items-center justify-between text-sm text-green-600 bg-green-50 p-3 rounded-lg border border-green-200">
                   <span className="flex items-center">
-                    <LottieSticker name="checkmark" size={20} className="mr-1" />
-                    Файл загружен: {fileName}
+                    <LottieSticker name="checkmark" size={20} className="mr-2" />
+                    <span>
+                      <span className="font-medium">Файл загружен:</span> {fileName}
+                    </span>
                   </span>
                   <button
                     onClick={() => {
@@ -304,19 +390,22 @@ export default function ResumePage() {
                       setAiStatus('idle');
                       if (fileInputRef.current) fileInputRef.current.value = '';
                     }}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-500 hover:text-red-700 p-1"
                   >
-                    ✕
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   </button>
                 </div>
               )}
               
+              {/* Предупреждение о качестве */}
               {fileWarning && (
-                <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <div className="flex items-start">
-                    <LottieSticker name="exclamation" size={20} className="mr-2 flex-shrink-0 mt-0.5" />
+                    <LottieSticker name="exclamation" size={24} className="mr-2 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-yellow-800">
-                      <p className="font-medium mb-1">Внимание</p>
+                      <p className="font-medium mb-1">Обратите внимание</p>
                       <p>{fileWarning}</p>
                     </div>
                   </div>
@@ -335,9 +424,11 @@ export default function ResumePage() {
                 onChange={(e) => setResumeText(e.target.value)}
                 disabled={uploadLoading}
                 className="w-full h-64 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-black bg-white disabled:bg-gray-100"
-                placeholder="Скопируйте и вставьте ваше резюме здесь..."
+                placeholder="Скопируйте и вставьте ваше резюме здесь...
+
+Совет: Для PDF с красивым дизайном (Canva, Figma) лучше открыть файл, выделить весь текст (Ctrl+A) и скопировать (Ctrl+C), затем вставить сюда."
               />
-              <div className="mt-2 text-sm">
+              <div className="mt-2 flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <span className={`font-medium ${
                     resumeText.length < 100 ? 'text-red-500' : 
@@ -349,15 +440,34 @@ export default function ResumePage() {
                   <span className="text-gray-400">•</span>
                   <span className="text-gray-600">минимум 100 для анализа</span>
                 </div>
+                {resumeText.length > 0 && (
+                  <button
+                    onClick={() => setResumeText('')}
+                    className="text-gray-400 hover:text-red-500 text-xs"
+                  >
+                    Очистить
+                  </button>
+                )}
               </div>
             </div>
 
             <AIStatusIndicator />
             
             {error && (
-              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg border border-red-200 flex items-start">
-                <LottieSticker name="exclamation" size={24} className="mr-2 flex-shrink-0" />
-                <span>{error}</span>
+              <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
+                <div className="flex items-start">
+                  <LottieSticker name="exclamation" size={24} className="mr-2 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">Ошибка</p>
+                    <p className="text-sm mt-1">{error}</p>
+                    {error.includes('скопировать') && (
+                      <p className="text-xs mt-2 text-red-600">
+                        💡 Откройте PDF, нажмите Ctrl+A (выделить всё), затем Ctrl+C (копировать) 
+                        и вставьте в поле выше.
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
             
@@ -392,8 +502,12 @@ export default function ResumePage() {
               <div className="flex items-start">
                 <LottieSticker name="fire" size={24} className="mr-2 flex-shrink-0" />
                 <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-1">Совет:</p>
-                  <p>Для PDF с дизайном лучше скопировать текст вручную. AI оценит стиль подачи вашего резюме.</p>
+                  <p className="font-medium mb-1">Как работает:</p>
+                  <ul className="list-disc list-inside space-y-1 text-xs">
+                    <li>Обычные PDF — текст извлекается мгновенно</li>
+                    <li>Дизайнерские PDF (Canva, Figma) — автоматически распознаём через OCR</li>
+                    <li>Если OCR не справился — вставьте текст вручную</li>
+                  </ul>
                 </div>
               </div>
             </div>
