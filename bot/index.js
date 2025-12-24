@@ -602,18 +602,28 @@ bot.onText(/\/admin/, async (msg) => {
     const stats = statsStmt.get();
     
     // Считаем количество историй
-    const storiesStmt = db.prepare(`SELECT COUNT(*) as count FROM user_stories WHERE task_key = 'share_mistake'`);
-    const storiesCount = storiesStmt.get();
+    let storiesCount = { count: 0 };
+    try {
+      const storiesStmt = db.prepare(`SELECT COUNT(*) as count FROM user_stories WHERE task_key = 'share_mistake'`);
+      storiesCount = storiesStmt.get();
+    } catch (e) {
+      console.log('[ADMIN] user_stories table not found');
+    }
     
-    // Статистика календаря
-    const calendarStmt = db.prepare(`SELECT COUNT(DISTINCT user_id) as users, COUNT(*) as claims FROM calendar_claims WHERE year = ?`);
-    const calendarStats = calendarStmt.get(new Date().getFullYear());
+    // Статистика календаря (с обработкой ошибки если таблицы нет)
+    let calendarStats = { users: 0, claims: 0 };
+    try {
+      const calendarStmt = db.prepare(`SELECT COUNT(DISTINCT user_id) as users, COUNT(*) as claims FROM calendar_claims WHERE year = ?`);
+      calendarStats = calendarStmt.get(new Date().getFullYear()) || { users: 0, claims: 0 };
+    } catch (e) {
+      console.log('[ADMIN] calendar_claims table not found');
+    }
     
     const message = `*👑 Админ-панель*\n\n` +
                    `📊 *Статистика:*\n` +
                    `Всего пользователей: ${stats.total_users}\n` +
                    `Активировали бота: ${stats.active_users}\n` +
-                   `📝 Историй об ошибках: ${storiesCount.count}\n\n` +
+                   `📝 Историй об ошибках: ${storiesCount.count || 0}\n\n` +
                    `🎄 *Адвент-календарь:*\n` +
                    `Участников: ${calendarStats.users || 0}\n` +
                    `Призов выдано: ${calendarStats.claims || 0}\n\n` +
@@ -633,7 +643,7 @@ bot.onText(/\/admin/, async (msg) => {
     bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
   } catch (error) {
     console.error('[ADMIN] Ошибка:', error);
-    bot.sendMessage(chatId, '❌ Ошибка при получении статистики');
+    bot.sendMessage(chatId, '❌ Ошибка при получении статистики: ' + error.message);
   }
 });
 
