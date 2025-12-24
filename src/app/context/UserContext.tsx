@@ -1,5 +1,4 @@
 // src/app/context/UserContext.tsx
-// Расположение: src/app/context/UserContext.tsx
 
 'use client';
 
@@ -20,6 +19,14 @@ interface InviteMilestone {
   reward: number;
   taskKey: string;
   title?: string;
+}
+
+interface CalendarStatus {
+  isActive: boolean;
+  currentDay: number | null;
+  claimedToday: boolean;
+  claimedDays: number[];
+  timeUntilNext: number;
 }
 
 export interface UserProfile {
@@ -46,6 +53,7 @@ export interface UserProfile {
   completed_tasks: CompletedTask[];
   invite_milestones?: InviteMilestone[];
   has_spun_before?: boolean;
+  calendar?: CalendarStatus;
 }
 
 interface UserContextType {
@@ -56,6 +64,7 @@ interface UserContextType {
   updateBalance: (newBalance: number) => void;
   updateUser: (updates: Partial<UserProfile>) => void;
   addCompletedTask: (task: CompletedTask) => void;
+  updateCalendar: (updates: Partial<CalendarStatus>) => void;
   setLoading: (loading: boolean) => void;
 }
 
@@ -128,12 +137,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Обновление баланса (используется после покупок, тапов и т.д.)
+  // Обновление баланса
   const updateBalance = useCallback((newBalance: number) => {
     setUser(prev => prev ? { ...prev, balance_crystals: newBalance } : null);
   }, []);
 
-  // Частичное обновление пользователя (для любых полей)
+  // Частичное обновление пользователя
   const updateUser = useCallback((updates: Partial<UserProfile>) => {
     setUser(prev => prev ? { ...prev, ...updates } : null);
   }, []);
@@ -145,6 +154,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
       return {
         ...prev,
         completed_tasks: [...prev.completed_tasks, task]
+      };
+    });
+  }, []);
+
+  // Обновление статуса календаря
+  const updateCalendar = useCallback((updates: Partial<CalendarStatus>) => {
+    setUser(prev => {
+      if (!prev || !prev.calendar) return prev;
+      return {
+        ...prev,
+        calendar: { ...prev.calendar, ...updates }
       };
     });
   }, []);
@@ -173,6 +193,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       updateBalance,
       updateUser,
       addCompletedTask,
+      updateCalendar,
       setLoading
     }}>
       {children}

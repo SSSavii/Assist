@@ -11,21 +11,84 @@ const CHANNEL_ID = '-1002782276287';
 // КОНФИГУРАЦИЯ РЕФЕРАЛЬНОЙ СИСТЕМЫ
 // ============================================
 const REFERRAL_CONFIG = {
-  // Награда за каждого приглашённого друга (автоматически)
   REWARD_PER_REFERRAL: 500,
-  
-  // Требовать ли подписку на канал для получения награды
-  // true = друг должен подписаться, false = достаточно запустить приложение
   REQUIRE_SUBSCRIPTION: false,
 };
 
-// Milestone-конфигурация (легко менять!)
+// Milestone-конфигурация
 const INVITE_MILESTONES = [
   { friends: 1, reward: 500, taskKey: 'invite_1' },
   { friends: 3, reward: 500, taskKey: 'invite_3' },
   { friends: 5, reward: 500, taskKey: 'invite_5' },
   { friends: 10, reward: 500, taskKey: 'invite_10' },
 ];
+
+// ============================================
+// КОНФИГУРАЦИЯ АДВЕНТ-КАЛЕНДАРЯ
+// ============================================
+const CALENDAR_START_DAY = 24;
+const CALENDAR_END_DAY = 30;
+const CALENDAR_MONTH = 11; // Декабрь (0-indexed)
+const CALENDAR_UPDATE_HOUR = 18; // Обновление в 18:00 МСК
+
+// Получение текущей даты по Москве (UTC+3)
+function getMoscowDate(): Date {
+  const now = new Date();
+  const moscowOffset = 3 * 60 * 60 * 1000;
+  return new Date(now.getTime() + (now.getTimezoneOffset() * 60 * 1000) + moscowOffset);
+}
+
+// Получение текущего "календарного дня" с учётом обновления в 18:00
+function getCalendarDay(): { day: number; isActive: boolean } {
+  const moscow = getMoscowDate();
+  const currentDay = moscow.getDate();
+  const currentMonth = moscow.getMonth();
+  const currentHour = moscow.getHours();
+
+  if (currentMonth !== CALENDAR_MONTH) {
+    return { day: 0, isActive: false };
+  }
+
+  // Логика:
+  // - До 18:00 24 декабря - календарь ещё не начался
+  // - С 18:00 24 декабря до 17:59 25 декабря - день 24
+  // - С 18:00 25 декабря до 17:59 26 декабря - день 25
+  // и т.д.
+
+  let calendarDay: number;
+  
+  if (currentHour >= CALENDAR_UPDATE_HOUR) {
+    calendarDay = currentDay;
+  } else {
+    calendarDay = currentDay - 1;
+  }
+
+  if (calendarDay < CALENDAR_START_DAY) {
+    return { day: 0, isActive: false };
+  }
+  
+  if (calendarDay > CALENDAR_END_DAY) {
+    return { day: 0, isActive: false };
+  }
+
+  return { day: calendarDay, isActive: true };
+}
+
+// Получение времени до следующего обновления (18:00 МСК)
+function getTimeUntilNextUpdate(): number {
+  const moscow = getMoscowDate();
+  const currentHour = moscow.getHours();
+  
+  const nextUpdate = new Date(moscow);
+  
+  if (currentHour >= CALENDAR_UPDATE_HOUR) {
+    nextUpdate.setDate(nextUpdate.getDate() + 1);
+  }
+  
+  nextUpdate.setHours(CALENDAR_UPDATE_HOUR, 0, 0, 0);
+  
+  return nextUpdate.getTime() - moscow.getTime();
+}
 // ============================================
 
 interface UserFromDB {
@@ -58,6 +121,14 @@ interface CompletedTask {
   completed_at: string;
 }
 
+interface CalendarStatus {
+  isActive: boolean;
+  currentDay: number | null;
+  claimedToday: boolean;
+  claimedDays: number[];
+  timeUntilNext: number;
+}
+
 interface AuthResponse {
   id: number;
   tg_id: number;
@@ -81,6 +152,7 @@ interface AuthResponse {
   completed_tasks: CompletedTask[];
   invite_milestones: typeof INVITE_MILESTONES;
   has_spun_before: boolean;
+  calendar: CalendarStatus;
 }
 
 async function checkChannelSubscription(userId: number) {
@@ -112,6 +184,46 @@ async function checkChannelSubscription(userId: number) {
     console.error('Error checking subscription:', error);
     return null;
   }
+}
+
+// Функция получения статуса календаря для пользователя
+function getCalendarStatus(userId: number): CalendarStatus {
+  const { day: calendarDay, isActive } = getCalendarDay();
+  const currentYear = getMoscowDate().getFullYear();
+
+  if (!isActive) {
+    return {
+      isActive: false,
+      currentDay: null,
+      claimedToday: false,
+      claimedDays: [],
+      timeUntilNext: 0
+    };
+  }
+
+  // Проверяем, получен ли приз сегодня
+  const checkClaimStmt = db.prepare(`
+    SELECT id FROM calendar_claims 
+    WHERE user_id = ? AND day = ? AND year = ?
+  `);
+  const todayClaim = checkClaimStmt.get(userId, calendarDay, currentYear);
+
+  // Получаем все полученные призы
+  const claimsStmt = db.prepare(`
+    SELECT day FROM calendar_claims 
+    WHERE user_id = ? AND year = ?
+    ORDER BY day
+  `);
+  const claims = claimsStmt.all(userId, currentYear) as { day: number }[];
+  const claimedDays = claims.map(c => c.day);
+
+  return {
+    isActive: true,
+    currentDay: calendarDay,
+    claimedToday: !!todayClaim,
+    claimedDays,
+    timeUntilNext: getTimeUntilNextUpdate()
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -248,7 +360,6 @@ export async function POST(req: NextRequest) {
         try {
           let shouldReward = true;
           
-          // Если включена проверка подписки
           if (REFERRAL_CONFIG.REQUIRE_SUBSCRIPTION) {
             const chatMember = await checkChannelSubscription(userData.id);
             const isSubscribed = chatMember?.status === 'member' || 
@@ -267,7 +378,6 @@ export async function POST(req: NextRequest) {
           }
           
           const transaction = db.transaction(() => {
-            // Увеличиваем счётчик рефералов
             const updateReferrerStmt = db.prepare(`
               UPDATE users 
               SET referral_count = referral_count + 1,
@@ -283,7 +393,6 @@ export async function POST(req: NextRequest) {
               referredById
             );
             
-            // Создаём запись в referral_rewards
             const insertRewardStmt = db.prepare(`
               INSERT OR IGNORE INTO referral_rewards (
                 user_id, 
@@ -338,6 +447,9 @@ export async function POST(req: NextRequest) {
     const spinCountResult = spinCountStmt.get(user.id) as { count: number };
     const hasSpunBefore = spinCountResult.count > 0;
 
+    // Получаем статус календаря
+    const calendarStatus = getCalendarStatus(user.id);
+
     const response: AuthResponse = {
       id: user.id,
       tg_id: user.tg_id,
@@ -361,15 +473,16 @@ export async function POST(req: NextRequest) {
       completed_tasks: completedTasks,
       invite_milestones: INVITE_MILESTONES,
       has_spun_before: hasSpunBefore,
+      calendar: calendarStatus,
     };
 
     console.log('=== SUCCESS ===');
     console.log('User ID:', user.id);
     console.log('TG ID:', user.tg_id);
     console.log('Balance:', user.balance_crystals);
-    console.log('Referral count:', user.referral_count);
-    console.log('Completed tasks:', completedTasks.length);
-    console.log('Has spun before:', hasSpunBefore);
+    console.log('Calendar active:', calendarStatus.isActive);
+    console.log('Calendar day:', calendarStatus.currentDay);
+    console.log('Calendar claimed today:', calendarStatus.claimedToday);
 
     return NextResponse.json(response);
 

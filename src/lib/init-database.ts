@@ -121,7 +121,27 @@ db.exec(`CREATE INDEX IF NOT EXISTS idx_user_stories_user ON user_stories(user_i
 db.exec(`CREATE INDEX IF NOT EXISTS idx_user_stories_task ON user_stories(task_key)`);
 
 console.log('✅ Таблица user_stories готова');
+// ============================================
+// ТАБЛИЦА АДВЕНТ-КАЛЕНДАРЯ
+// ============================================
+db.exec(`
+  CREATE TABLE IF NOT EXISTS calendar_claims (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    day INTEGER NOT NULL,
+    year INTEGER NOT NULL,
+    prize_file TEXT NOT NULL,
+    claimed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, day, year),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )
+`);
 
+// Создаём индекс для быстрого поиска
+db.exec(`CREATE INDEX IF NOT EXISTS idx_calendar_claims_user ON calendar_claims(user_id)`);
+db.exec(`CREATE INDEX IF NOT EXISTS idx_calendar_claims_day ON calendar_claims(day, year)`);
+
+console.log('✅ Таблица calendar_claims готова');
 // ============================================
 // МИГРАЦИЯ ТАБЛИЦЫ TASKS БЕЗ ПОТЕРИ ДАННЫХ
 // ============================================

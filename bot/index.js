@@ -144,6 +144,44 @@ export async function sendPrizeToUser(userId, prizeName, messageType, checklistF
   }
 }
 
+// ============================================
+// ФУНКЦИЯ ОТПРАВКИ ПРИЗА ИЗ АДВЕНТ-КАЛЕНДАРЯ
+// ============================================
+export async function sendCalendarPrize(userId, fileName, prizeTitle) {
+  try {
+    // 📁 Файлы календаря лежат в public/calendar/
+    const filePath = path.join(process.cwd(), 'public', 'calendar', fileName);
+    
+    console.log(`[CALENDAR BOT] Sending file: ${filePath}`);
+    
+    if (!fs.existsSync(filePath)) {
+      console.error(`[CALENDAR BOT] File not found: ${filePath}`);
+      return { error: 'file_not_found' };
+    }
+
+    const caption = `🎄 *Адвент-календарь АССИСТ+*\n\n` +
+                   `🎁 Ваш подарок: *${escapeMarkdown(prizeTitle)}*\n\n` +
+                   `Открывайте приложение каждый день в 18:00, чтобы получить новый подарок!`;
+    
+    await bot.sendDocument(userId, filePath, { 
+      caption, 
+      parse_mode: 'Markdown' 
+    });
+    
+    console.log(`[CALENDAR BOT] ✅ Prize sent to user ${userId}`);
+    return { success: true };
+    
+  } catch (error) {
+    console.error(`[CALENDAR BOT] Error sending prize to ${userId}:`, error);
+    
+    if (error.response?.body?.error_code === 403) {
+      return { error: 'bot_not_started' };
+    }
+    
+    throw error;
+  }
+}
+
 // Проведение автоматического розыгрыша
 async function conductMonthlyLottery() {
   console.log('\n====================================');
@@ -502,6 +540,7 @@ bot.onText(/\/start/, (msg) => {
                    `Я буду присылать тебе уведомления о:\n` +
                    `— выигрышах в рулетке\n` +
                    `— новых розыгрышах\n` +
+                   `— подарках из адвент-календаря 🎄\n` +
                    `— важных событиях\n\n` +
                    `Теперь ты можешь полноценно пользоваться нашим приложением 🤍`;
     
@@ -531,7 +570,8 @@ bot.onText(/\/help/, (msg) => {
                 `/runlottery - Запустить полный розыгрыш сейчас\n` +
                 `/reset_month - Сбросить месячные счетчики\n` +
                 `/fix_stats - Восстановить рефералов\n` +
-                `/mistakes - Выгрузить истории об ошибках`;
+                `/mistakes - Выгрузить истории об ошибках\n` +
+                `/calendar_stats - Статистика адвент-календаря`;
   }
   
   bot.sendMessage(chatId, helpText, { parse_mode: 'Markdown' });
@@ -565,11 +605,18 @@ bot.onText(/\/admin/, async (msg) => {
     const storiesStmt = db.prepare(`SELECT COUNT(*) as count FROM user_stories WHERE task_key = 'share_mistake'`);
     const storiesCount = storiesStmt.get();
     
+    // Статистика календаря
+    const calendarStmt = db.prepare(`SELECT COUNT(DISTINCT user_id) as users, COUNT(*) as claims FROM calendar_claims WHERE year = ?`);
+    const calendarStats = calendarStmt.get(new Date().getFullYear());
+    
     const message = `*👑 Админ-панель*\n\n` +
                    `📊 *Статистика:*\n` +
                    `Всего пользователей: ${stats.total_users}\n` +
                    `Активировали бота: ${stats.active_users}\n` +
                    `📝 Историй об ошибках: ${storiesCount.count}\n\n` +
+                   `🎄 *Адвент-календарь:*\n` +
+                   `Участников: ${calendarStats.users || 0}\n` +
+                   `Призов выдано: ${calendarStats.claims || 0}\n\n` +
                    `🎰 *Участники розыгрышей (в этом месяце):*\n` +
                    `1+ реферал: ${stats.lottery_1} чел.\n` +
                    `5+ рефералов: ${stats.lottery_5} чел.\n` +
@@ -580,12 +627,61 @@ bot.onText(/\/admin/, async (msg) => {
                    `/lottery - Управление розыгрышами\n` +
                    `/participants <уровень> - Список участников\n` +
                    `/runlottery - Запустить полный розыгрыш\n` +
-                   `/mistakes - Выгрузить истории об ошибках`;
+                   `/mistakes - Выгрузить истории об ошибках\n` +
+                   `/calendar_stats - Статистика календаря`;
     
     bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
   } catch (error) {
     console.error('[ADMIN] Ошибка:', error);
     bot.sendMessage(chatId, '❌ Ошибка при получении статистики');
+  }
+});
+
+// ============================================
+// КОМАНДА /calendar_stats - Статистика адвент-календаря
+// ============================================
+bot.onText(/\/calendar_stats/, async (msg) => {
+  if (!checkAdmin(msg)) {
+    bot.sendMessage(msg.chat.id, "⛔️ У вас нет прав для использования этой команды.");
+    return;
+  }
+  
+  const chatId = msg.chat.id;
+  const currentYear = new Date().getFullYear();
+  
+  try {
+    // Общая статистика
+    const totalStmt = db.prepare(`
+      SELECT COUNT(DISTINCT user_id) as unique_users, COUNT(*) as total_claims
+      FROM calendar_claims WHERE year = ?
+    `);
+    const total = totalStmt.get(currentYear);
+    
+    // По дням
+    const byDayStmt = db.prepare(`
+      SELECT day, COUNT(*) as claims
+      FROM calendar_claims WHERE year = ?
+      GROUP BY day ORDER BY day
+    `);
+    const byDay = byDayStmt.all(currentYear);
+    
+    let message = `🎄 *Статистика адвент-календаря ${currentYear}*\n\n`;
+    message += `👥 Уникальных участников: ${total.unique_users || 0}\n`;
+    message += `🎁 Всего призов выдано: ${total.total_claims || 0}\n\n`;
+    
+    if (byDay.length > 0) {
+      message += `*По дням:*\n`;
+      for (const day of byDay) {
+        message += `  ${day.day} декабря: ${day.claims} чел.\n`;
+      }
+    } else {
+      message += `_Пока никто не получал призы_`;
+    }
+    
+    bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+  } catch (error) {
+    console.error('[CALENDAR STATS] Ошибка:', error);
+    bot.sendMessage(chatId, '❌ Ошибка при получении статистики календаря');
   }
 });
 

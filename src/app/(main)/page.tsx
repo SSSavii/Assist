@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/app/context/UserContext';
 
@@ -40,6 +40,174 @@ interface Task {
 const DAILY_TAP_LIMIT = 100;
 const MIN_STORY_LENGTH = 15;
 
+// ============================================
+// КОМПОНЕНТ АДВЕНТ-КАЛЕНДАРЯ
+// ============================================
+function AdventCalendar() {
+  const { user, updateCalendar } = useUser();
+  const [isLoading, setIsLoading] = useState(false);
+  const [countdown, setCountdown] = useState<string>('');
+  const [isPressed, setIsPressed] = useState(false);
+
+  // Форматирование времени в чч:мм:сс
+  const formatTime = useCallback((ms: number): string => {
+    if (ms <= 0) return '00:00:00';
+    
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }, []);
+
+  // Таймер обратного отсчёта
+  useEffect(() => {
+    if (!user?.calendar?.isActive || !user.calendar.claimedToday) return;
+
+    let timeLeft = user.calendar.timeUntilNext;
+    
+    const updateCountdown = () => {
+      setCountdown(formatTime(timeLeft));
+      timeLeft -= 1000;
+      
+      if (timeLeft < 0) {
+        // Время вышло - обновляем страницу для получения нового приза
+        window.location.reload();
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [user?.calendar, formatTime]);
+
+  // Обработчик получения приза
+  const handleClaimPrize = async () => {
+    const tg = window.Telegram?.WebApp;
+    if (!tg?.initData || isLoading) return;
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/calendar/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: tg.initData }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Обновляем состояние календаря
+        updateCalendar({
+          claimedToday: true,
+          timeUntilNext: data.timeUntilNext,
+          claimedDays: [...(user?.calendar?.claimedDays || []), data.day]
+        });
+        
+        tg.showAlert(`🎁 ${data.message}\n\nПодарок отправлен вам в бота!`);
+        
+        if (tg.HapticFeedback) {
+          tg.HapticFeedback.notificationOccurred('success');
+        }
+      } else {
+        if (data.botNotStarted) {
+          tg.showAlert('Пожалуйста, сначала запустите бота @my_auction_admin_bot, чтобы получать подарки!');
+        } else if (data.alreadyClaimed) {
+          updateCalendar({
+            claimedToday: true,
+            timeUntilNext: data.timeUntilNext
+          });
+        } else {
+          tg.showAlert(data.error || 'Ошибка при получении подарка');
+        }
+      }
+    } catch (error) {
+      console.error('Calendar claim error:', error);
+      tg.showAlert('Ошибка соединения с сервером');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Не показываем, если календарь неактивен
+  if (!user?.calendar?.isActive) {
+    return null;
+  }
+
+  const { claimedToday, currentDay } = user.calendar;
+
+  return (
+    <div 
+      className={`advent-calendar ${isPressed ? 'pressed' : ''}`}
+      onClick={!claimedToday && !isLoading ? handleClaimPrize : undefined}
+      onMouseDown={() => !claimedToday && setIsPressed(true)}
+      onMouseUp={() => setIsPressed(false)}
+      onMouseLeave={() => setIsPressed(false)}
+      onTouchStart={() => !claimedToday && setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
+    >
+      {/* Снежинки - декоративные элементы */}
+      <div className="snowflakes">
+        {/* Круглые снежинки */}
+        <div className="snowflake circle" style={{ left: 'calc(50% - 114.63px)', top: 'calc(50% - 22.81px)' }} />
+        <div className="snowflake circle" style={{ left: 'calc(50% - 137.61px)', top: 'calc(50% + 4px)' }} />
+        <div className="snowflake circle" style={{ left: 'calc(50% + 107.49px)', top: 'calc(50% - 53.45px)' }} />
+        <div className="snowflake circle" style={{ left: 'calc(50% + 152.49px)', top: 'calc(50% - 12.28px)' }} />
+        <div className="snowflake circle" style={{ left: 'calc(50% + 115.15px)', top: 'calc(50% + 10.7px)' }} />
+        <div className="snowflake circle" style={{ left: 'calc(50% + 107.49px)', top: 'calc(50% + 35.59px)' }} />
+        <div className="snowflake circle" style={{ left: 'calc(50% - 155.8px)', top: 'calc(50% - 18.02px)' }} />
+        
+        {/* Звёздочки большие */}
+        <div className="snowflake star big" style={{ left: 'calc(50% - 120.37px)', top: 'calc(50% + 15.01px)' }} />
+        <div className="snowflake star big" style={{ left: 'calc(50% - 102.18px)', top: 'calc(50% - 51.05px)' }} />
+        <div className="snowflake star big" style={{ left: 'calc(50% + 133.34px)', top: 'calc(50% - 40.52px)' }} />
+        <div className="snowflake star big" style={{ left: 'calc(50% + 149.62px)', top: 'calc(50% + 22.67px)' }} />
+        <div className="snowflake star big" style={{ left: 'calc(50% - 153.88px)', top: 'calc(50% - 40.52px)' }} />
+        
+        {/* Звёздочки маленькие */}
+        <div className="snowflake star small" style={{ left: 'calc(50% - 143.83px)', top: 'calc(50% + 24.1px)' }} />
+        <div className="snowflake star small" style={{ left: 'calc(50% + 107.97px)', top: 'calc(50% - 20.9px)' }} />
+        <div className="snowflake star small" style={{ left: 'calc(50% + 134.78px)', top: 'calc(50% - 1.75px)' }} />
+        <div className="snowflake star small" style={{ left: 'calc(50% - 100.75px)', top: 'calc(50% + 31.76px)' }} />
+        <div className="snowflake star small" style={{ left: 'calc(50% - 125.64px)', top: 'calc(50% - 47.7px)' }} />
+        <div className="snowflake star small" style={{ left: 'calc(50% + 85.95px)', top: 'calc(50% - 51.53px)' }} />
+        <div className="snowflake star small" style={{ left: 'calc(50% + 152.97px)', top: 'calc(50% - 38.13px)' }} />
+      </div>
+
+      {/* Размытые круги - декорация */}
+      <div className="glow-circle left" />
+      <div className="glow-circle right" />
+
+      {/* Контент */}
+      <div className="advent-content">
+        <h3 className="advent-title">Адвент-календарь</h3>
+        
+        {claimedToday ? (
+          <div className="advent-countdown">
+            <span className="countdown-label">До следующего подарка:</span>
+            <span className="countdown-time">{countdown}</span>
+          </div>
+        ) : (
+          <button 
+            className="advent-claim-btn"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Загрузка...' : 'Забрать подарок'}
+          </button>
+        )}
+        
+        <div className="advent-day">День {currentDay} декабря</div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// ГЛАВНЫЙ КОМПОНЕНТ СТРАНИЦЫ
+// ============================================
 export default function HomePage() {
   const router = useRouter();
   const { user, loading, error, updateBalance, updateUser, addCompletedTask } = useUser();
@@ -506,6 +674,11 @@ export default function HomePage() {
               <img className="tasks-bg-image-top" alt="" src="/svg1642-j9o.svg" />
               <div className="tasks-bg-color"></div>
               <img className="tasks-bg-image-bottom" alt="" src="/svg1642-j9o.svg" />
+            </div>
+
+            {/* АДВЕНТ-КАЛЕНДАРЬ - В САМОМ ВЕРХУ */}
+            <div className="advent-section">
+              <AdventCalendar />
             </div>
 
             {/* ACTIVE TASKS */}
@@ -978,6 +1151,15 @@ export default function HomePage() {
           object-fit: cover;
           z-index: 0;
         }
+
+        /* ADVENT CALENDAR SECTION */
+        .advent-section {
+          width: 100%;
+          padding: 0 16px;
+          box-sizing: border-box;
+          z-index: 1;
+          margin-bottom: 10px;
+        }
         
         .tasks-header {
           display: flex;
@@ -1193,6 +1375,163 @@ export default function HomePage() {
           z-index: -1;
         }
 
+        /* ============================================ */
+        /* ADVENT CALENDAR STYLES */
+        /* ============================================ */
+        .advent-calendar {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 20px 10px 30px;
+          gap: 12px;
+          isolation: isolate;
+          width: 100%;
+          max-width: calc(100vw - 32px);
+          min-height: 128px;
+          background: linear-gradient(243.66deg, #F34444 10.36%, #D72525 86.45%);
+          border-radius: 30px;
+          position: relative;
+          overflow: hidden;
+          cursor: pointer;
+          transition: transform 0.1s ease-in-out;
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        .advent-calendar.pressed {
+          transform: scale(0.98);
+        }
+
+        .advent-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          z-index: 10;
+        }
+
+        .advent-title {
+          font-family: 'Cera Pro', sans-serif;
+          font-weight: 500;
+          font-size: 20px;
+          line-height: 100%;
+          letter-spacing: -0.03em;
+          color: #FFFFFF;
+          margin: 0;
+        }
+
+        .advent-claim-btn {
+          font-family: 'Cera Pro', sans-serif;
+          font-weight: 500;
+          font-size: 24px;
+          line-height: 100%;
+          letter-spacing: -0.03em;
+          color: #FFFFFF;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 8px 16px;
+          margin: 4px 0;
+        }
+
+        .advent-claim-btn:disabled {
+          opacity: 0.7;
+        }
+
+        .advent-countdown {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .countdown-label {
+          font-family: 'Cera Pro', sans-serif;
+          font-weight: 400;
+          font-size: 16px;
+          line-height: 110%;
+          letter-spacing: -0.03em;
+          color: #FFFFFF;
+        }
+
+        .countdown-time {
+          font-family: 'Cera Pro', sans-serif;
+          font-weight: 500;
+          font-size: 20px;
+          line-height: 100%;
+          letter-spacing: -0.03em;
+          color: #FFFFFF;
+        }
+
+        .advent-day {
+          font-family: 'Cera Pro', sans-serif;
+          font-weight: 400;
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Размытые круги - декорация */
+        .glow-circle {
+          position: absolute;
+          background: #FFFFFF;
+          filter: blur(60px);
+          transform: rotate(-180deg);
+          pointer-events: none;
+        }
+
+        .glow-circle.left {
+          width: 67px;
+          height: 67px;
+          left: calc(50% - 67px/2 - 100px);
+          top: calc(50% - 67px/2 + 30px);
+        }
+
+        .glow-circle.right {
+          width: 55px;
+          height: 55px;
+          left: calc(50% - 55px/2 + 100px);
+          top: calc(50% - 55px/2 - 52px);
+        }
+
+        /* Снежинки */
+        .snowflakes {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+          pointer-events: none;
+          z-index: 5;
+        }
+
+        .snowflake {
+          position: absolute;
+          background: #FFFFFF;
+        }
+
+        .snowflake.circle {
+          width: 7.66px;
+          height: 7.66px;
+          border-radius: 50%;
+        }
+
+        .snowflake.star {
+          clip-path: polygon(
+            50% 0%, 61% 35%, 98% 35%, 68% 57%, 
+            79% 91%, 50% 70%, 21% 91%, 32% 57%, 
+            2% 35%, 39% 35%
+          );
+        }
+
+        .snowflake.star.big {
+          width: 17px;
+          height: 16px;
+        }
+
+        .snowflake.star.small {
+          width: 16px;
+          height: 11px;
+        }
+
         /* MODAL STYLES */
         .modal-overlay {
           position: fixed;
@@ -1347,6 +1686,18 @@ export default function HomePage() {
 
           .modal-title {
             font-size: 18px;
+          }
+
+          .advent-calendar {
+            padding: 16px 10px 24px;
+          }
+
+          .advent-title {
+            font-size: 18px;
+          }
+
+          .advent-claim-btn {
+            font-size: 20px;
           }
         }
       `}</style>
