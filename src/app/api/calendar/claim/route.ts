@@ -11,7 +11,7 @@ import db from '@/lib/init-database';
 // Файлы должны лежать в папке: public/calendar/
 const ADVENT_PRIZES: Record<number, { fileName: string; title: string }> = {
   24: { fileName: 'Как_подготовить_информатвную_презентацию.pdf', title: 'Как подготовить информативную презентацию' },
-  25: { fileName: 'advent_day_25.pdf', title: 'Подарок 25 декабря' },
+  25: { fileName: 'Подборки_нейросетей_для_работы.pdf', title: 'Подборки нейросетей для работы' },
   26: { fileName: 'advent_day_26.pdf', title: 'Подарок 26 декабря' },
   27: { fileName: 'advent_day_27.pdf', title: 'Подарок 27 декабря' },
   28: { fileName: 'advent_day_28.pdf', title: 'Подарок 28 декабря' },
