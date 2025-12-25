@@ -536,7 +536,7 @@ export default function ResumePage() {
               <p className="text-black leading-relaxed text-lg italic">&ldquo;{analysis.summary}&rdquo;</p>
             </div>
 
-            {/* Практические рекомендации (nudges) - БЕЗ нумерации */}
+            {/* Практические рекомендации (nudges) - БЕЗ смайликов внутри */}
             {analysis.nudges && analysis.nudges.length > 0 && (
               <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-6 border border-purple-200">
                 <h3 className="font-bold mb-4 text-black text-lg flex items-center">
@@ -550,7 +550,7 @@ export default function ResumePage() {
                         <p className="text-black flex-1">{nudge.message}</p>
                         {nudge.actionTime && (
                           <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded whitespace-nowrap">
-                            ⏱ {nudge.actionTime}
+                            {nudge.actionTime}
                           </span>
                         )}
                       </div>
@@ -563,7 +563,7 @@ export default function ResumePage() {
               </div>
             )}
 
-            {/* Сильные стороны - БЕЗ нумерации, с галочками */}
+            {/* Сильные стороны - БЕЗ иконок внутри карточек */}
             {analysis.strengths && analysis.strengths.length > 0 && (
               <div className="bg-green-50 rounded-lg p-6 border border-green-200">
                 <h3 className="font-bold mb-3 text-black text-lg flex items-center">
@@ -572,8 +572,7 @@ export default function ResumePage() {
                 </h3>
                 <div className="space-y-2">
                   {analysis.strengths.map((item: string, i: number) => (
-                    <div key={i} className="flex items-start bg-white p-3 rounded-lg">
-                      <span className="text-green-500 mr-3 text-lg">✓</span>
+                    <div key={i} className="bg-white p-3 rounded-lg">
                       <span className="text-black">{item}</span>
                     </div>
                   ))}
@@ -581,7 +580,7 @@ export default function ResumePage() {
               </div>
             )}
 
-            {/* Зоны роста - БЕЗ нумерации, с точками */}
+            {/* Зоны роста - БЕЗ иконок внутри карточек */}
             {analysis.weaknesses && analysis.weaknesses.length > 0 && (
               <div className="bg-orange-50 rounded-lg p-6 border border-orange-200">
                 <h3 className="font-bold mb-3 text-black text-lg flex items-center">
@@ -590,8 +589,7 @@ export default function ResumePage() {
                 </h3>
                 <div className="space-y-2">
                   {analysis.weaknesses.map((item: string, i: number) => (
-                    <div key={i} className="flex items-start bg-white p-3 rounded-lg">
-                      <span className="text-orange-500 mr-3 text-lg">•</span>
+                    <div key={i} className="bg-white p-3 rounded-lg">
                       <span className="text-black">{item}</span>
                     </div>
                   ))}
@@ -599,7 +597,7 @@ export default function ResumePage() {
               </div>
             )}
 
-            {/* Рекомендации - БЕЗ нумерации, со стрелками */}
+            {/* Рекомендации - БЕЗ иконок внутри карточек */}
             {analysis.recommendations && analysis.recommendations.length > 0 && (
               <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
                 <h3 className="font-bold mb-3 text-black text-lg flex items-center">
@@ -608,8 +606,7 @@ export default function ResumePage() {
                 </h3>
                 <div className="space-y-2">
                   {analysis.recommendations.map((rec: string, i: number) => (
-                    <div key={i} className="flex items-start bg-white p-3 rounded-lg">
-                      <span className="text-blue-500 mr-3 text-lg">→</span>
+                    <div key={i} className="bg-white p-3 rounded-lg">
                       <span className="text-black">{rec}</span>
                     </div>
                   ))}

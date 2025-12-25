@@ -30,7 +30,6 @@ type Topic =
   | 'portfolio' 
   | 'bullets'
   | 'dates'
-  | 'linkedin'
   | 'keywords'
   | 'framing'
   | 'experience'
@@ -144,7 +143,6 @@ export class ResumeAnalyzer {
       hasSoftSkills: this.countSkills(text, ['коммуникаб', 'команд', 'лидер', 'ответствен']),
       hasLanguages: /английск|english|b1|b2|c1|c2|intermediate|advanced|fluent/i.test(text),
       hasGoodStructure: this.checkGoodStructure(text),
-      hasLinkedIn: text.includes('linkedin'),
       hasPortfolio: /portfolio|github|behance/i.test(text),
     };
     
@@ -179,7 +177,6 @@ export class ResumeAnalyzer {
     if (analysis.hasGoodStructure) score += 0.6; else score -= 0.4;
     if (analysis.hasBulletPoints) score += 0.4;
     if (analysis.isOptimalLength) score += 0.5;
-    if (analysis.hasLinkedIn) score += 0.2;
     if (analysis.hasPortfolio) score += 0.3;
     
     if (analysis.isTooShort) score -= 1.5;
@@ -475,7 +472,6 @@ export class ResumeAnalyzer {
       
       // Высокие оценки (7+)
       { text: "Усильте цифры: добавьте %, суммы, объёмы (5 мин)", topic: "metrics", minScore: 7, maxScore: 10 },
-      { text: "Добавьте ссылку на LinkedIn профиль (1 мин)", topic: "linkedin", minScore: 7, maxScore: 10 },
       { text: "Проверьте: каждый пункт опыта содержит измеримый результат? (3 мин)", topic: "achievements", minScore: 7, maxScore: 10 },
       { text: "Укажите уровень английского языка (1 мин)", topic: "languages", minScore: 7, maxScore: 10 },
     ];

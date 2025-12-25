@@ -88,17 +88,6 @@ export class NudgeSystem {
       }
     },
 
-    no_linkedin: {
-      check: (text) => !text.toLowerCase().includes('linkedin'),
-      nudge: {
-        message: "73% рекрутеров проверяют LinkedIn. Добавьте ссылку на профиль.",
-        type: "social_proof",
-        priority: "medium",
-        actionTime: "1 мин",
-        topic: "linkedin"
-      }
-    },
-
     weak_action_verbs: {
       check: (_, metrics) => (metrics?.actionVerbsCount || 0) < 4,
       nudge: {
