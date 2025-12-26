@@ -113,6 +113,7 @@ interface UserFromDB {
   current_month_referrals: number;
   bio: string | null;
   awards: string | null;
+  has_seen_stories: number;
 }
 
 interface CompletedTask {
@@ -153,6 +154,7 @@ interface AuthResponse {
   invite_milestones: typeof INVITE_MILESTONES;
   has_spun_before: boolean;
   calendar: CalendarStatus;
+  has_seen_stories: boolean;
 }
 
 async function checkChannelSubscription(userId: number) {
@@ -333,8 +335,8 @@ export async function POST(req: NextRequest) {
       // Создаём нового пользователя с балансом 0
       isNewUser = true;
       const insertStmt = db.prepare(`
-        INSERT INTO users (tg_id, username, first_name, last_name, photo_url, referred_by_id, balance_crystals)
-        VALUES (?, ?, ?, ?, ?, ?, 0)
+        INSERT INTO users (tg_id, username, first_name, last_name, photo_url, referred_by_id, balance_crystals, has_seen_stories)
+        VALUES (?, ?, ?, ?, ?, ?, 0, 0)
       `);
       
       insertStmt.run(
@@ -474,12 +476,14 @@ export async function POST(req: NextRequest) {
       invite_milestones: INVITE_MILESTONES,
       has_spun_before: hasSpunBefore,
       calendar: calendarStatus,
+      has_seen_stories: user.has_seen_stories === 1,
     };
 
     console.log('=== SUCCESS ===');
     console.log('User ID:', user.id);
     console.log('TG ID:', user.tg_id);
     console.log('Balance:', user.balance_crystals);
+    console.log('Has seen stories:', user.has_seen_stories === 1);
     console.log('Calendar active:', calendarStatus.isActive);
     console.log('Calendar day:', calendarStatus.currentDay);
     console.log('Calendar claimed today:', calendarStatus.claimedToday);

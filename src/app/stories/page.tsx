@@ -13,11 +13,16 @@ interface StoryImage {
   blur?: boolean;
 }
 
+interface TextPart {
+  text: string;
+  highlight?: boolean;
+}
+
 interface StorySlide {
   id: number;
   title: string;
-  subtitle: string;
-  additionalText?: string;
+  subtitle: TextPart[];
+  additionalText?: TextPart[];
   buttonText: string;
   images: StoryImage[];
 }
@@ -26,8 +31,15 @@ const STORIES: StorySlide[] = [
   {
     id: 1,
     title: 'Что тебя ждёт в мини-приложении АССИСТ+?',
-    subtitle: 'Возможность получать подарки, выполняя задания и приглашая друзей',
-    additionalText: 'Среди призов могут оказаться чек-листы, разборы твоих запросов от команды и даже личная встреча с предпринимателем',
+    subtitle: [
+      { text: 'Возможность ' },
+      { text: 'получать подарки', highlight: true },
+      { text: ', выполняя задания и приглашая друзей' },
+    ],
+    additionalText: [
+      { text: 'Среди призов могут оказаться чек-листы, разборы твоих запросов от команды и даже ' },
+      { text: 'личная встреча с предпринимателем', highlight: true },
+    ],
     buttonText: 'А что еще?',
     images: [
       {
@@ -45,7 +57,10 @@ const STORIES: StorySlide[] = [
   {
     id: 2,
     title: 'Доступ к навигации по нашему каналу',
-    subtitle: 'Все в одном месте: максимально просто находи полезный контент',
+    subtitle: [
+      { text: 'Все в одном месте: максимально просто ' },
+      { text: 'находи полезный контент', highlight: true },
+    ],
     buttonText: 'Отлично',
     images: [
       {
@@ -63,7 +78,11 @@ const STORIES: StorySlide[] = [
   {
     id: 3,
     title: 'Информация об эксклюзивных мероприятиях',
-    subtitle: 'Узнавай самым первым о новых событиях АССИСТ+',
+    subtitle: [
+      { text: 'Узнавай ' },
+      { text: 'самым первым', highlight: true },
+      { text: ' о новых событиях АССИСТ+' },
+    ],
     buttonText: 'Хорошо',
     images: [
       {
@@ -92,7 +111,11 @@ const STORIES: StorySlide[] = [
   {
     id: 4,
     title: 'Разбор резюме от ИИ-агента',
-    subtitle: 'Сильные стороны, зоны роста, рекомендации, и не только — всё в одном разборе от ИИ',
+    subtitle: [
+      { text: 'Сильные стороны, зоны роста, рекомендации, и не только — ' },
+      { text: 'всё в одном разборе', highlight: true },
+      { text: ' от ИИ' },
+    ],
     buttonText: 'Начать',
     images: [
       {
@@ -112,6 +135,24 @@ const STORIES: StorySlide[] = [
 const SLIDE_DURATION = 5000; // 5 секунд на слайд
 
 // ============================================
+// ВСПОМОГАТЕЛЬНЫЙ КОМПОНЕНТ ДЛЯ ТЕКСТА
+// ============================================
+
+function RenderText({ parts }: { parts: TextPart[] }) {
+  return (
+    <>
+      {parts.map((part, index) => (
+        part.highlight ? (
+          <span key={index} className="highlight-text">{part.text}</span>
+        ) : (
+          <span key={index}>{part.text}</span>
+        )
+      ))}
+    </>
+  );
+}
+
+// ============================================
 // КОМПОНЕНТ СТРАНИЦЫ
 // ============================================
 
@@ -127,7 +168,6 @@ export default function StoriesPage() {
       setCurrentSlide(prev => prev + 1);
       setProgress(0);
     } else {
-      // Последний слайд - переход на главную
       router.push('/');
     }
   }, [currentSlide, router]);
@@ -226,11 +266,15 @@ export default function StoriesPage() {
         </div>
 
         {/* Подзаголовок */}
-        <p className="story-subtitle">{story.subtitle}</p>
+        <p className="story-subtitle">
+          <RenderText parts={story.subtitle} />
+        </p>
 
-        {/* Дополнительный текст (только для первого слайда) */}
+        {/* Дополнительный текст */}
         {story.additionalText && (
-          <p className="story-additional-text">{story.additionalText}</p>
+          <p className="story-additional-text">
+            <RenderText parts={story.additionalText} />
+          </p>
         )}
 
         {/* Отступ */}
@@ -270,7 +314,6 @@ export default function StoriesPage() {
           box-sizing: border-box;
         }
 
-        /* Фоновое изображение */
         .story-background-image {
           position: absolute;
           pointer-events: none;
@@ -289,7 +332,6 @@ export default function StoriesPage() {
           opacity: 0.8;
         }
 
-        /* Прогресс-бары */
         .progress-bars {
           display: flex;
           flex-direction: row;
@@ -317,7 +359,6 @@ export default function StoriesPage() {
           transition: width 0.05s linear;
         }
 
-        /* Контент */
         .story-content {
           display: flex;
           flex-direction: column;
@@ -327,7 +368,6 @@ export default function StoriesPage() {
           z-index: 5;
         }
 
-        /* Заголовок */
         .story-header {
           display: flex;
           flex-direction: column;
@@ -351,7 +391,6 @@ export default function StoriesPage() {
           margin: 0;
         }
 
-        /* Подзаголовок */
         .story-subtitle {
           width: 100%;
           max-width: 293px;
@@ -365,7 +404,6 @@ export default function StoriesPage() {
           margin: 16px 0 0 0;
         }
 
-        /* Дополнительный текст */
         .story-additional-text {
           width: 100%;
           max-width: 269px;
@@ -379,13 +417,11 @@ export default function StoriesPage() {
           margin: 16px 0 0 0;
         }
 
-        /* Отступ */
         .story-spacer {
           flex: 1;
           min-height: 100px;
         }
 
-        /* Кнопка */
         .story-button {
           display: flex;
           flex-direction: row;
@@ -437,7 +473,6 @@ export default function StoriesPage() {
           border-radius: 1px;
         }
 
-        /* Адаптивность */
         @media (max-width: 375px) {
           .story-title {
             font-size: 32px;
@@ -457,6 +492,13 @@ export default function StoriesPage() {
           .story-spacer {
             min-height: 200px;
           }
+        }
+      `}</style>
+
+      <style jsx global>{`
+        .highlight-text {
+          color: #FF3F3F;
+          font-weight: 500;
         }
       `}</style>
     </div>

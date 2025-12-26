@@ -53,6 +53,14 @@ try {
   // Поле уже существует
 }
 
+// Добавляем поле has_seen_stories если его нет
+try {
+  db.exec(`ALTER TABLE users ADD COLUMN has_seen_stories INTEGER DEFAULT 0`);
+  console.log('✅ Добавлено поле has_seen_stories');
+} catch {
+  // Поле уже существует
+}
+
 // Таблица лотов (аукционы)
 db.exec(`
   CREATE TABLE IF NOT EXISTS Lots (
@@ -608,6 +616,7 @@ console.log('   ✅ Розыгрыши (lotteries, lottery_entries)');
 console.log('   ✅ Магазин (shop_items, purchase_history)');
 console.log('   ✅ Навигация (navigation_items)');
 console.log('   ✅ Лимиты (daily_limits)');
+console.log('   ✅ Онбординг-сторис (has_seen_stories)');
 console.log('');
 console.log('💎 Система наград готова к работе!');
 console.log('');

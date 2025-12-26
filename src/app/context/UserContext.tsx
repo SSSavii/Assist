@@ -1,5 +1,3 @@
-// src/app/context/UserContext.tsx
-
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
@@ -54,6 +52,7 @@ export interface UserProfile {
   invite_milestones?: InviteMilestone[];
   has_spun_before?: boolean;
   calendar?: CalendarStatus;
+  has_seen_stories?: boolean;
 }
 
 interface UserContextType {
@@ -66,6 +65,7 @@ interface UserContextType {
   addCompletedTask: (task: CompletedTask) => void;
   updateCalendar: (updates: Partial<CalendarStatus>) => void;
   setLoading: (loading: boolean) => void;
+  markStoriesAsSeen: () => Promise<void>;
 }
 
 // ============================================
@@ -169,6 +169,27 @@ export function UserProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  // Отметка просмотра сторис
+  const markStoriesAsSeen = useCallback(async () => {
+    const tg = window.Telegram?.WebApp;
+    if (!tg?.initData || !user) return;
+
+    try {
+      const response = await fetch('/api/user/seen-stories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: tg.initData }),
+      });
+
+      if (response.ok) {
+        setUser(prev => prev ? { ...prev, has_seen_stories: true } : null);
+        console.log('✅ Stories marked as seen');
+      }
+    } catch (error) {
+      console.error('Error marking stories as seen:', error);
+    }
+  }, [user]);
+
   // Инициализация Telegram WebApp и загрузка пользователя
   useEffect(() => {
     if (initialized) return;
@@ -194,7 +215,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
       updateUser,
       addCompletedTask,
       updateCalendar,
-      setLoading
+      setLoading,
+      markStoriesAsSeen
     }}>
       {children}
     </UserContext.Provider>
