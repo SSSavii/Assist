@@ -132,7 +132,23 @@ const STORIES: StorySlide[] = [
   },
 ];
 
-const SLIDE_DURATION = 5000; // 5 секунд на слайд
+const SLIDE_DURATION = 5000;
+
+// Собираем все изображения для прелоада
+const ALL_STORY_IMAGES = STORIES.flatMap(story => story.images.map(img => img.src));
+
+// Функция предзагрузки изображений
+const preloadImages = (imageUrls: string[]): Promise<void[]> => {
+  const promises = imageUrls.map((url) => {
+    return new Promise<void>((resolve) => {
+      const img = new window.Image();
+      img.src = url;
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+    });
+  });
+  return Promise.all(promises);
+};
 
 // ============================================
 // ВСПОМОГАТЕЛЬНЫЙ КОМПОНЕНТ ДЛЯ ТЕКСТА
@@ -162,6 +178,14 @@ export default function StoriesPage() {
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+
+  // Предзагрузка изображений
+  useEffect(() => {
+    preloadImages(ALL_STORY_IMAGES).then(() => {
+      setImagesLoaded(true);
+    });
+  }, []);
 
   const goToNextSlide = useCallback(() => {
     if (currentSlide < STORIES.length - 1) {
@@ -174,7 +198,8 @@ export default function StoriesPage() {
 
   // Автопрокрутка с прогресс-баром
   useEffect(() => {
-    if (isPaused) return;
+    // Не запускаем таймер пока изображения не загружены
+    if (isPaused || !imagesLoaded) return;
 
     const progressInterval = setInterval(() => {
       setProgress(prev => {
@@ -188,7 +213,7 @@ export default function StoriesPage() {
     }, 50);
 
     return () => clearInterval(progressInterval);
-  }, [currentSlide, isPaused, goToNextSlide]);
+  }, [currentSlide, isPaused, goToNextSlide, imagesLoaded]);
 
   // Пауза при удержании
   const handleTouchStart = () => setIsPaused(true);
@@ -207,6 +232,43 @@ export default function StoriesPage() {
     3: '⭐',
     4: '📄',
   };
+
+  // Показываем загрузку пока изображения не загружены
+  if (!imagesLoaded) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Загрузка...</p>
+        <style jsx>{`
+          .loading-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(165.16deg, #F8F8F9 31.47%, #E2E0E7 72.98%);
+            font-family: 'Cera Pro', sans-serif;
+            color: #666666;
+            gap: 16px;
+          }
+          
+          .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #FF3F3F;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          }
+          
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div 

@@ -132,6 +132,22 @@ const STORIES: StorySlide[] = [
 
 const SLIDE_DURATION = 5000;
 
+// Собираем все изображения для прелоада
+const ALL_STORY_IMAGES = STORIES.flatMap(story => story.images.map(img => img.src));
+
+// Функция предзагрузки изображений
+const preloadImages = (imageUrls: string[]): Promise<void[]> => {
+  const promises = imageUrls.map((url) => {
+    return new Promise<void>((resolve) => {
+      const img = new window.Image();
+      img.src = url;
+      img.onload = () => resolve();
+      img.onerror = () => resolve(); // Resolve даже при ошибке
+    });
+  });
+  return Promise.all(promises);
+};
+
 function RenderText({ parts }: { parts: TextPart[] }) {
   return (
     <>
@@ -151,6 +167,14 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+
+  // Предзагрузка изображений
+  useEffect(() => {
+    preloadImages(ALL_STORY_IMAGES).then(() => {
+      setImagesLoaded(true);
+    });
+  }, []);
 
   const goToNextSlide = useCallback(() => {
     if (currentSlide < STORIES.length - 1) {
@@ -162,7 +186,8 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
   }, [currentSlide, onComplete]);
 
   useEffect(() => {
-    if (isPaused) return;
+    // Не запускаем таймер пока изображения не загружены
+    if (isPaused || !imagesLoaded) return;
 
     const progressInterval = setInterval(() => {
       setProgress(prev => {
@@ -176,7 +201,7 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
     }, 50);
 
     return () => clearInterval(progressInterval);
-  }, [currentSlide, isPaused, goToNextSlide]);
+  }, [currentSlide, isPaused, goToNextSlide, imagesLoaded]);
 
   const handleTouchStart = () => setIsPaused(true);
   const handleTouchEnd = () => setIsPaused(false);
@@ -193,6 +218,49 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
     3: '⭐',
     4: '📄',
   };
+
+  // Показываем загрузку пока изображения не загружены
+  if (!imagesLoaded) {
+    return (
+      <div className="stories-overlay" style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        background: 'linear-gradient(165.16deg, #F8F8F9 31.47%, #E2E0E7 72.98%)'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="loading-spinner" style={{
+            width: '40px',
+            height: '40px',
+            border: '3px solid #f3f3f3',
+            borderTop: '3px solid #FF3F3F',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 16px'
+          }} />
+          <p style={{ 
+            fontFamily: "'Cera Pro', sans-serif", 
+            color: '#666',
+            margin: 0 
+          }}>Загрузка...</p>
+        </div>
+        <style jsx>{`
+          .stories-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 9999;
+          }
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div 
