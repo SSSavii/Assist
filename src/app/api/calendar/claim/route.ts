@@ -13,9 +13,9 @@ const ADVENT_PRIZES: Record<number, { fileName: string; title: string }> = {
   24: { fileName: 'Как_подготовить_информатвную_презентацию.pdf', title: 'Как подготовить информативную презентацию' },
   25: { fileName: 'Подборки_нейросетей_для_работы.pdf', title: 'Подборки нейросетей для работы' },
   26: { fileName: 'Топ_книг_для_развития_бизнес_мышления.pdf', title: 'Топ книг для развития бизнес мышления' },
-  27: { fileName: 'advent_day_27.pdf', title: 'Подарок 27 декабря' },
-  28: { fileName: 'advent_day_28.pdf', title: 'Подарок 28 декабря' },
-  29: { fileName: 'advent_day_29.pdf', title: 'Подарок 29 декабря' },
+  27: { fileName: 'Приложения_и_сервисы_для_продуктивности.pdf', title: 'Приложения и сервисы для продуктивности' },
+  28: { fileName: 'Как_брать_обратную_связь.pdf', title: 'Как брать обратную связь' },
+  29: { fileName: 'Промты_для_ChatGPT.pdf', title: 'Промты для ChatGPT' },
   30: { fileName: 'advent_day_30.pdf', title: 'Подарок 30 декабря' },
 };
 
