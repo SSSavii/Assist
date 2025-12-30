@@ -48,10 +48,10 @@ const STORIES: StorySlide[] = [
       {
         src: '/stories/gift.png',
         style: {
-          width: '397.64px',
           height: '397.64px',
-          left: '56.14px',
-          top: '303.52px',
+          left: '15%',
+          right: '-21%',
+          top: 'calc(50% - 117px)',
         },
       },
     ],
@@ -71,7 +71,7 @@ const STORIES: StorySlide[] = [
           width: '506px',
           height: '506px',
           left: '18px',
-          top: '256px',
+          top: 'calc(50% - 150px)',
         },
       },
     ],
@@ -91,8 +91,8 @@ const STORIES: StorySlide[] = [
         style: {
           width: '427.98px',
           height: '427.98px',
-          left: '-92px',
-          top: '311.55px',
+          left: 'calc(50% - 279.5px)',
+          top: 'calc(50% - 94px)',
         },
       },
       {
@@ -100,8 +100,8 @@ const STORIES: StorySlide[] = [
         style: {
           width: '199.99px',
           height: '199.99px',
-          left: '193.08px',
-          top: '291px',
+          left: 'calc(50% + 5.5px)',
+          top: 'calc(50% - 115px)',
         },
         blur: true,
       },
@@ -120,10 +120,10 @@ const STORIES: StorySlide[] = [
       {
         src: '/stories/paper.png',
         style: {
-          width: '430.46px',
-          height: '430.46px',
-          left: '-89px',
-          top: '219px',
+          width: '520px',
+          height: '520px',
+          left: '-110px',
+          top: 'calc(50% - 80px)',
         },
       },
     ],
@@ -209,7 +209,6 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
   const handleTouchStart = () => setIsPaused(true);
   const handleTouchEnd = () => setIsPaused(false);
 
-  // Обработка клика по левой/правой части экрана
   const handleAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -302,7 +301,6 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
               src={image.src} 
               alt="" 
               onError={() => handleImageError(image.src)}
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
             />
           )}
         </div>
@@ -389,6 +387,12 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
           justify-content: center;
         }
 
+        .story-background-image img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+
         .story-background-image.blurred {
           filter: blur(2px);
         }
@@ -447,7 +451,7 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
 
         .story-title {
           width: 100%;
-          max-width: 341px;
+          max-width: 335px;
           font-family: 'Cera Pro', sans-serif;
           font-style: normal;
           font-weight: 400;
@@ -460,7 +464,7 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
 
         .story-subtitle {
           width: 100%;
-          max-width: 293px;
+          max-width: 248px;
           font-family: 'Cera Pro', sans-serif;
           font-style: normal;
           font-weight: 300;
