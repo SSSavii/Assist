@@ -122,8 +122,8 @@ const STORIES: StorySlide[] = [
         style: {
           width: '520px',
           height: '520px',
-          left: '-110px',
-          top: 'calc(50% - 80px)',
+          left: 'calc(15% - 60px)',
+          top: 'calc(35% - 80px)',
         },
       },
     ],
@@ -157,6 +157,15 @@ function RenderText({ parts }: { parts: TextPart[] }) {
         )
       ))}
     </>
+  );
+}
+
+// Компонент стрелки
+function ArrowIcon() {
+  return (
+    <svg width="31" height="15" viewBox="0 0 31 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M30.7071 8.07112C31.0976 7.6806 31.0976 7.04743 30.7071 6.65691L24.3431 0.292946C23.9526 -0.0975785 23.3195 -0.0975785 22.9289 0.292946C22.5384 0.68347 22.5384 1.31664 22.9289 1.70716L28.5858 7.36401L22.9289 13.0209C22.5384 13.4114 22.5384 14.0446 22.9289 14.4351C23.3195 14.8256 23.9526 14.8256 24.3431 14.4351L30.7071 8.07112ZM0 7.36401V8.36401H30V7.36401V6.36401H0V7.36401Z" fill="white"/>
+    </svg>
   );
 }
 
@@ -350,7 +359,7 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
         >
           <div className="button-content">
             <span className="button-text">{story.buttonText}</span>
-            <div className="button-arrow" />
+            <ArrowIcon />
           </div>
         </button>
       </div>
@@ -536,13 +545,6 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
           line-height: 100%;
           letter-spacing: -0.05em;
           color: #FFFFFF;
-        }
-
-        .button-arrow {
-          width: 30px;
-          height: 2px;
-          background: #FFFFFF;
-          border-radius: 1px;
         }
 
         @media (max-width: 375px) {
