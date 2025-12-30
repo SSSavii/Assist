@@ -132,17 +132,15 @@ const STORIES: StorySlide[] = [
 
 const SLIDE_DURATION = 5000;
 
-// Собираем все изображения для прелоада
 const ALL_STORY_IMAGES = STORIES.flatMap(story => story.images.map(img => img.src));
 
-// Функция предзагрузки изображений
 const preloadImages = (imageUrls: string[]): Promise<void[]> => {
   const promises = imageUrls.map((url) => {
     return new Promise<void>((resolve) => {
       const img = new window.Image();
       img.src = url;
       img.onload = () => resolve();
-      img.onerror = () => resolve(); // Resolve даже при ошибке
+      img.onerror = () => resolve();
     });
   });
   return Promise.all(promises);
@@ -169,7 +167,6 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [imagesLoaded, setImagesLoaded] = useState(false);
 
-  // Предзагрузка изображений
   useEffect(() => {
     preloadImages(ALL_STORY_IMAGES).then(() => {
       setImagesLoaded(true);
@@ -185,8 +182,14 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
     }
   }, [currentSlide, onComplete]);
 
+  const goToPrevSlide = useCallback(() => {
+    if (currentSlide > 0) {
+      setCurrentSlide(prev => prev - 1);
+      setProgress(0);
+    }
+  }, [currentSlide]);
+
   useEffect(() => {
-    // Не запускаем таймер пока изображения не загружены
     if (isPaused || !imagesLoaded) return;
 
     const progressInterval = setInterval(() => {
@@ -206,6 +209,19 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
   const handleTouchStart = () => setIsPaused(true);
   const handleTouchEnd = () => setIsPaused(false);
 
+  // Обработка клика по левой/правой части экрана
+  const handleAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const width = rect.width;
+    
+    if (x < width / 2) {
+      goToPrevSlide();
+    } else {
+      goToNextSlide();
+    }
+  };
+
   const handleImageError = (src: string) => {
     setImageErrors(prev => ({ ...prev, [src]: true }));
   };
@@ -219,7 +235,6 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
     4: '📄',
   };
 
-  // Показываем загрузку пока изображения не загружены
   if (!imagesLoaded) {
     return (
       <div className="stories-overlay" style={{ 
@@ -270,6 +285,7 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
       onMouseLeave={handleTouchEnd}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      onClick={handleAreaClick}
     >
       {story.images.map((image, index) => (
         <div 
@@ -351,8 +367,8 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
           display: flex;
           flex-direction: column;
           align-items: flex-start;
-          padding: 48px 16px 32px;
-          padding-top: calc(48px + env(safe-area-inset-top));
+          padding: 16px 16px 32px;
+          padding-top: calc(16px + env(safe-area-inset-top));
           padding-bottom: calc(32px + env(safe-area-inset-bottom));
           gap: 16px;
           isolation: isolate;
@@ -416,6 +432,7 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
           width: 100%;
           flex: 1;
           z-index: 5;
+          pointer-events: none;
         }
 
         .story-header {
@@ -491,6 +508,7 @@ export default function OnboardingStories({ onComplete }: OnboardingStoriesProps
           cursor: pointer;
           transition: transform 0.1s ease;
           -webkit-tap-highlight-color: transparent;
+          pointer-events: auto;
         }
 
         .story-button:active {

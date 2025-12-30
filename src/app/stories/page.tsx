@@ -134,10 +134,8 @@ const STORIES: StorySlide[] = [
 
 const SLIDE_DURATION = 5000;
 
-// Собираем все изображения для прелоада
 const ALL_STORY_IMAGES = STORIES.flatMap(story => story.images.map(img => img.src));
 
-// Функция предзагрузки изображений
 const preloadImages = (imageUrls: string[]): Promise<void[]> => {
   const promises = imageUrls.map((url) => {
     return new Promise<void>((resolve) => {
@@ -149,10 +147,6 @@ const preloadImages = (imageUrls: string[]): Promise<void[]> => {
   });
   return Promise.all(promises);
 };
-
-// ============================================
-// ВСПОМОГАТЕЛЬНЫЙ КОМПОНЕНТ ДЛЯ ТЕКСТА
-// ============================================
 
 function RenderText({ parts }: { parts: TextPart[] }) {
   return (
@@ -168,10 +162,6 @@ function RenderText({ parts }: { parts: TextPart[] }) {
   );
 }
 
-// ============================================
-// КОМПОНЕНТ СТРАНИЦЫ
-// ============================================
-
 export default function StoriesPage() {
   const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -180,7 +170,6 @@ export default function StoriesPage() {
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [imagesLoaded, setImagesLoaded] = useState(false);
 
-  // Предзагрузка изображений
   useEffect(() => {
     preloadImages(ALL_STORY_IMAGES).then(() => {
       setImagesLoaded(true);
@@ -196,9 +185,14 @@ export default function StoriesPage() {
     }
   }, [currentSlide, router]);
 
-  // Автопрокрутка с прогресс-баром
+  const goToPrevSlide = useCallback(() => {
+    if (currentSlide > 0) {
+      setCurrentSlide(prev => prev - 1);
+      setProgress(0);
+    }
+  }, [currentSlide]);
+
   useEffect(() => {
-    // Не запускаем таймер пока изображения не загружены
     if (isPaused || !imagesLoaded) return;
 
     const progressInterval = setInterval(() => {
@@ -215,9 +209,22 @@ export default function StoriesPage() {
     return () => clearInterval(progressInterval);
   }, [currentSlide, isPaused, goToNextSlide, imagesLoaded]);
 
-  // Пауза при удержании
   const handleTouchStart = () => setIsPaused(true);
   const handleTouchEnd = () => setIsPaused(false);
+
+  // Обработка клика по левой/правой части экрана
+  const handleAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const width = rect.width;
+    
+    // Левая половина - назад, правая - вперёд
+    if (x < width / 2) {
+      goToPrevSlide();
+    } else {
+      goToNextSlide();
+    }
+  };
 
   const handleImageError = (src: string) => {
     setImageErrors(prev => ({ ...prev, [src]: true }));
@@ -225,7 +232,6 @@ export default function StoriesPage() {
 
   const story = STORIES[currentSlide];
 
-  // Эмодзи-заглушки для изображений
   const fallbackEmojis: Record<number, string> = {
     1: '🎁',
     2: '📁',
@@ -233,7 +239,6 @@ export default function StoriesPage() {
     4: '📄',
   };
 
-  // Показываем загрузку пока изображения не загружены
   if (!imagesLoaded) {
     return (
       <div className="loading-container">
@@ -278,6 +283,7 @@ export default function StoriesPage() {
       onMouseLeave={handleTouchEnd}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      onClick={handleAreaClick}
     >
       {/* Фоновые изображения */}
       {story.images.map((image, index) => (
@@ -322,27 +328,22 @@ export default function StoriesPage() {
 
       {/* Контент */}
       <div className="story-content">
-        {/* Заголовок */}
         <div className="story-header">
           <h1 className="story-title">{story.title}</h1>
         </div>
 
-        {/* Подзаголовок */}
         <p className="story-subtitle">
           <RenderText parts={story.subtitle} />
         </p>
 
-        {/* Дополнительный текст */}
         {story.additionalText && (
           <p className="story-additional-text">
             <RenderText parts={story.additionalText} />
           </p>
         )}
 
-        {/* Отступ */}
         <div className="story-spacer" />
 
-        {/* Кнопка */}
         <button 
           className="story-button"
           onClick={(e) => {
@@ -362,7 +363,7 @@ export default function StoriesPage() {
           display: flex;
           flex-direction: column;
           align-items: flex-start;
-          padding: 48px 16px 32px;
+          padding: 16px 16px 32px;
           gap: 16px;
           isolation: isolate;
           position: relative;
@@ -428,6 +429,7 @@ export default function StoriesPage() {
           width: 100%;
           flex: 1;
           z-index: 5;
+          pointer-events: none;
         }
 
         .story-header {
@@ -503,6 +505,7 @@ export default function StoriesPage() {
           cursor: pointer;
           transition: transform 0.1s ease;
           -webkit-tap-highlight-color: transparent;
+          pointer-events: auto;
         }
 
         .story-button:active {
