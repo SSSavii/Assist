@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from 'wxqryy/lib/db'; 
+import db from '@/lib/db'; 
 import { URLSearchParams } from 'url';
 import { createHmac } from 'crypto';
 

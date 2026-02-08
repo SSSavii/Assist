@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from 'wxqryy/lib/db'; // Используем наше синглтон-подключение
+import db from '@/lib/db'; // Используем наше синглтон-подключение
 import { URLSearchParams } from 'url';
 import { createHmac } from 'crypto';
 

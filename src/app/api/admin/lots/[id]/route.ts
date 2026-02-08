@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import db from 'wxqryy/lib/db';
-import { withAdminAuth } from 'wxqryy/lib/adminAuth';
+import db from '@/lib/db';
+import { withAdminAuth } from '@/lib/adminAuth';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
 export const PATCH = withAdminAuth(async (request: any, context: any) => {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { URLSearchParams } from 'url';
 import { createHmac } from 'crypto';
-import db from 'wxqryy/lib/db';
+import db from '@/lib/db';
 
 const PRIZES = [
     { name: 'Чек-лист', chance: 91, type: 'checklist' },
