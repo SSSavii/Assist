@@ -979,25 +979,25 @@ export default function HomePage() {
         <style jsx>{`
           .app-wrapper {
             position: relative;
-            min-height: 100vh;
-            min-height: -webkit-fill-available;
+            min-height: auto;
+            min-height: auto;
             background-color: #FFFFFF;
             width: 100%;
             max-width: 100vw;
-            overflow-x: hidden;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            /* overflow-x: hidden; */
+            /* overflow-y: auto; */
+            /* -webkit-overflow-scrolling: touch; */
           }
 
           .main-container {
             width: 100%;
             display: flex;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior-y: contain;
-            min-height: 100vh;
-            min-height: -webkit-fill-available;
+            /* overflow-y: auto; */
+            /* overflow-x: hidden; */
+            /* -webkit-overflow-scrolling: touch; */
+            /* overscroll-behavior-y: contain; */
+            min-height: auto;
+            min-height: auto;
             align-items: center;
             flex-direction: column;
             background-color: #FFFFFF;
